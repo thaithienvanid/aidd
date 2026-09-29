@@ -4,7 +4,7 @@
   "description": "The Node tools CI runs (plugin validation, the Mermaid check, and the agent evals), locked so `npm ci` installs exactly them and Dependabot can bump them.",
   "devDependencies": {
     "@anthropic-ai/claude-code": "2.1.283",
-    "jsdom": "25.0.1",
-    "mermaid": "11.17.2"
+    "jsdom": "30.1.1",
+    "mermaid": "12.0.0"
   }
 }
