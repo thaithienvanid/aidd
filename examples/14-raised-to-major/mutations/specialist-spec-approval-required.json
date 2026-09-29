@@ -1,0 +1,27 @@
+{
+  "summary": "With specialist Spec approval on, a major Spec also waits for the security pool's approval of its hash.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "[owners]\n",
+      "new": "[gates]\nspecialist_spec_approval = true\n\n[owners]\n"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "specialist_review"
+    ],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "pending specialist_review.missing",
+      "pending specialist_review.spec_missing",
+      "warn route.raised_to_major",
+      "warn route.undeclared_dimensions"
+    ]
+  }
+}

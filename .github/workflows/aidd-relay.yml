@@ -1,0 +1,17 @@
+# Relays review events to aidd-gate through workflow_run (see templates/github/aidd-relay.yml).
+name: aidd-relay
+
+on:
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+
+permissions: {}
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          PR: ${{ github.event.pull_request.number }}
+        run: echo "review changed on PR $PR; aidd-gate re-evaluates"

@@ -1,0 +1,22 @@
+{
+  "summary": "A config that declares a newer aidd version than the verifier still passes, with a warning to upgrade the pins together.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "aidd_version = \"1.0.0\"",
+      "new": "aidd_version = \"1.999.0\""
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "config"
+    ],
+    "findings": [
+      "warn config.newer_version"
+    ]
+  }
+}

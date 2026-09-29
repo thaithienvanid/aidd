@@ -1,0 +1,27 @@
+{
+  "summary": "An agent or bot cannot command an emergency.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "commander = \"@oncall-lead\"",
+      "new": "commander = \"@claude[bot]\""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "emergency"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "fail emergency.commander_is_agent",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

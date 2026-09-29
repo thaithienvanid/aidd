@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:runbook",
+  "title": "Runbook",
+  "description": "An operational procedure for one service, written before it is needed and tested on a schedule. It lives in docs/runbooks/<id>.md; `aidd doctor` warns when `last_tested` is older than `runbook_max_age_days`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aidd_version",
+    "kind",
+    "id",
+    "title",
+    "service",
+    "owner_team",
+    "status"
+  ],
+  "properties": {
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version"
+    },
+    "kind": {
+      "const": "runbook",
+      "description": "Object kind. Always `runbook`."
+    },
+    "id": {
+      "$ref": "urn:aidd:1:common#/$defs/id"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "One line: what the procedure does, such as \"Fail over the orders database\"."
+    },
+    "service": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The service or system the runbook operates."
+    },
+    "owner_team": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The team that keeps the runbook current and answers its escalation."
+    },
+    "last_tested": {
+      "$ref": "urn:aidd:1:common#/$defs/date",
+      "description": "The day a person last ran the procedure end to end, in a drill or for real. Absent means never tested."
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "active",
+        "retired"
+      ],
+      "description": "draft: written, not yet trusted. active: the procedure on-call follows. retired: kept for history; `aidd doctor` no longer checks its age."
+    }
+  }
+}

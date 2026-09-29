@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "Minor docs fix",
+  "summary": "A typo fix: minor route, inline block, one Approver, the repo suite green on head."
+}

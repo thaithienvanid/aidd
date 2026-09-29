@@ -1,0 +1,42 @@
+# aidd-team
+
+An optional Claude Code plugin that runs the [AIDD](https://github.com/thaithienvanid/aidd#readme) loop as a delivery team. <!-- aidd:gen count:roles -->15<!-- aidd:end --> agent roles, each with a standard industry name, apply their discipline's standards and write only their own files. It needs the core `aidd` plugin (the skill, the MCP server, and the edit-time hook).
+
+```text
+/plugin marketplace add thaithienvanid/aidd
+/plugin install aidd@aidd
+/plugin install aidd-team@aidd
+```
+
+<!-- aidd:gen roles -->
+| Role | Loop steps | Industry name | May write | Hands off |
+| --- | --- | --- | --- | --- |
+| `product-manager` | Plan (spec lane) | product manager; product management (SAFe), head of product | the Specs folder, the proposals folder | An Initiative, Epics, and INVEST Spec stubs that a human agrees to before any Spec is filled in. |
+| `architect` | Plan, Specify, Implement (spec lane) | software architect; tech lead | the active Spec, the proposals folder, and `docs/adr/**`, `docs/decisions/**`, `docs/architecture/**` once a Task's scope covers them, after Spec approval | A Spec with scope, Tasks, risk, rollback, and design decided; Acceptance and tests left to the tester. |
+| `product-designer` | Plan, Specify, Review (spec lane) | product designer; UX designer, interaction designer | the active Spec, its design files, the proposals folder | The prototype, the flow diagram, and the accessibility notes in `design.files`, and the design review of the built UI. Product code never imports the prototype: the developer builds the real thing, and the tester writes the tests. |
+| `security-engineer` | Plan, Specify, Implement, Review (spec, emergency lanes) | application security engineer (OWASP) | the proposals folder, and `docs/security/**` once a Task's scope covers them, after Spec approval | A threat model and the ASVS requirements in the security return template, for the architect to fold into the Spec, security tests for the tester, and findings for the human reviewer from the security pool. |
+| `compliance-analyst` | Plan, Specify, Implement, Ship (spec, emergency lanes) | GRC analyst; privacy engineer, compliance analyst | the proposals folder, and `docs/compliance/**` once a Task's scope covers them, after Spec approval | Obligations and controls in the compliance return template, for the architect to fold into the Spec, a DPIA when required, and an evidence map for the audit; the human reviewer from the compliance or privacy pool decides. |
+| `tester` | Specify (spec lane) | tester (ISTQB); QA engineer, SDET | the active Spec, its test files | Test files and the Spec's Acceptance and `[tests]`, each new-behavior test seen failing on base; `aidd validate` reports 0 errors. |
+| `developer` | Implement (fast, spec, emergency lanes) | software engineer; developer | its Tasks' scope | Small Conventional Commits on the same PR/MR, and green `aidd test` output. |
+| `ml-engineer` | Implement (spec, emergency lanes) | machine learning engineer; AI engineer | its Tasks' scope | The AI change and its eval results against the Spec's thresholds, in small commits on the same PR/MR, and green `aidd test` output. |
+| `data-engineer` | Implement (fast, spec, emergency lanes) | data engineer; database engineer, analytics engineer | its Tasks' scope | Migrations, pipelines, and events in small commits on the same PR/MR, with the migration's rollback tested, and green `aidd test` output. |
+| `platform-engineer` | Implement, Ship (fast, spec, emergency lanes) | platform engineer; DevOps engineer, infrastructure engineer | its Tasks' scope | Small commits on the same PR/MR, a plan or dry-run for the Approver, and green `aidd test` output. |
+| `tech-writer` | Plan, Implement (fast, spec, emergency lanes) | technical writer; developer advocate | `docs/**`, `README.md`, `CHANGELOG.md` inside the change's scope, and the proposals folder | Documentation, changelog, and migration notes inside the Task's scope. |
+| `verifier` | Verify (fast, spec, emergency lanes) | verification engineer; acceptance tester, QA engineer | nothing (read-only) | A verification report that starts with the harness and the model it ran on and the head SHA it checked: each command run, what was seen, and each mismatch with an Acceptance line, for the author to post and the reviewer to read. |
+| `reviewer` | Review (fast, spec, emergency lanes) | code reviewer | nothing (read-only) | Ranked findings with evidence, starting with the harness and the model it ran on, for the author to post and the Approver to weigh. |
+| `sre` | Plan, Specify, Implement, Ship, Learn (fast, spec, emergency lanes) | site reliability engineer (Google SRE) | the proposals folder, and `docs/runbooks/**`, `docs/postmortems/**` once a Task's scope covers them, after Spec approval | An observe block with an SLO-based rollback trigger, in the SRE return template, for the architect to fold into the Spec; a runbook; observe results and the postmortem link for the author to record in the Spec's `outcome`. |
+| `agile-coach` | Learn (fast, spec, emergency lanes) | agile coach; developer-experience lead, flow coach | the Specs folder, and `docs/retros/**`, `docs/rfcs/**` inside the change's scope | A retrospective in `docs/retros/`, improvement Spec stubs for the repository, and RFC drafts for changes to the method; humans choose what to adopt. |
+<!-- aidd:end -->
+
+Humans keep every decision: who approves a Spec and a change, who reviews high-risk work, who runs an incident, and who directs the team.
+
+<!-- aidd:gen roles:commands -->
+- **Commands:** `/aidd-team:plan`, `/aidd-team:propose`, `/aidd-team:onboard`, `/aidd-team:specify`, `/aidd-team:implement`, `/aidd-team:verify`, `/aidd-team:review`, `/aidd-team:sweep`, `/aidd-team:secure`, `/aidd-team:ship`, `/aidd-team:postmortem`, `/aidd-team:retro`; one per flow in the registry, each running its roles in order and stopping where a person decides.
+<!-- aidd:end -->
+- **Know-how:** each role carries its discipline's standards, loads a pack for every domain the change touches, and a playbook for the kind of work in a Task (up to two, named in its `skills`); everything carries a checked date, and `aidd eval standards` fails on a standard nobody re-checked within a year ([docs/TEAM.md](https://github.com/thaithienvanid/aidd/blob/main/docs/TEAM.md)).
+- **Extensions:** each role names the skills, plugins, and MCP servers that extend it; any other is added the same way, verified and pinned, through a change.
+- **Guard, not a control:** the aidd plugin's hook reads each subagent's `agent_type` and denies an edit outside that role's area (the developer cannot edit a spec-lane test file), any edit from a subagent that is not a role, `gh pr review --approve`, `gh pr merge`, `glab mr approve|merge`, and a command that carries `/aidd approve`. It also holds a role's obvious shell writes (redirects, `tee`, `sed -i`, `cp`, `mv`, `git apply`, `patch`) to the same area, by best-effort parsing: a write through an interpreter or a build tool is not seen, so the gate's scope rule on the real diff is what decides. Without the aidd plugin (or `aidd init --agent-hooks`) there is no hook, and the roles only follow their instructions.
+- **Without the plugin:** `aidd init --team` installs the roles, packs, practice skills, and commands as Claude Code project files named `aidd-<name>` (`.claude/agents/aidd-developer.md`, `/aidd-implement`), so none collides with a built-in or your own agent. For Codex, GitHub Copilot, OpenCode, and Kiro it also writes each role as that agent's own agent file, and `AGENTS.md` gets a short section that points at them. Outside Claude Code the team is advisory: no hook checks a role's writes, and the gate decides.
+- **Model tiers:** each role carries a harness-neutral `tier` that follows the cost of its mistakes, with the reason in its agent file: `execution` by default, which inherits the session's model because the tests, the gate, or a human catch the role's mistakes; `reasoning` only for the architect, the security engineer, and the reviewer, whose judgment no test checks. A role moves up only on eval evidence. The Claude Code plugin derives `model:` from the tier (`resources.tier_model`: `inherit` or a model alias); on any other harness, read the tier and pick your own model. Change `model:` in a copied agent file when your own evals say so.
+
+Roles are defined once, in `schemas/roles.json`; the tables here and each agent's role block are generated from it.

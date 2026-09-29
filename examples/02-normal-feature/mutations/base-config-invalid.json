@@ -1,0 +1,22 @@
+{
+  "summary": "A base config that does not validate fails the gate instead of falling back to defaults.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "profile = \"team\"",
+      "new": "profile = \"startup\""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "config"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail config.invalid"
+    ]
+  }
+}

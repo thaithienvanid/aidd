@@ -1,0 +1,21 @@
+{
+  "summary": "The Merge approval stays bound to the pull request head: an approval of an earlier commit does not count in the queue either.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/reviews/0/commit_sha",
+      "value": "0000000000000000000000000000000000000abc"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending merge_approval.missing"
+    ]
+  }
+}

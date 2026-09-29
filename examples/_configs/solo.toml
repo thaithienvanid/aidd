@@ -1,0 +1,10 @@
+aidd_version = "1.0.0"
+profile = "solo"
+
+[owners]
+default_team = "me"
+approvers = ["van"]
+
+[[tests]]
+name = "unit"
+command = ["make", "test"]

@@ -1,0 +1,21 @@
+{
+  "summary": "The solo approval names a commit that is not the head: an approval binds to the exact commit it names, so it does not count for this head.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/comments/1/body",
+      "value": "/aidd approve b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending merge_approval.missing"
+    ]
+  }
+}

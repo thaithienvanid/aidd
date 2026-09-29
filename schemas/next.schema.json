@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:next",
+  "title": "aidd next --json",
+  "description": "What `aidd next --json` prints: an array of steps for one repository, or, given several repositories, an object of step arrays by path. The output carries no `schema_version` yet, because wrapping the array would break its readers; this schema's `$id` (urn:aidd:1) versions it, and a major release may wrap it.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/steps"
+    },
+    {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/steps"
+      }
+    }
+  ],
+  "$defs": {
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "step": {
+      "type": "object",
+      "required": [
+        "code",
+        "where",
+        "what",
+        "who",
+        "how"
+      ],
+      "description": "One step. Further keys (such as a Spec's `tasks`) may be added in a minor release; a consumer ignores keys it does not know.",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The kind of step, stable across wording changes, such as `spec.in_review`."
+        },
+        "where": {
+          "type": "string",
+          "description": "The file or place the step is about, such as a Spec's path; empty when none."
+        },
+        "what": {
+          "type": "string",
+          "description": "What is open, in a sentence."
+        },
+        "who": {
+          "type": "string",
+          "description": "Who acts next, in words: you, your agent, an approver, or another person."
+        },
+        "how": {
+          "type": "string",
+          "description": "How to do it: the command or action."
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "status"
+            ],
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The Task's id, or null when it has none."
+              },
+              "status": {
+                "type": "string",
+                "description": "ready, blocked, or done."
+              }
+            }
+          },
+          "description": "A Spec's Tasks with their state, for a coordinator that starts one agent per ready Task."
+        }
+      }
+    }
+  }
+}

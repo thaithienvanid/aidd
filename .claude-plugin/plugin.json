@@ -1,0 +1,36 @@
+{
+  "name": "aidd",
+  "version": "1.0.0",
+  "description": "AIDD, one loop from intent to production with change control at its core: route, specify, implement in scope, verify on SHA-bound evidence, ship on human approval.",
+  "author": {
+    "name": "Van Hoang"
+  },
+  "homepage": "https://github.com/thaithienvanid/aidd",
+  "repository": "https://github.com/thaithienvanid/aidd",
+  "license": "Apache-2.0",
+  "keywords": [
+    "spec-driven",
+    "change-control",
+    "ci",
+    "governance",
+    "agents"
+  ],
+  "skills": "./.agents/skills/",
+  "mcpServers": {
+    "aidd": {
+      "command": "python3",
+      "args": [
+        "-m",
+        "aidd",
+        "mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "${CLAUDE_PLUGIN_ROOT}/src"
+      }
+    }
+  },
+  "hooks": "./hooks/hooks.json",
+  "experimental": {
+    "evals": "evals/plugin"
+  }
+}

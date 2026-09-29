@@ -1,0 +1,98 @@
+# aidd binding. The gate reads this file from the base branch only, so a change to it takes effect on
+# the next PR, and a PR cannot loosen its own gate. Every change to it is major.
+# Field reference: references/config.md. Schema: config.schema.json in the aidd package.
+# A child config may only tighten: `_tighten` refuses every loosening direction, and `locks` binds a
+# parent against its children.
+aidd_version = "1.0.0"
+profile = "{{profile}}"   # solo, team, org, regulated. A child config may not pick a weaker profile.
+{{mode}}
+# locale = "vi"           # ticket titles and PR summaries only; declarative, the gate does not read it
+{{goal}}
+
+# An org baseline this config inherits from. A `path` is read from this repository at the base commit
+# and may not escape it. A `url` must be https and must carry its sha256, so a moved parent is a
+# failure rather than a silent change of policy. Five levels deep at most.
+# extends = [{ path = ".aidd/org-baseline.toml" }]
+# extends = [{ url = "https://example.com/aidd-baseline.toml", sha256 = "<64 hex>" }]
+
+# Paths this repository protects on top of the baseline in the aidd package (every CI, agent instruction,
+# and agent hook path it knows; `aidd doctor` lists them). A protected path is always major
+# and cannot be disabled. Protect what runs on somebody else's machine or decides what ships.
+# protected_paths = ["scripts/release/**"]
+
+# Paths exempt from the Task-scope rule, and paths excluded from the changed-line budget. A pattern
+# that matches every path is ignored with a warning, because either one would switch the rule off.
+# scope_exempt_paths = ["CHANGELOG.md"]
+budget_exclude_paths = [
+  "**/package-lock.json", "**/pnpm-lock.yaml", "**/yarn.lock", "**/go.sum", "**/Cargo.lock",
+  "**/poetry.lock", "**/uv.lock", "**/Gemfile.lock", "**/composer.lock",
+]
+
+# Turn a baseline rule off for paths where it does not apply. Only a `baseline:` rule, and a
+# catch-all pattern here is ignored with a warning for the same reason as above.
+# rule_exclusions = { "baseline:auth" = ["web/src/components/auth/**"] }
+
+[owners]
+# The `owner_team` that `aidd new` writes into a new Spec, Epic, or Initiative. Every Spec needs an
+# owner_team; without this default, `aidd new` writes a TODO that `aidd validate` flags until you name one.
+# default_team = "@org/team"
+
+# Who may approve. "@user", "@org/team", or "email:you@example.com" (local-first, with no platform: the
+# email your commits use). Required under every profile, solo too: an empty list fails every change and
+# `aidd doctor` reports it. Under solo the listed operator may approve their own change,
+# recorded as waived_solo with a cool-off on major; nobody outside the list may.
+approvers = {{approvers}}
+
+# Specialist reviewer pools: security, privacy, finance, compliance, data. A major change needs an
+# approval from each pool its reasons name; an unbound pool falls back to security (team and above).
+{{reviewers}}
+
+# [[owners.paths]]         # monorepos: this area also needs one of these approvers
+# paths = ["services/payments/**"]
+# approvers = ["@org/payments"]
+
+# The repository suite, run on every change. With none, each Spec brings its own (characterization).
+# `command` is a vector, one argument per item, never a shell string: the runner executes it with the
+# gate's credentials stripped from its environment.
+{{tests}}
+# timeout_seconds = 1800
+# when_changed = ["services/api/**"]   # optional: run only when these paths change
+
+# The Policy interface: org rules in any language, reading the change as JSON from the file named by
+# AIDD_INPUT_FILE and printing allow, deny, or freeze. It never sees the gate's credentials, and a freeze
+# passes only for route emergency. No command is `unbound`, which the profile decides; a command that
+# crashes, times out, or prints no verdict is `unreachable`, which counts as deny.
+{{policy}}
+
+# [observe]
+# command = ["./scripts/smoke"]
+
+[identities]
+# Accounts that are infrastructure, not people: they may author, and they are excluded from the
+# separation-of-duties check. Listing a person here does not exempt them from it.
+system_accounts = ["web-flow"]
+
+# Agent and bot accounts that implement. They are never Approvers, never an incident commander, and
+# their commits are never a standard change unless a [[standard_changes]] class names them.
+# An agent account missing from this list is the whole control: under solo, where separation of
+# duties is waived, this list and the `[bot]` suffix are what stop an agent from being named as the
+# commander of its own emergency. Keep it current as harnesses are added.
+bots = []
+
+# [gates]                 # may only tighten the profile
+# approvals = { major = 2 }
+
+# [[risk_rules]]          # raise the route and name the reviewer pool for paths the baseline misses
+# name = "payments"
+# paths = ["src/payments/**"]
+# route = "major"
+# dimensions = ["financial"]
+# reviewers = ["finance"]
+
+# [[standard_changes]]    # a pre-approved class: merges on green tests with no human approval, so
+# paths, authors, and max_changed_lines are all checked against the real diff, and a catch-all in
+# `paths` is ignored with a warning. Never a protected path.
+# name = "dependency-patch"
+# paths = ["package.json", "package-lock.json"]
+# authors = ["dependabot[bot]", "renovate[bot]"]
+# max_changed_lines = 300

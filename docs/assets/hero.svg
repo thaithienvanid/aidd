@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 620" width="1280" height="620" role="img" aria-labelledby="hero-title hero-desc">
+  <title id="hero-title">AIDD: AI-Driven Development</title>
+  <desc id="hero-desc">Two lanes. You bring the idea, give Spec approval before any code is written, and give Merge approval on exactly what was built. Every change starts with aidd next, which picks the lane. Agents write the Spec and its tests, implement and verify on the exact commit, review, and ship once the aidd/gate check is green. Learn turns every lesson into a new change, back where your ideas start.</desc>
+  <style>
+    .card { fill: #f8fafc; stroke: #e2e8f0; }
+    .ink { fill: #0f172a; }
+    .muted { fill: #475569; }
+    .brand { fill: #4f46e5; }
+    .lane-you { fill: #fef3c7; }
+    .lane-agents { fill: #e0e7ff; }
+    .lane-label-you { fill: #b45309; }
+    .lane-label-agents { fill: #4338ca; }
+    .step { fill: #ffffff; stroke: #6366f1; }
+    .step-text { fill: #1e1b4b; }
+    .idea { fill: #ffffff; stroke: #d97706; }
+    .idea-text { fill: #78350f; }
+    .gate { fill: #f59e0b; }
+    .gate-mark { fill: #ffffff; }
+    .gate-name { fill: #b45309; }
+    .ship { fill: #dcfce7; stroke: #16a34a; }
+    .ship-text { fill: #14532d; }
+    .ok { fill: #15803d; }
+    .flow { stroke: #64748b; fill: none; }
+    .flow-head { fill: #64748b; }
+    .learn { stroke: #6366f1; fill: none; stroke-dasharray: 7 6; }
+    .learn-head { fill: #6366f1; }
+    @media (prefers-color-scheme: dark) {
+      .card { fill: #0b1020; stroke: #1e293b; }
+      .ink { fill: #f1f5f9; }
+      .muted { fill: #94a3b8; }
+      .brand { fill: #a5b4fc; }
+      .lane-you { fill: #f59e0b; fill-opacity: 0.12; }
+      .lane-agents { fill: #6366f1; fill-opacity: 0.16; }
+      .lane-label-you { fill: #fbbf24; }
+      .lane-label-agents { fill: #a5b4fc; }
+      .step { fill: #161b33; stroke: #818cf8; }
+      .step-text { fill: #e0e7ff; }
+      .idea { fill: #1f1705; stroke: #f59e0b; }
+      .idea-text { fill: #fde68a; }
+      .gate-mark { fill: #1f1705; }
+      .gate-name { fill: #fbbf24; }
+      .ship { fill: #052e16; stroke: #22c55e; }
+      .ship-text { fill: #bbf7d0; }
+      .ok { fill: #4ade80; }
+      .flow { stroke: #64748b; }
+      .flow-head { fill: #64748b; }
+      .learn { stroke: #818cf8; }
+      .learn-head { fill: #818cf8; }
+    }
+  </style>
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="flow-head" d="M 0 0 L 10 5 L 0 10 z"/>
+    </marker>
+    <marker id="head-learn" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="learn-head" d="M 0 0 L 10 5 L 0 10 z"/>
+    </marker>
+  </defs>
+
+  <rect class="card" x="1" y="1" width="1278" height="618" rx="28" stroke-width="2"/>
+
+  <g font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text class="ink" x="64" y="118" font-size="92" font-weight="800" letter-spacing="-3">AIDD</text>
+    <text class="brand" x="68" y="158" font-size="22" font-weight="600" letter-spacing="0.5">AI-Driven Development</text>
+    <text class="ink" x="68" y="206" font-size="24" font-weight="600">You decide what to build and what ships.</text>
+    <text class="muted" x="68" y="238" font-size="20">Agents do everything in between, and prove it before anything merges.</text>
+
+    <text class="muted" x="1216" y="74" font-size="16" text-anchor="end">One loop from intent to production,</text>
+    <text class="muted" x="1216" y="98" font-size="16" text-anchor="end">with change control at its core.</text>
+
+    <!-- The two lanes -->
+    <rect class="lane-you" x="40" y="262" width="1200" height="104" rx="18"/>
+    <rect class="lane-agents" x="40" y="382" width="1200" height="104" rx="18"/>
+    <g font-size="13" font-weight="700" letter-spacing="1.6">
+      <text class="lane-label-you" x="64" y="306">YOU</text>
+      <text class="lane-label-you" x="64" y="326" font-weight="500" letter-spacing="0.4">decide</text>
+      <text class="lane-label-agents" x="64" y="426">AGENTS</text>
+      <text class="lane-label-agents" x="64" y="446" font-weight="500" letter-spacing="0.4">build and prove</text>
+    </g>
+
+    <!-- Flow between the steps, drawn under the nodes -->
+    <g class="flow" stroke-width="2.2" marker-end="url(#head)">
+      <path d="M 252 314 C 280 314, 280 434, 304 434"/>
+      <path d="M 420 434 H 440"/>
+      <path d="M 556 434 C 578 434, 578 314, 590 314"/>
+      <path d="M 646 314 C 664 314, 664 434, 681 434"/>
+      <path d="M 875 434 H 904"/>
+      <path d="M 1012 434 C 1030 434, 1030 314, 1040 314"/>
+      <path d="M 1096 314 C 1112 314, 1112 434, 1122 434"/>
+    </g>
+
+    <!-- You: the idea and the two approvals -->
+    <rect class="idea" x="148" y="291" width="104" height="46" rx="23" stroke-width="2"/>
+    <text class="idea-text" x="200" y="320" font-size="18" font-weight="600" text-anchor="middle">Your idea</text>
+
+    <g>
+      <rect class="gate" x="600" y="294" width="40" height="40" rx="8" transform="rotate(45 620 314)"/>
+      <path class="gate-mark" d="M 609 314 l 7 7 l 14 -15 l -3.2 -3 l -10.8 11.6 l -3.8 -3.8 z"/>
+      <text class="gate-name" x="620" y="282" font-size="16" font-weight="700" text-anchor="middle">Spec approval</text>
+      <text class="muted" x="620" y="358" font-size="13" text-anchor="middle">what will be built, and its tests</text>
+    </g>
+    <g>
+      <rect class="gate" x="1050" y="294" width="40" height="40" rx="8" transform="rotate(45 1070 314)"/>
+      <path class="gate-mark" d="M 1059 314 l 7 7 l 14 -15 l -3.2 -3 l -10.8 11.6 l -3.8 -3.8 z"/>
+      <text class="gate-name" x="1070" y="282" font-size="16" font-weight="700" text-anchor="middle">Merge approval</text>
+      <text class="muted" x="1070" y="358" font-size="13" text-anchor="middle">exactly what was built</text>
+    </g>
+
+    <!-- Agents: the steps -->
+    <g font-size="18" font-weight="600" text-anchor="middle">
+      <rect class="step" x="304" y="411" width="116" height="46" rx="23" stroke-width="2" stroke-dasharray="5 4"/>
+      <text class="step-text" x="362" y="439" font-size="16">aidd next</text>
+      <rect class="step" x="444" y="411" width="112" height="46" rx="23" stroke-width="2"/>
+      <text class="step-text" x="500" y="440">Specify</text>
+      <rect class="step" x="685" y="411" width="190" height="46" rx="23" stroke-width="2"/>
+      <text class="step-text" x="780" y="440">Implement ⟲ Verify</text>
+      <rect class="step" x="908" y="411" width="104" height="46" rx="23" stroke-width="2"/>
+      <text class="step-text" x="960" y="440">Review</text>
+      <rect class="ship" x="1126" y="411" width="96" height="46" rx="23" stroke-width="2"/>
+      <text class="ship-text" x="1174" y="440">Ship</text>
+    </g>
+    <g font-size="13" text-anchor="middle">
+      <text class="muted" x="362" y="476">picks the lane</text>
+      <text class="muted" x="500" y="476">the Spec and its tests</text>
+      <text class="muted" x="780" y="476">tested on the exact head</text>
+      <text class="muted" x="960" y="476">findings, never approval</text>
+      <text class="ok" x="1174" y="476" font-weight="700">aidd/gate ✓</text>
+    </g>
+
+    <!-- Learn: every lesson becomes a new change, back where ideas start (Plan) -->
+    <path class="learn" d="M 1174 457 C 1174 548, 1110 548, 1000 548 H 836" stroke-width="2.2" marker-end="url(#head-learn)"/>
+    <path class="learn" d="M 724 548 H 260 C 212 548, 200 530, 200 345" stroke-width="2.2" marker-end="url(#head-learn)"/>
+    <rect class="step" x="728" y="525" width="104" height="46" rx="23" stroke-width="2"/>
+    <text class="step-text" x="780" y="554" font-size="18" font-weight="600" text-anchor="middle">Learn</text>
+    <text class="muted" x="780" y="596" font-size="13" text-anchor="middle">every incident, rollback, missed goal, and retrospective becomes a new change</text>
+  </g>
+</svg>

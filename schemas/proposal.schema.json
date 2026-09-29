@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:proposal",
+  "title": "Proposal",
+  "description": "A case put to someone who decides, before any code: a bid or pitch to a client, or a change put to the company's leadership. It holds the needs and how each is answered, the options, a range estimate, the assumptions, exclusions, risks, and open questions, and the two human decisions: go or no-go, and the sign-off before it is sent. Once accepted, `aidd proposal convert` turns it into an Initiative and Epics that trace back to it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["aidd_version", "kind", "id", "title", "audience", "addressee", "goal", "status"],
+  "properties": {
+    "aidd_version": { "$ref": "urn:aidd:1:common#/$defs/aidd_version" },
+    "kind": { "const": "proposal", "description": "Object kind. Always `proposal`." },
+    "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120, "description": "One line. `locale` may apply." },
+    "audience": {
+      "enum": ["client", "internal"],
+      "description": "`client`: a bid, pitch, or response to a request for proposal. `internal`: a change put to the company's own decision makers, such as leadership, an investment committee, or an architecture board."
+    },
+    "addressee": { "type": "string", "minLength": 1, "description": "Who receives the proposal and decides, such as \"Acme Corp procurement\" or \"the executive committee\"." },
+    "goal": { "$ref": "urn:aidd:1:common#/$defs/goal", "description": "What the addressee gets if they say yes, as an outcome they can check." },
+    "status": {
+      "enum": ["exploring", "no_go", "drafting", "ready", "submitted", "accepted", "rejected", "withdrawn"],
+      "description": "exploring: qualifying, before the go/no-go decision. no_go: a person decided not to pursue it. drafting: a person decided to go. ready: a person signed it off. submitted: sent to the addressee. accepted, rejected, or withdrawn: the outcome.",
+      "x-groups": { "exploring": "backlog", "no_go": "cancelled", "drafting": "started", "ready": "started", "submitted": "started", "accepted": "completed", "rejected": "cancelled", "withdrawn": "cancelled" }
+    },
+    "due": { "$ref": "urn:aidd:1:common#/$defs/date", "description": "When the addressee needs it." },
+    "confidential": { "type": "boolean", "description": "The material stays in this proposal's folder and is never reused for another addressee without permission. Default true." },
+    "owner_team": { "type": "string", "description": "Team accountable for the proposal." },
+    "go_no_go": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "by", "on"],
+      "description": "The first human decision: pursue it or not, before the team spends effort drafting.",
+      "properties": {
+        "decision": { "enum": ["go", "no_go"] },
+        "by": { "type": "string", "minLength": 1, "description": "The person who decided, such as @lead. Never an agent." },
+        "on": { "$ref": "urn:aidd:1:common#/$defs/date" },
+        "reason": { "type": "string" }
+      }
+    },
+    "sign_off": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["by", "on"],
+      "description": "The second human decision: the proposal may be sent, with its price, commitments, assumptions, and exclusions.",
+      "properties": {
+        "by": { "type": "string", "minLength": 1, "description": "The person who signed it off. Never an agent." },
+        "on": { "$ref": "urn:aidd:1:common#/$defs/date" }
+      }
+    },
+    "needs": {
+      "type": "array",
+      "description": "What the addressee needs, one entry each, and how the proposal answers it: the compliance matrix of a bid, or the concerns a business case must meet.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "need", "answer"],
+        "properties": {
+          "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+          "need": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "description": "Where the need comes from, such as \"RFP 3.2\" or \"CFO, 2026-09-01\"." },
+          "answer": {
+            "enum": ["met", "partly_met", "alternative", "not_met"],
+            "description": "met, partly_met (say what is missing), alternative (a different way to the same end), or not_met (say why)."
+          },
+          "epic": { "type": "string", "description": "The Epic this need belongs to once accepted; `aidd proposal convert` groups needs by it." },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "options": {
+      "type": "array",
+      "description": "The real alternatives, doing nothing included when it is one.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "summary"],
+        "properties": {
+          "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+          "name": { "type": "string", "minLength": 1 },
+          "summary": { "type": "string", "minLength": 1 },
+          "recommended": { "type": "boolean" }
+        }
+      }
+    },
+    "estimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit", "low", "likely", "high", "basis"],
+      "description": "A range, never a single number: low, most likely, and high, and what it rests on.",
+      "properties": {
+        "unit": { "type": "string", "minLength": 1, "description": "Such as person-days, person-weeks, or EUR." },
+        "low": { "type": "number", "minimum": 0 },
+        "likely": { "type": "number", "minimum": 0 },
+        "high": { "type": "number", "minimum": 0 },
+        "basis": { "type": "string", "minLength": 1, "description": "What the range rests on: comparable past work, `aidd metrics` lead times, or a breakdown." }
+      }
+    },
+    "assumptions": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "What must hold for the proposal to stand. Each is a risk if it turns out false." },
+    "exclusions": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "What the proposal does not include, said plainly." },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "risk", "likelihood", "impact", "mitigation"],
+        "properties": {
+          "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+          "risk": { "type": "string", "minLength": 1 },
+          "likelihood": { "enum": ["low", "medium", "high"] },
+          "impact": { "enum": ["low", "medium", "high"] },
+          "mitigation": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "description": "Questions for the addressee, with the answer once known: the clarification log.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "question"],
+        "properties": {
+          "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+          "question": { "type": "string", "minLength": 1 },
+          "answer": { "type": "string" }
+        }
+      }
+    }
+  }
+}

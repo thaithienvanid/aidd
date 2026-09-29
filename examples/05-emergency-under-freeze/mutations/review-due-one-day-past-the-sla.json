@@ -1,0 +1,33 @@
+{
+  "summary": "review_due three days after the change opened is past the default two-day SLA.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "review_due = 2026-09-24",
+      "new": "review_due = 2026-09-26"
+    },
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1INC-481.md",
+      "old": "review_due = \"2026-09-24\"",
+      "new": "review_due = \"2026-09-26\""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "emergency"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "fail emergency.review_due_late",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:evidence",
+  "title": "Evidence",
+  "description": "Test results written by `aidd test` in CI. Each result is bound to one head commit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aidd_version",
+    "head_sha",
+    "base_sha",
+    "results"
+  ],
+  "properties": {
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version"
+    },
+    "head_sha": {
+      "$ref": "urn:aidd:1:common#/$defs/sha",
+      "description": "The commit the green results ran on."
+    },
+    "base_sha": {
+      "$ref": "urn:aidd:1:common#/$defs/sha",
+      "description": "The merge base the red results ran on."
+    },
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ci": {
+          "type": "string",
+          "description": "github, gitlab, or local."
+        },
+        "run_id": {
+          "type": "string",
+          "description": "The CI run or job id."
+        },
+        "url": {
+          "type": "string",
+          "description": "The CI run or job's web address."
+        }
+      },
+      "description": "Which CI run produced this file."
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "command",
+          "phase",
+          "status"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The test command's name."
+          },
+          "source": {
+            "enum": [
+              "config",
+              "spec",
+              "change_request"
+            ],
+            "description": "Where the command came from: the config's [[tests]], the Spec's tests.commands, or the Change Request."
+          },
+          "command": {
+            "$ref": "urn:aidd:1:common#/$defs/command"
+          },
+          "phase": {
+            "$ref": "urn:aidd:1:common#/$defs/phase"
+          },
+          "exit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The exit code, or null when the command did not start or timed out."
+          },
+          "status": {
+            "$ref": "urn:aidd:1:common#/$defs/test_status"
+          },
+          "duration_s": {
+            "type": "number",
+            "description": "How long it ran, in seconds."
+          },
+          "log": {
+            "type": "string",
+            "description": "Its output log, relative to the evidence folder."
+          },
+          "started_at": {
+            "type": "string",
+            "description": "When it started (RFC 3339 UTC)."
+          },
+          "finished_at": {
+            "type": "string",
+            "description": "When it finished (RFC 3339 UTC)."
+          }
+        }
+      },
+      "description": "One entry per command and phase."
+    },
+    "partial": {
+      "type": "boolean",
+      "description": "True when `aidd test --changed` ran only the commands the working-tree diff selects. A local convenience: the gate never accepts partial evidence."
+    }
+  }
+}

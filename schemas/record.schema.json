@@ -1,0 +1,401 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:record",
+  "title": "Gate record",
+  "description": "What one verifier run decided and why: the audit record `aidd gate --record` writes (`aidd-record.json` in CI, kept as a workflow artifact). Each field says what it evidences, so an auditor can sample records against a control. A record is a fact about the run that produced it; the commit status posted by the gate App and the CI run log are the tamper-evident anchors for it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aidd_version",
+    "decision",
+    "failed_rules",
+    "pending_rules"
+  ],
+  "properties": {
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version",
+      "description": "The verifier release that judged the change, so the rules that applied are known."
+    },
+    "decision": {
+      "$ref": "urn:aidd:1:common#/$defs/decision",
+      "description": "The verdict the gate posted: pass may merge, pending waits, fail blocks."
+    },
+    "failed_rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Rules at fail level; `aidd gate --explain <rule>` states each one."
+    },
+    "pending_rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Rules still waiting on a human or on evidence."
+    },
+    "findings": {
+      "type": "array",
+      "description": "Every finding, with the stable code that says which check fired. Messages are for people; codes are what tools and the conformance suite compare.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rule",
+          "level",
+          "code"
+        ],
+        "properties": {
+          "rule": {
+            "type": "string",
+            "description": "The gate rule that found it."
+          },
+          "level": {
+            "enum": [
+              "fail",
+              "pending",
+              "warn"
+            ],
+            "description": "fail, pending, or warn."
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z_]+(\\.[a-z_]+|:[a-z0-9][a-z0-9_.-]*)$",
+            "description": "The stable finding code, such as `scope.outside` (the rulebook lists them)."
+          }
+        }
+      }
+    },
+    "change": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The PR/MR number or local ref under review."
+    },
+    "head_sha": {
+      "anyOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/sha"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The exact commit judged. Evidence, approvals, and the posted status bind to it."
+    },
+    "base_sha": {
+      "$ref": "urn:aidd:1:common#/$defs/sha",
+      "description": "The base commit the diff and the red run were measured against."
+    },
+    "platform": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "github, gitlab, local, or another adapter."
+    },
+    "trusted": {
+      "type": "boolean",
+      "description": "Whether the platform supplied the facts (CI) or a local, untrusted context built them. A local record is never evidence."
+    },
+    "config_sha256": {
+      "type": "string",
+      "description": "Digest of the base-branch config with its org preset and parents: the policy in force when the change was judged."
+    },
+    "config_mode": {
+      "enum": [
+        "enforce",
+        "advisory"
+      ],
+      "description": "The mode the base branch's resolved config sets, when it sets one. It wins over the CI setting."
+    },
+    "profile": {
+      "$ref": "urn:aidd:1:common#/$defs/profile",
+      "description": "The conformance profile that set the gate strictness."
+    },
+    "tenant": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+      "description": "The tenant the repository's config names (`tenant`), or null: whose Approvers this decision counted."
+    },
+    "spec": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The Spec path, or null for an inline change."
+    },
+    "spec_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The Spec's id, or null for an inline change."
+    },
+    "trace_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The id that links this change to its Spec, its ticket, and sibling changes in other repositories: traceability."
+    },
+    "owner_team": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The team accountable for the Spec, from its `owner_team`."
+    },
+    "route": {
+      "$ref": "urn:aidd:1:common#/$defs/route",
+      "description": "The route applied, after the gate's own assessment."
+    },
+    "declared_route": {
+      "$ref": "urn:aidd:1:common#/$defs/route",
+      "description": "Present only when the gate raised the declared route (a normal Spec raised to major)."
+    },
+    "required_route": {
+      "$ref": "urn:aidd:1:common#/$defs/route",
+      "description": "The minimum route the real diff requires; routes only go up."
+    },
+    "route_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Why that minimum: the rules and paths that raised it (impact analysis)."
+    },
+    "required_pools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The specialist reviewer pools the change needs."
+    },
+    "type": {
+      "$ref": "urn:aidd:1:common#/$defs/type",
+      "description": "The kind of change, in Conventional Commits vocabulary."
+    },
+    "confidence": {
+      "$ref": "urn:aidd:1:common#/$defs/confidence",
+      "description": "The confidence the assessment declared; low stops the run."
+    },
+    "risk": {
+      "$ref": "urn:aidd:1:common#/$defs/risk",
+      "description": "The declared blast radius and risk dimensions."
+    },
+    "rollback": {
+      "type": "string",
+      "description": "The declared back-out plan."
+    },
+    "residual_risk": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The risk that remains after the rollback plan, as declared."
+    },
+    "assisted_by": {
+      "$ref": "urn:aidd:1:common#/$defs/assisted_by"
+    },
+    "scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The paths the change was allowed to touch."
+    },
+    "scope_declared": {
+      "type": "boolean",
+      "description": "Whether the scope was declared or taken from the changed paths (minor changes)."
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Plan adherence for a Spec: how many Tasks it planned, and which changed nothing in their scope.",
+      "properties": {
+        "tasks": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many Tasks the Spec planned."
+        },
+        "untouched_tasks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The ids of the Tasks that changed nothing in their scope."
+        }
+      }
+    },
+    "changed_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Every path the change touched, as the platform reported it."
+    },
+    "changed_files": {
+      "type": "integer",
+      "description": "The number of changed files."
+    },
+    "changed_lines": {
+      "type": "integer",
+      "description": "Lines changed inside the budget, excluding budget_exclude_paths and the Spec's frozen files."
+    },
+    "binary_files": {
+      "type": "integer",
+      "description": "The number of binary files in the change; a binary file rules out the minor route."
+    },
+    "authors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Everyone accountable for the change: the PR/MR author, every commit author and committer. No one in this list may approve it."
+    },
+    "separation_of_duties": {
+      "enum": [
+        "enforced",
+        "waived_solo"
+      ],
+      "description": "Whether approvals had to come from outside the authors, or the solo profile waived it and recorded the waiver."
+    },
+    "spec_hash": {
+      "type": "string",
+      "description": "The 128-bit hash of the Spec, its test files, and its design files, as approved at Spec approval."
+    },
+    "spec_approved_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The Approvers of that exact hash: Spec approval, the authorization of what will be built."
+    },
+    "spec_approval_before_implementation": {
+      "type": "boolean",
+      "description": "Whether an approval named a commit holding only the Spec and its frozen files, proving Spec approval came before the code."
+    },
+    "approved_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The Approvers of the head commit: Merge approval, the authorization of what was built."
+    },
+    "spec_approvals": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/approval"
+      },
+      "description": "Each counted Spec approval: who, when the approval comment was posted, and the commit it named (null when it named none)."
+    },
+    "merge_approvals": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/approval"
+      },
+      "description": "Each counted Merge approval: who, when, and the head commit it binds to."
+    },
+    "evidence_runner": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "The CI run that produced the test evidence, as the evidence file names it (`ci`, `run_id`, `url`)."
+    },
+    "specialist_approved_by": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "description": "Per required pool, the specialist reviewers who approved the head."
+    },
+    "policy": {
+      "type": "string",
+      "description": "The result of the organization's Policy command for this change."
+    },
+    "status_checks": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Existing CI check runs reused as evidence, with the state each had on the head."
+    },
+    "tests": {
+      "type": "array",
+      "description": "Each required test command's result on the head: an exit code from a defined runner, never a claim.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "source",
+          "command",
+          "exit",
+          "status"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The test command's name."
+          },
+          "source": {
+            "type": "string",
+            "description": "Where the command was declared: the config or the Spec."
+          },
+          "command": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The command, as an argument list."
+          },
+          "exit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The exit code on the head commit, or null when it did not run."
+          },
+          "status": {
+            "$ref": "urn:aidd:1:common#/$defs/test_status"
+          },
+          "duration_s": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "How long it ran, in seconds; null when unknown."
+          },
+          "red_exit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The exit code of the same command on the base commit, when it ran there (red-then-green)."
+          },
+          "red_status": {
+            "$ref": "urn:aidd:1:common#/$defs/test_status",
+            "description": "The status of the run on the base commit."
+          }
+        }
+      }
+    },
+    "shared_with": {
+      "type": "string",
+      "description": "Set when the head is shared with another pull request into a protected base and the worse decision was posted."
+    },
+    "merge_group_sha": {
+      "$ref": "urn:aidd:1:common#/$defs/sha",
+      "description": "Set when the decision is for a merge-queue entry: the merge-group commit whose tests ran and on which the status is posted. `head_sha` stays the pull request head the approvals bind to."
+    }
+  }
+}

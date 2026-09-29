@@ -1,0 +1,21 @@
+{
+  "summary": "A description without a toml aidd block, from an author who is no standard change class, fails.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Implements the Spec."
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "change_request"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail change_request.no_block"
+    ]
+  }
+}

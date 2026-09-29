@@ -1,0 +1,25 @@
+{
+  "summary": "The same emergency repair without the security reviewer's approval waits: the emergency lane waives Specify and the budget, never the specialist review a major change needs.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/reviews/1"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "specialist_review"
+    ],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "pending specialist_review.missing",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

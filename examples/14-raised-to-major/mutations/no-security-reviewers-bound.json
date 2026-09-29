@@ -1,0 +1,26 @@
+{
+  "summary": "The change is major, but the config binds no specialist pool to review it: that is a configuration error, not something to wait for.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "[owners.reviewers]\nsecurity = [\"@sec-alice\"]\n\n",
+      "new": ""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "specialist_review"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "fail specialist_review.unbound",
+      "warn route.raised_to_major",
+      "warn route.undeclared_dimensions"
+    ]
+  }
+}

@@ -1,0 +1,185 @@
+# aidd: the reusable gate. Repositories call it from a thin
+# .github/workflows/aidd-gate.yml that keeps its own default-branch triggers
+# (see templates/github/aidd-gate.yml), so every run still executes a workflow
+# definition from the default branch and never runs code from the pull request.
+#
+# The gate runs aidd from the exact commit of this workflow file (job.workflow_sha):
+# no package build, no PyPI, nothing a moving tag or a dependency could swap.
+# The App key comes from the caller's `aidd-gate` environment; pass no other secrets.
+name: aidd-gate-reusable
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: enforce posts aidd/gate; advisory posts "aidd/gate (advisory)" and never blocks
+        type: string
+        default: enforce
+      protected-branches:
+        description: comma-separated base branches (globs allowed) besides the default branch
+        type: string
+        default: ""
+      org-preset-url:
+        description: URL of an org preset, applied as the root parent of every repo config
+        type: string
+        default: ""
+      org-preset-sha256:
+        description: sha256 of the org preset; required with org-preset-url
+        type: string
+        default: ""
+      runs-on:
+        description: runner label. The gate holds the App key, so it refuses a self-hosted runner unless allow-self-hosted is set
+        type: string
+        default: ubuntu-latest
+      allow-self-hosted:
+        description: run on a self-hosted runner. Only an ephemeral runner, in a group that only this workflow can use, keeps the App key out of reach of other jobs
+        type: boolean
+        default: false
+      timeout-minutes:
+        description: job timeout
+        type: number
+        default: 15
+    secrets:
+      AIDD_APP_PRIVATE_KEY:
+        description: only when the key is not in the aidd-gate environment (not recommended)
+        required: false
+    outputs:
+      pr:
+        description: the pull request the gate judged, so a caller's optional attest job can find its change record
+        value: ${{ jobs.resolve.outputs.pr }}
+
+permissions: {}
+
+jobs:
+  resolve:
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: 5
+    permissions:
+      contents: read       # the event and the repository
+      pull-requests: read  # map a workflow_run or comment to its pull request
+    outputs:
+      pr: ${{ steps.resolve.outputs.pr }}
+    steps:
+      - name: Refuse a self-hosted runner
+        if: runner.environment != 'github-hosted' && !inputs.allow-self-hosted
+        run: |
+          echo "::error::The aidd gate runs on GitHub-hosted runners only. A persistent self-hosted runner can be reached by other jobs, including pull request code; set allow-self-hosted only for an ephemeral runner in a group restricted to this workflow."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: aidd-src
+          persist-credentials: false
+          sparse-checkout: |
+            src
+            schemas
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - id: resolve
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: ${{ github.workspace }}/aidd-src/src
+        run: python3 -P -m aidd gate github --resolve
+
+  gate:
+    needs: resolve
+    if: needs.resolve.outputs.pr != ''
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    # One queue per pull request, whatever the trigger, so an older run never posts last.
+    concurrency:
+      group: aidd-gate-pr-${{ needs.resolve.outputs.pr }}
+      cancel-in-progress: false
+    # Keep the App key in this environment. Its deployment branches must cover every
+    # protected base (the default branch and AIDD_PROTECTED_BRANCHES), and nothing else.
+    environment: aidd-gate
+    permissions:
+      contents: read       # the history the Spec and the diff are read from
+      pull-requests: read  # the pull request, its reviews, and its files
+      issues: read         # the /aidd comments
+      actions: read        # the aidd-tests run and its evidence artifact
+      checks: read         # existing CI check runs counted as evidence
+      statuses: write      # post aidd/gate (only when no App is configured)
+    steps:
+      - name: Refuse a self-hosted runner
+        if: runner.environment != 'github-hosted' && !inputs.allow-self-hosted
+        run: |
+          echo "::error::The aidd gate runs on GitHub-hosted runners only. A persistent self-hosted runner can be reached by other jobs, including pull request code; set allow-self-hosted only for an ephemeral runner in a group restricted to this workflow."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: repo
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: aidd-src
+          persist-credentials: false
+          sparse-checkout: |
+            src
+            schemas
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Org preset
+        if: inputs.org-preset-url != ''
+        env:
+          URL: ${{ inputs.org-preset-url }}
+          SHA256: ${{ inputs.org-preset-sha256 }}
+        run: |
+          if [ -z "$SHA256" ]; then echo "org-preset-sha256 is required with org-preset-url" >&2; exit 1; fi
+          curl -fsSL --proto '=https' "$URL" -o "$RUNNER_TEMP/aidd-org-preset.toml"
+          echo "$SHA256  $RUNNER_TEMP/aidd-org-preset.toml" | sha256sum -c -
+          echo "AIDD_ORG_PRESET=$RUNNER_TEMP/aidd-org-preset.toml" >> "$GITHUB_ENV"
+      # Mint the App token last, just before the only step that uses it.
+      - id: app
+        if: vars.AIDD_APP_ID != ''
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.AIDD_APP_ID }}
+          private-key: ${{ secrets.AIDD_APP_PRIVATE_KEY }}
+          # Scope the token to what the gate does, whatever the App installation was granted:
+          # post one commit status, read everything else.
+          permission-statuses: write
+          permission-contents: read
+          permission-pull-requests: read
+          permission-issues: read
+          permission-actions: read
+          permission-checks: read
+      - name: Say so when the trust anchor downgrades
+        if: vars.AIDD_APP_ID == ''
+        run: |
+          echo "::warning::AIDD_APP_ID is not set, so aidd/gate is posted with GITHUB_TOKEN. Anyone with write access can forge that status, which makes the gate advisory. Set AIDD_APP_ID and AIDD_APP_PRIVATE_KEY on the aidd-gate environment; see docs/PLATFORMS.md#setup."
+          # A quoted heredoc: the backticks are Markdown, not command substitution.
+          cat >> "$GITHUB_STEP_SUMMARY" <<'SUMMARY'
+          ### :warning: The gate status is forgeable
+
+          `AIDD_APP_ID` is not set, so `aidd/gate` is posted with `GITHUB_TOKEN`, and anyone with write access can post that status. Set it on the `aidd-gate` environment to pin the status to a dedicated App.
+
+          SUMMARY
+          echo "AIDD_TRUST_ANCHOR=github-token" >> "$GITHUB_ENV"
+      - name: Gate
+        working-directory: repo
+        env:
+          GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          PYTHONPATH: ${{ github.workspace }}/aidd-src/src
+          AIDD_MODE: ${{ inputs.mode }}
+          AIDD_PROTECTED_BRANCHES: ${{ inputs.protected-branches || vars.AIDD_PROTECTED_BRANCHES }}
+        run: python3 -P -m aidd gate github --events "$RUNNER_TEMP/aidd-events.jsonl" --record "$RUNNER_TEMP/aidd-record.json"
+      - name: Keep the gate record and event
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: aidd-gate-${{ github.run_id }}-${{ needs.resolve.outputs.pr }}
+          # The gate record, the event, and the agent change record (an in-toto statement a caller may sign).
+          path: |
+            ${{ runner.temp }}/aidd-events.jsonl
+            ${{ runner.temp }}/aidd-record*.json
+            ${{ runner.temp }}/change-record*.intoto.json
+          if-no-files-found: ignore
+          # 90 is the platform maximum for artifacts. For a longer audit trail, take --events to durable storage.
+          retention-days: 90

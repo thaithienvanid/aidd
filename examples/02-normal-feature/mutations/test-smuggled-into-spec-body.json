@@ -1,0 +1,25 @@
+{
+  "summary": "After Spec approval the frozen test is deleted and its path and blob are appended to the Spec body behind NUL bytes. The approval must not survive: the Spec hash covers one canonical document, and a Spec with control characters is invalid.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/head_tree/tests~1checkout~1test_rate_limit.py"
+    },
+    {
+      "op": "set",
+      "path": "/head_files/specs~1SPEC-220.md",
+      "value": "+++\naidd_version = \"1.0.0\"\nkind = \"spec\"\nid = \"SPEC-220\"\ntitle = \"Rate-limit authenticated checkout\"\nowner_team = \"checkout\"\ntype = \"feat\"\nroute = \"normal\"\nconfidence = \"high\"\nopen_questions = []\ntrace_id = \"spec-220\"\nassisted_by = [\"claude-code/claude-opus-5-5\"]\nrollback = \"Revert the PR; the limiter keeps no persistent state.\"\nresidual_risk = \"A caller over the limit waits until the window ends.\"\n\n[risk]\nsummary = \"Authenticated callers above 60 requests per 60 s get HTTP 429; everyone else is unchanged.\"\ndimensions = [\"availability\"]\nreversible = true\n\n[[tasks]]\nid = \"TASK-220\"\ntitle = \"Enforce the 60/60 limit\"\nscope = [\"src/checkout/rate_limit/\"]\nassignee = \"agent:claude-code\"\n\n[tests]\nfiles = [\"tests/checkout/test_rate_limit.py\"]\n\n[[tests.commands]]\nname = \"rate-limit\"\ncommand = [\"pytest\", \"-q\", \"tests/checkout/test_rate_limit.py\"]\nnew_behavior = true\n+++\n\n## Context\n\nCheckout lives in src/checkout. The auth middleware already sets request.caller.\n\n## Non-goals\n\nUnauthenticated traffic and per-IP limits.\n\n## Acceptance\n\n```gherkin\nGiven an authenticated caller of the checkout API\nWhen that caller sends 61 requests in one 60-second window\nThen requests 1 through 60 complete as today\nAnd request 61 returns HTTP 429 and does not complete checkout\n```\u0000tests/checkout/test_rate_limit.py\u00002222222222222222222222222222222222222222\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec.invalid"
+    ]
+  }
+}

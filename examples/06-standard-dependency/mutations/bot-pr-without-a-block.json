@@ -1,0 +1,21 @@
+{
+  "summary": "A bot's pull request has no toml aidd block, but every author belongs to a configured standard change class: it is treated as that class, with a warning.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Bump left-pad from 1.3.0 to 1.3.1."
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "change_request"
+    ],
+    "findings": [
+      "warn change_request.standard_by_default"
+    ]
+  }
+}

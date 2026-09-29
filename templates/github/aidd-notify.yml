@@ -1,0 +1,275 @@
+# aidd notify: tells people in Slack or Microsoft Teams what waits on them. No server, no bot, no buttons: it
+# only posts text, and every approval still happens on the pull request. Optional: copy it into
+# .github/workflows/ and add one or both repository secrets (a notifier with neither set posts nothing):
+#
+#   SLACK_WEBHOOK_URL   a Slack incoming webhook (docs.slack.dev: "Sending messages using incoming webhooks")
+#   TEAMS_WEBHOOK_URL   a Teams Workflows webhook ("When a Teams webhook request is received"); Office 365
+#                       connector webhooks were retired in 2026. It receives an Adaptive Card with the text.
+#
+# Three messages:
+#   status   when aidd/gate changes on a pull request, one line: "SPEC-9 waits for Spec approval: @alice -> <link>".
+#            A status the gate App posts triggers it directly (`status`). A status posted with GITHUB_TOKEN
+#            triggers no workflow, so the run of aidd-gate that posted it (`workflow_run`) stands in; each status
+#            is announced once, and only when its state or description differs from the one before it.
+#   digest   on weekday mornings, what waits on each approver: `aidd next --json` on every open pull request's
+#            head (where a Spec waiting for approval lives) and `aidd next --all --json` on the default branch,
+#            grouped by approver. This job reads pull request files as data and holds no secret and no write token.
+#   weekly   on Monday, `aidd metrics` over the last seven days of gate events (the aidd-gate artifacts),
+#            including the major changes merge-approved within 10 minutes of the gate asking: a rubber-stamp signal.
+#
+# Nothing here is evidence or an approval, and nothing here changes what the gate decides.
+name: aidd-notify
+
+on:
+  status:
+  workflow_run:
+    workflows: [aidd-gate]
+    types: [completed]
+  schedule:
+    - cron: "0 8 * * 1-5"  # the approver digest, weekday mornings (UTC)
+    - cron: "0 9 * * 1"    # the weekly metrics, Monday (UTC)
+  workflow_dispatch:
+    inputs:
+      message:
+        description: "digest or weekly"
+        type: choice
+        options: [digest, weekly]
+        default: digest
+
+permissions: {}
+
+concurrency:
+  group: aidd-notify-${{ github.event_name }}-${{ github.event.sha || github.event.workflow_run.head_sha || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  status:
+    if: >-
+      (github.event_name == 'status' && startsWith(github.event.context, 'aidd/gate'))
+      || (github.event_name == 'workflow_run' && github.event.workflow_run.event != 'merge_group')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read       # the default branch's .aidd/config.toml, for the approvers
+      statuses: read       # aidd/gate on the head, and the status before it
+      pull-requests: read  # the pull request the head belongs to
+    outputs:
+      text: ${{ steps.line.outputs.text }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .aidd
+      # aidd-pin: pin this ref to the aidd release's commit SHA (`aidd upgrade --ref <sha> --yes` does it, as `aidd init` does for the other workflows).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: thaithienvanid/aidd
+          ref: v1.0.0
+          path: .aidd-src
+          persist-credentials: false
+          sparse-checkout: |
+            src
+            schemas
+            .agents/skills/aidd
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: One line for the new aidd/gate status
+        id: line
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          SHA: ${{ github.event.sha || github.event.workflow_run.head_sha }}
+          STATUS_ID: ${{ github.event.id }}
+          PYTHONPATH: ${{ github.workspace }}/.aidd-src/src
+        run: |
+          set -euo pipefail
+          # Newest first: the aidd/gate statuses on this head (any base branch or mode label).
+          gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/statuses?per_page=100" \
+            --jq '[.[] | select(.context | startswith("aidd/gate"))]' > statuses.json
+          if [ "$EVENT" = status ]; then
+            jq --argjson id "$STATUS_ID" '[(.[] | select(.id == $id)), (.[] | select(.id < $id))]' statuses.json > mine.json
+          else
+            # A status the App posted already ran this workflow through the status event: never announce it twice.
+            if jq -e '.[0] // {} | .creator.type == "Bot" and .creator.login != "github-actions[bot]"' statuses.json >/dev/null; then
+              echo "the gate App posted this status; the status event announced it"; exit 0
+            fi
+            cp statuses.json mine.json
+          fi
+          now=$(jq -c '.[0] // empty' mine.json)
+          [ -n "$now" ] || { echo "no aidd/gate status on $SHA"; exit 0; }
+          # The same context's previous status: announce only a change of state or description.
+          if jq -e '.[0] as $n | [.[1:][] | select(.context == $n.context)][0] // {} | .state == $n.state and .description == $n.description' mine.json >/dev/null; then
+            echo "aidd/gate did not change"; exit 0
+          fi
+          pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/pulls" --jq '[.[] | select(.state == "open")][0] // empty | {number, title, html_url}')
+          [ -n "$pr" ] || { echo "no open pull request for $SHA"; exit 0; }
+          approvers=$(python3 -P -m aidd owners --json 2>/dev/null | jq -r '.approvers // [] | join(", ")' || true)
+          jq -n -r --argjson s "$now" --argjson pr "$pr" --arg who "${approvers:-an approver}" '
+            ($s.description // "") as $d
+            | ($d | capture("^(?<decision>[a-z]+): (?<rule>[a-z_]+): (?<msg>.*)$") // {decision: $s.state, rule: "", msg: $d}) as $p
+            | ($p.msg | capture("Spec (?<id>[A-Za-z0-9][A-Za-z0-9_.:-]*)") // {id: ("PR #" + ($pr.number | tostring))}).id as $id
+            | {spec_approval: "Spec approval", merge_approval: "Merge approval", specialist_review: "a specialist review"}[$p.rule] as $wait
+            | (if $s.context != "aidd/gate" then " [" + $s.context + "]" else "" end) as $ctx
+            | if $s.state == "success" then "\($id) passed aidd/gate\($ctx): it may merge -> \($pr.html_url)"
+              elif $s.state == "pending" and $wait != null then "\($id) waits for \($wait): \($who)\($ctx) -> \($pr.html_url)"
+              elif $s.state == "pending" then "\($id) waits\($ctx): \($p.msg) -> \($pr.html_url)"
+              else "\($id) is red on aidd/gate\($ctx): \($p.msg) -> \($pr.html_url)" end
+          ' > line.txt
+          cat line.txt
+          { echo "text<<AIDD_EOF"; cat line.txt; echo "AIDD_EOF"; } >> "$GITHUB_OUTPUT"
+
+  digest:
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '0 8 * * 1-5')
+      || (github.event_name == 'workflow_dispatch' && inputs.message == 'digest')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read       # the default branch and the open pull requests' heads, read as data
+      pull-requests: read  # the open pull requests
+    outputs:
+      text: ${{ steps.group.outputs.text }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          path: repo
+      # aidd-pin: pin this ref to the aidd release's commit SHA (`aidd upgrade --ref <sha> --yes` does it, as `aidd init` does for the other workflows).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: thaithienvanid/aidd
+          ref: v1.0.0
+          path: .aidd-src
+          persist-credentials: false
+          sparse-checkout: |
+            src
+            schemas
+            .agents/skills/aidd
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: The open pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 50 --json number,url > prs.json
+      - name: What waits on an approver, per pull request and on the default branch
+        # No token in this step: aidd reads each head's files as data and never runs them.
+        working-directory: repo
+        env:
+          PYTHONPATH: ${{ github.workspace }}/.aidd-src/src
+          AIDD_OFFLINE: "1"
+        run: |
+          set -euo pipefail
+          waits() { jq --arg url "$1" '[.[] | select((.approvers // []) | length > 0) | {what, approvers, waiting_minutes, url: $url}]'; }
+          python3 -P -m aidd next --all --json | waits "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" > ../waits-main.json
+          : > ../waits-prs.jsonl
+          for row in $(jq -r '.[] | "\(.number)|\(.url)"' ../prs.json); do
+            n=${row%%|*}; url=${row#*|}
+            git -c credential.helper= fetch --quiet --no-tags "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" "+refs/pull/$n/head:refs/remotes/pr/$n" || continue
+            git worktree add --quiet --detach "../pr-$n" "refs/remotes/pr/$n"
+            (cd "../pr-$n" && python3 -P -m aidd next --json 2>/dev/null | waits "$url" >> ../waits-prs.jsonl) || true
+            git worktree remove --force "../pr-$n"
+          done
+      - name: Group by approver
+        id: group
+        run: |
+          set -euo pipefail
+          jq -s -r 'add // [] | unique_by(.what + .url)
+            | [.[] | .approvers[] as $a | . + {approver: $a}] | group_by(.approver)
+            | map("\(.[0].approver): " + (map(.what + (if .waiting_minutes then " (\(.waiting_minutes) min)" else "" end) + " -> " + .url) | join("; ")))
+            | .[]' waits-main.json waits-prs.jsonl > digest.txt
+          if [ -s digest.txt ]; then
+            { echo "text<<AIDD_EOF"; echo "aidd: what waits on each approver in $GITHUB_REPOSITORY"; cat digest.txt; echo "AIDD_EOF"; } >> "$GITHUB_OUTPUT"
+          fi
+          cat digest.txt
+
+  weekly:
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1')
+      || (github.event_name == 'workflow_dispatch' && inputs.message == 'weekly')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      actions: read  # the aidd-gate runs and their event artifacts
+    outputs:
+      text: ${{ steps.summary.outputs.text }}
+    steps:
+      # aidd-pin: pin this ref to the aidd release's commit SHA (`aidd upgrade --ref <sha> --yes` does it, as `aidd init` does for the other workflows).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: thaithienvanid/aidd
+          ref: v1.0.0
+          path: .aidd-src
+          persist-credentials: false
+          sparse-checkout: |
+            src
+            schemas
+            .agents/skills/aidd
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: The last seven days of gate events
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          since=$(date -u -d '7 days ago' +%Y-%m-%d)
+          mkdir -p events
+          for id in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow aidd-gate.yml --created ">=$since" --limit 500 --json databaseId --jq '.[].databaseId'); do
+            gh run download "$id" --repo "$GITHUB_REPOSITORY" --pattern 'aidd-gate-*' --dir "events/$id" 2>/dev/null || true
+          done
+      - name: The weekly summary
+        id: summary
+        env:
+          PYTHONPATH: ${{ github.workspace }}/.aidd-src/src
+        run: |
+          set -euo pipefail
+          SINCE=$(date -u -d '7 days ago' +%Y-%m-%d)
+          files=$(find events -name 'aidd-events.jsonl' | sort)
+          [ -n "$files" ] || { echo "no gate events since $SINCE"; exit 0; }
+          # shellcheck disable=SC2086  # one argument per file; the names are the artifact folders
+          python3 -P -m aidd metrics $files --since "$SINCE" --json > metrics.json
+          jq -r --arg repo "$GITHUB_REPOSITORY" --arg since "$SINCE" '
+            def n: if . == null then "n/a" else tostring end;
+            "aidd weekly for \($repo) since \($since): \(.changes) changes (" + ([.final_decisions | to_entries[] | "\(.key) \(.value)"] | join(", ")) + ")",
+            "first-pass test rate \(.first_pass_tests_rate | n); open and waiting \(.open_waiting)",
+            "approval waits p50/p90 (min): " + ([.approval_wait_minutes[] | "\(.name) \(.p50 | n)/\(.p90 | n)"] | join(", ") | if . == "" then "none" else . end),
+            (.fast_major_merge_approvals | if . == null then "major changes merge-approved within 10 minutes: none measured"
+              else "major changes merge-approved within \(.within_minutes) minutes: \(.count) of \(.of)" + (if .count > 0 then " (look again: " + (.changes | join(", ")) + ")" else "" end) end)
+          ' metrics.json > weekly.txt
+          cat weekly.txt
+          { echo "text<<AIDD_EOF"; cat weekly.txt; echo "AIDD_EOF"; } >> "$GITHUB_OUTPUT"
+
+  post:
+    needs: [status, digest, weekly]
+    if: >-
+      always() && (needs.status.outputs.text != '' || needs.digest.outputs.text != '' || needs.weekly.outputs.text != '')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Post to Slack and Teams (each only when its secret is set)
+        env:
+          TEXT: ${{ needs.status.outputs.text || needs.digest.outputs.text || needs.weekly.outputs.text }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "$SLACK_WEBHOOK_URL" ] && [ -z "$TEAMS_WEBHOOK_URL" ]; then
+            echo "neither SLACK_WEBHOOK_URL nor TEAMS_WEBHOOK_URL is set: nothing to post"; exit 0
+          fi
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            # Slack reads <...> as a link or a mention; escaping &, <, and > keeps a pull request title from pinging anyone.
+            jq -n --arg t "$TEXT" '{text: ($t | gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;"))}' \
+              | curl -fsS --retry 3 -H 'Content-Type: application/json' --data @- "$SLACK_WEBHOOK_URL" > /dev/null
+            echo "posted to Slack"
+          fi
+          if [ -n "$TEAMS_WEBHOOK_URL" ]; then
+            jq -n --arg t "$TEXT" '{type: "message", attachments: [{contentType: "application/vnd.microsoft.card.adaptive", contentUrl: null,
+              content: {"$schema": "http://adaptivecards.io/schemas/adaptive-card.json", type: "AdaptiveCard", version: "1.2",
+                body: [$t | split("\n")[] | {type: "TextBlock", text: ., wrap: true}]}}]}' \
+              | curl -fsS --retry 3 -H 'Content-Type: application/json' --data @- "$TEAMS_WEBHOOK_URL" > /dev/null
+            echo "posted to Teams"
+          fi

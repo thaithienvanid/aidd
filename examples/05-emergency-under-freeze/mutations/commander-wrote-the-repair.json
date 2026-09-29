@@ -1,0 +1,27 @@
+{
+  "summary": "The incident commander may not be an author of the repair.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "commander = \"@oncall-lead\"",
+      "new": "commander = \"@bob\""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "emergency"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "fail emergency.commander_is_author",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

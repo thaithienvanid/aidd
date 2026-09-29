@@ -1,0 +1,15 @@
+aidd-evidence/
+.aidd/work/
+aidd-events.jsonl
+aidd-record.json
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+
+# claude plugin eval results
+evals/plugin/results/
+plugins/*/evals/results/
+tools/mermaid/node_modules/

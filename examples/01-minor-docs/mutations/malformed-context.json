@@ -1,0 +1,21 @@
+{
+  "summary": "The adapter's context does not match its schema (the head is not a commit id): the verifier refuses to decide on facts it cannot trust.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/head_sha",
+      "value": 12345
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "context"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail context.invalid"
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "decision": "pending",
+  "failed_rules": [],
+  "pending_rules": [
+    "specialist_review"
+  ],
+  "warn_rules": [
+    "route"
+  ],
+  "findings": [
+    "pending specialist_review.missing",
+    "warn route.raised_to_major",
+    "warn route.undeclared_dimensions"
+  ],
+  "title": "Raised to major",
+  "summary": "A normal Spec whose diff touches auth code is raised to major, not failed: the major route's rules apply and it waits for a reviewer from the security pool."
+}

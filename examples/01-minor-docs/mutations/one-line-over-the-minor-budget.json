@@ -1,0 +1,23 @@
+{
+  "summary": "A minor change of 51 changed lines is over the minor budget of 50, so the route must be normal.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/additions",
+      "value": 50
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "budget",
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail budget.exceeded",
+      "fail route.too_low"
+    ]
+  }
+}

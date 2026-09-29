@@ -1,0 +1,94 @@
+{
+  "requiredMinimumVersion": "2.1.259",
+  "permissions": {
+    "allow": [
+      "Bash(aidd test)",
+      "Bash(aidd test *)",
+      "Bash(aidd gate)",
+      "Bash(aidd gate *)",
+      "Bash(aidd validate)",
+      "Bash(aidd validate *)",
+      "Bash(aidd next *)",
+      "Bash(aidd hash *)",
+      "Bash(aidd doctor)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "mcp__aidd",
+      "mcp__plugin_aidd_aidd"
+    ],
+    "deny": [
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/credentials)",
+      "Read(~/.aws/config)",
+      "Read(~/.config/gh/hosts.yml)",
+      "Read(~/.netrc)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(nc *)",
+      "Bash(scp *)",
+      "Bash(ssh *)",
+      "WebFetch"
+    ],
+    "disableBypassPermissionsMode": "disable"
+  },
+  "allowManagedPermissionRulesOnly": true,
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "REPLACE-WITH-YOUR-PACKAGE-MIRROR.example.com"
+      ],
+      "allowManagedDomainsOnly": true
+    },
+    "filesystem": {
+      "denyRead": [
+        "~/.ssh"
+      ]
+    },
+    "credentials": {
+      "files": [
+        { "path": "~/.aws/credentials", "mode": "deny" }
+      ],
+      "envVars": [
+        { "name": "GITHUB_TOKEN", "mode": "deny" },
+        { "name": "GH_TOKEN", "mode": "deny" }
+      ]
+    }
+  },
+  "allowManagedHooksOnly": true,
+  "env": {
+    "AIDD_HOOK_FAIL_CLOSED": "1"
+  },
+  "allowManagedMcpServersOnly": true,
+  "allowedMcpServers": [
+    { "serverCommand": ["aidd", "mcp"] },
+    { "serverCommand": ["python3", "-m", "aidd", "mcp"] }
+  ],
+  "strictKnownMarketplaces": [
+    { "source": "github", "repo": "thaithienvanid/aidd" }
+  ],
+  "extraKnownMarketplaces": {
+    "aidd": {
+      "source": { "source": "github", "repo": "thaithienvanid/aidd" },
+      "autoUpdate": false
+    }
+  },
+  "enabledPlugins": {
+    "aidd@aidd": true
+  },
+  "pluginSuggestionMarketplaces": [
+    "aidd"
+  ],
+  "disableSideloadFlags": true
+}

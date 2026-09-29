@@ -1,0 +1,33 @@
+{
+  "summary": "An AI agent commander without [bot] suffix is rejected under solo profile.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "profile = \"org\"",
+      "new": "profile = \"solo\""
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "commander = \"@oncall-lead\"",
+      "new": "commander = \"@claude\""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "emergency"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "fail emergency.commander_is_agent",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

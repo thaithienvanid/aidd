@@ -1,0 +1,33 @@
+{
+  "summary": "A post-incident review date before the change opened is no commitment.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "review_due = 2026-09-24",
+      "new": "review_due = 2026-09-20"
+    },
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1INC-481.md",
+      "old": "review_due = \"2026-09-24\"",
+      "new": "review_due = \"2026-09-20\""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "emergency"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "fail emergency.review_due_early",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

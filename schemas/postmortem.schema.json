@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:postmortem",
+  "title": "Postmortem",
+  "description": "A blameless review of one incident: what happened, why, and the action items that keep it from happening again. It lives in docs/postmortems/<id>.md and names the backfill Spec of the emergency change that repaired it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aidd_version",
+    "kind",
+    "id",
+    "title",
+    "incident_date",
+    "severity",
+    "status"
+  ],
+  "properties": {
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version"
+    },
+    "kind": {
+      "const": "postmortem",
+      "description": "Object kind. Always `postmortem`."
+    },
+    "id": {
+      "$ref": "urn:aidd:1:common#/$defs/id"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "One line naming what users saw, such as \"Checkout returned 500 for 40 minutes\"."
+    },
+    "incident_date": {
+      "$ref": "urn:aidd:1:common#/$defs/date",
+      "description": "The day the incident began."
+    },
+    "severity": {
+      "enum": [
+        "sev1",
+        "sev2",
+        "sev3"
+      ],
+      "description": "Incident severity, as the emergency block records it."
+    },
+    "spec": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "description": "The backfill Spec id of the emergency change that repaired the incident, when there was one. `aidd validate` warns when no Spec in the repository has that id."
+    },
+    "owner_team": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The team that owns the review and its action items."
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "in_review",
+        "published"
+      ],
+      "description": "draft: being written. in_review: the people involved are checking the timeline and the causes. published: agreed; its action items are tracked as work."
+    }
+  }
+}

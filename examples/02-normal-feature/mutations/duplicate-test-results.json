@@ -1,0 +1,31 @@
+{
+  "summary": "Duplicate test results for the same command name and phase fail closed.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/evidence/results",
+      "value": {
+        "name": "unit",
+        "command": [
+          "make",
+          "test"
+        ],
+        "phase": "green",
+        "status": "failed",
+        "exit": 1
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail tests.duplicate_result",
+      "fail tests.failed"
+    ]
+  }
+}

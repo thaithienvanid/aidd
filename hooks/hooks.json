@@ -1,0 +1,50 @@
+{
+  "description": "aidd (advisory): answers allow or deny, never a mid-build prompt, and each deny names its route. Before an edit, denies outside the active Spec's scope, on a test or design file frozen by Spec approval or owned by another role, on a protected path outside an approved scope, outside an aidd-team role's write area, and for a subagent that is not a role (helpers only read). Before a shell command, denies approving or merging a PR/MR, posting `/aidd approve`, the known ways of typing an approval into another terminal or starting one there (tmux send-keys and new-window, orca terminal send and create, orca computer type-text, osascript, and the like, through quoting and escaping too; `aidd approve` itself also asks for a one-time code an agent cannot know), and a configured gated command (a production deploy) until a person sets its approval variable, and holds a role's obvious shell writes (redirects, tee, sed -i, cp, mv, git apply, patch) to the same rules. It is a guide, not a control: the shell check is best-effort parsing, so a write through an interpreter or a build tool is not seen, and the gate's scope rule sees that diff anyway and decides. Before an MCP tool, denies only the tools that merge, approve, submit an approving review, set a commit status, or post `/aidd approve`; PowerShell commands get the shell check. It acts only in a repository with .aidd/config.toml, never uses the network, and allows when it cannot tell (with AIDD_HOOK_FAIL_CLOSED=1, which the regulated managed settings set, it blocks when it cannot run at all). Session hooks, advisory and fail-open: at session start it adds a short `aidd next` summary (after a compaction, with a reminder of the handoff note); when the agent, or an aidd-team role that writes code, stops with changes in the Spec's scope and no passing `aidd test` evidence on HEAD, it reminds it once (level standard) or blocks the stop once (level strict), never after a stop hook already continued it. `[hooks]` in the config sets the level and turns each off.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' || { if [ \"${AIDD_HOOK_FAIL_CLOSED:-}\" = 1 ]; then echo \"aidd hook: needs Python 3.11 or later on PATH; blocking, because AIDD_HOOK_FAIL_CLOSED=1 requires the guard\" >&2; exit 2; fi; echo \"aidd hook: needs Python 3.11 or later on PATH; allowing the edit rather than failing silently\" >&2; exit 0; }; PYTHONPATH=\"${CLAUDE_PLUGIN_ROOT}/src\" AIDD_HOOK_OFFLINE=1 python3 -m aidd hook pre-edit || { if [ \"${AIDD_HOOK_FAIL_CLOSED:-}\" = 1 ]; then echo \"aidd hook: could not run; blocking, because AIDD_HOOK_FAIL_CLOSED=1 requires the guard\" >&2; exit 2; fi; echo \"aidd hook: could not run; allowing the edit, because the gate still decides\" >&2; exit 0; }",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' || { echo \"aidd hook: needs Python 3.11 or later on PATH; skipping this advisory hook\" >&2; exit 0; }; PYTHONPATH=\"${CLAUDE_PLUGIN_ROOT}/src\" AIDD_HOOK_OFFLINE=1 python3 -m aidd hook session-start || { echo \"aidd hook: could not run; skipping this advisory hook\" >&2; exit 0; }",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' || { echo \"aidd hook: needs Python 3.11 or later on PATH; skipping this advisory hook\" >&2; exit 0; }; PYTHONPATH=\"${CLAUDE_PLUGIN_ROOT}/src\" AIDD_HOOK_OFFLINE=1 python3 -m aidd hook stop || { echo \"aidd hook: could not run; skipping this advisory hook\" >&2; exit 0; }",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' || { echo \"aidd hook: needs Python 3.11 or later on PATH; skipping this advisory hook\" >&2; exit 0; }; PYTHONPATH=\"${CLAUDE_PLUGIN_ROOT}/src\" AIDD_HOOK_OFFLINE=1 python3 -m aidd hook stop || { echo \"aidd hook: could not run; skipping this advisory hook\" >&2; exit 0; }",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

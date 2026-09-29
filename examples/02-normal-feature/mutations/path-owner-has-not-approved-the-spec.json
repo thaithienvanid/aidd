@@ -1,0 +1,24 @@
+{
+  "summary": "A Spec whose scope lies under a path with its own owners waits for their Spec approval as well as their Merge approval.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "[owners.reviewers]",
+      "new": "[[owners.paths]]\npaths = [\"src/checkout/**\"]\napprovers = [\"@payments-lead\"]\n\n[owners.reviewers]"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval",
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending merge_approval.owner_area",
+      "pending spec_approval.owner_area"
+    ]
+  }
+}

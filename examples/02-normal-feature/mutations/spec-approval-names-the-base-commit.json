@@ -1,0 +1,22 @@
+{
+  "summary": "The Spec approval names the base commit, which proves nothing about when the Spec was approved: a warning, and the approval still counts.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/comments/0/body",
+      "old": "0d2ba3be378b9285f78b69033282a566",
+      "new": "0d2ba3be378b9285f78b69033282a566 b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "spec_approval"
+    ],
+    "findings": [
+      "warn spec_approval.names_base"
+    ]
+  }
+}

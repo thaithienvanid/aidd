@@ -1,0 +1,16 @@
+{
+  "decision": "pending",
+  "failed_rules": [],
+  "pending_rules": [
+    "merge_approval"
+  ],
+  "warn_rules": [
+    "merge_approval"
+  ],
+  "findings": [
+    "pending merge_approval.missing",
+    "warn merge_approval.agent_approval"
+  ],
+  "title": "Self-approval blocked",
+  "summary": "The author and the agent's bot account both approved; neither counts under separation of duties, and the agent's platform approval is flagged, because a branch rule's own review count may take it."
+}

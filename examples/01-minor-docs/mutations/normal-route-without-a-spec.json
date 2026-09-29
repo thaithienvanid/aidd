@@ -1,0 +1,22 @@
+{
+  "summary": "An inline block that declares route normal has no Spec, which normal needs.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "route = \"minor\"",
+      "new": "route = \"normal\""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec.missing"
+    ]
+  }
+}

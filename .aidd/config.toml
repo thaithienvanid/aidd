@@ -1,0 +1,24 @@
+# This repository runs its own change control. One maintainer, so the solo profile applies:
+# self-approval is recorded as waived_solo, with a cool-off on major.
+aidd_version = "1.0.0"
+profile = "solo"
+scope_exempt_paths = ["CHANGELOG.md"]
+# The verifier's own code, its data, the CI it ships, and the plugins that run on users'
+# machines: changing any of them is major, with a cool-off under solo.
+protected_paths = ["src/**", "schemas/**", "templates/**", "evals/**", ".claude-plugin/**", "hooks/**", "plugins/**", "docs/**"]
+budget_exclude_paths = ["tests/jsonschema_suite/**"]
+goal = "Every change an agent writes can be trusted to merge: the right thing, proven, and approved by a person."
+
+[owners]
+default_team = "maintainers"
+approvers = ["@thaithienvanid"]
+
+# The suite also checks generated docs, the examples, and the repository (tests/test_cli.py).
+[[tests]]
+name = "unit"
+command = ["python3", "-m", "unittest", "discover", "-s", "tests"]
+timeout_seconds = 900
+
+[identities]
+system_accounts = ["web-flow"]
+bots = ["claude[bot]"]

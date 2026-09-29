@@ -1,0 +1,139 @@
+# Agent evals: the routing scenarios and the role scenarios, run against a real agent on a schedule
+# and on every pull request that changes the agents' configuration (the skill, the plugins, the roles
+# registry, the scenarios, AGENTS.md). A change to what the agents read is a change to how they
+# behave, so the job fails below --min-accuracy, and the Merge approval reviewer reads its result
+# on such a pull request before approving.
+#
+# Do not make `agent-evals` a required check. The paths filter means most pull requests never run
+# it, and a required check that never reports waits as "Expected" forever; and a fork's pull
+# request gets no key, so its job skips the evals and passes green. A green `agent-evals` on a fork's
+# pull request means nothing was measured: a maintainer runs the evals by hand (workflow_dispatch on
+# the branch) before approving it. A repository without the secret skips them the same way.
+#
+# The API key is an environment secret on the `evals` environment, so no other workflow can read it.
+# Its deployment branches are main plus `refs/pull/*/merge` (what a pull_request run is evaluated
+# against). Add required reviewers on the environment, so a pull request's run waits for a
+# maintainer before it spends the key. Every run with the key appends its
+# measurements to evals-results.jsonl, kept as an artifact; evals/routing/README.md and
+# evals/roles/README.md say how to read them and where to record scores.
+name: evals
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".agents/**"
+      - "plugins/**"
+      - "schemas/roles.json"
+      - "evals/**"
+      - "AGENTS.md"
+      - ".github/workflows/evals.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evals-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  agent-evals:
+    runs-on: ubuntu-latest
+    # Three trials and a control on the schedule: six agent calls per scenario.
+    timeout-minutes: 240
+    # A fork's pull request cannot use the environment or its secret: it never asks for them.
+    environment: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && 'evals' || '' }}
+    env:
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+      PYTHONPATH: src  # the CLI from the source tree, with no install and so no unpinned build backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      # The agents under evaluation find a bare `aidd` on PATH, as they did with an editable install: a shim that runs
+      # this checkout's source tree, so nothing is built and no unpinned build backend is fetched.
+      - name: Put the source-tree CLI on PATH
+        run: |
+          mkdir -p "$RUNNER_TEMP/aidd-bin"
+          printf '#!/bin/sh\nPYTHONPATH="%s/src" exec "%s" -m aidd "$@"\n' "$GITHUB_WORKSPACE" "$(command -v python)" > "$RUNNER_TEMP/aidd-bin/aidd"
+          chmod +x "$RUNNER_TEMP/aidd-bin/aidd"
+          echo "$RUNNER_TEMP/aidd-bin" >> "$GITHUB_PATH"
+      # Currency is a calendar check, so it runs on the schedule and by hand, never on a pull request:
+      # a standard nobody re-checked within a year turns this run red, not an unrelated change.
+      - name: Standards currency
+        if: github.event_name != 'pull_request'
+        run: python -m aidd eval standards
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: env.HAS_KEY == 'true'
+        with:
+          node-version: "24"
+      # The agent CLI is locked in tools/mermaid/package-lock.json, where Dependabot sees it.
+      - name: Install the agent CLI
+        if: env.HAS_KEY == 'true'
+        run: |
+          npm ci --prefix tools/mermaid --no-audit --no-fund
+          echo "$PWD/tools/mermaid/node_modules/.bin" >> "$GITHUB_PATH"
+      # A pull request runs each scenario once, against the threshold; the schedule and a manual run repeat
+      # each scenario three times (pass@1 and pass^3), add the no-skill control (the lift, never gating),
+      # and keep every run as a JSON line: download the artifacts and `aidd eval report` them over time.
+      # Set the EVALS_MODEL_LABEL repository variable to the model the agent CLI runs; aidd never guesses it.
+      - name: Routing eval
+        if: env.HAS_KEY == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODEL_LABEL: ${{ vars.EVALS_MODEL_LABEL }}
+        run: |
+          measure=(--repeat 3 --control --record evals-results.jsonl)
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then measure=(--repeat 1 --record evals-results.jsonl); fi
+          if [ -n "$MODEL_LABEL" ]; then measure+=(--model-label "$MODEL_LABEL"); fi
+          python -m aidd eval routing --cmd "claude -p" --min-accuracy 0.9 "${measure[@]}"
+      - name: Role evals
+        if: env.HAS_KEY == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODEL_LABEL: ${{ vars.EVALS_MODEL_LABEL }}
+        run: |
+          measure=(--repeat 3 --control --record evals-results.jsonl)
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then measure=(--repeat 1 --record evals-results.jsonl); fi
+          if [ -n "$MODEL_LABEL" ]; then measure+=(--model-label "$MODEL_LABEL"); fi
+          python -m aidd eval roles --cmd "claude -p" --min-accuracy 0.8 "${measure[@]}"
+      # Claude Code's own plugin evals (evals/plugin/ and plugins/aidd-team/evals/): what each plugin changes about an
+      # agent's behavior, scored against a no-plugin baseline. On the schedule and by hand only, three runs a case.
+      - name: Plugin evals
+        if: env.HAS_KEY == 'true' && github.event_name != 'pull_request'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude plugin eval . --trust-plugin --threshold 0.8 --json plugin-evals-aidd.json
+          claude plugin eval . --eval-dir plugins/aidd-team/evals --trust-plugin --threshold 0.8 --json plugin-evals-aidd-team.json
+      - name: Report the recorded runs
+        if: always() && env.HAS_KEY == 'true' && hashFiles('evals-results.jsonl') != ''
+        run: python -m aidd eval report evals-results.jsonl >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the recorded runs
+        if: always() && env.HAS_KEY == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evals-results-${{ github.run_id }}-${{ github.run_attempt }}
+          path: evals-results.jsonl
+          if-no-files-found: ignore
+          # 90 is the platform maximum for artifacts. To compare runs over a longer span, copy the lines to durable storage.
+          retention-days: 90
+      - name: Keep the plugin eval results
+        if: always() && env.HAS_KEY == 'true' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: plugin-evals-${{ github.run_id }}-${{ github.run_attempt }}
+          path: plugin-evals-*.json
+          if-no-files-found: ignore
+          retention-days: 90
+      - name: No API key
+        if: env.HAS_KEY != 'true'
+        run: |
+          msg="ANTHROPIC_API_KEY is not available to this run (a fork's pull request, or no secret on the evals environment); the agent evals were skipped, so this run measured nothing"
+          echo "::warning::$msg"
+          echo "$msg" >> "$GITHUB_STEP_SUMMARY"

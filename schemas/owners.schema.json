@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:owners",
+  "title": "aidd owners --json",
+  "description": "Who decides and who does the work: the humans who approve, and every agent role with what it writes and the house standards it reads.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "mission",
+    "goal",
+    "proactive_roles",
+    "unknown_proactive_roles",
+    "humans",
+    "agent_accounts",
+    "agents",
+    "house_standards",
+    "unknown_standard_roles"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "mission": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The config's `mission`: why the product or team exists; null when unset."
+    },
+    "goal": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The team's goal from the config, or null when not set."
+    },
+    "proactive_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Roles that may propose work nobody asked for, always as a draft Spec."
+    },
+    "unknown_proactive_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "humans": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approvers",
+        "specialist_pools",
+        "area_owners",
+        "codeowners",
+        "default_team"
+      ],
+      "properties": {
+        "approvers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Who gives Spec approval and Merge approval."
+        },
+        "specialist_pools": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "area_owners": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "paths",
+              "approvers"
+            ],
+            "properties": {
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "approvers": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "codeowners": {
+          "type": "boolean"
+        },
+        "default_team": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "agent_accounts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "steps",
+          "lanes",
+          "writes",
+          "tier",
+          "proactive",
+          "starts_when",
+          "house_standards"
+        ],
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lanes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "writes": {
+            "type": "string"
+          },
+          "tier": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "proactive": {
+            "type": "boolean"
+          },
+          "starts_when": {
+            "type": "string"
+          },
+          "house_standards": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The house standards this role reads for the given --changed paths."
+          }
+        }
+      }
+    },
+    "house_standards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "path",
+          "roles",
+          "when_changed",
+          "enforced_by",
+          "unknown_tests",
+          "enforcement"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "when_changed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enforced_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unknown_tests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enforcement": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "unknown_standard_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

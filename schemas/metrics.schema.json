@@ -1,0 +1,756 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:metrics",
+  "title": "aidd metrics --json",
+  "description": "What `aidd metrics --json` prints. The summary, `--guard`, and `--autonomy --propose` are objects carrying `schema_version`; `--by` is an object of summaries by group; `--dora` and `--autonomy` are arrays of rows, versioned by this schema's `$id` until a major release wraps them.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/summary"
+    },
+    {
+      "$ref": "#/$defs/grouped"
+    },
+    {
+      "$ref": "#/$defs/guard"
+    },
+    {
+      "$ref": "#/$defs/proposals"
+    },
+    {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dora_row"
+      }
+    },
+    {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/autonomy_row"
+      }
+    }
+  ],
+  "$defs": {
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "events",
+        "changes",
+        "final_decisions",
+        "routes",
+        "first_pass_tests_rate",
+        "route_corrections",
+        "top_failed_rules",
+        "median_changed_lines",
+        "ai_assisted_share",
+        "raised_to_major",
+        "median_wait_minutes",
+        "wait_above_target",
+        "median_hours_to_pass",
+        "median_hours_to_first_approval",
+        "first_pass_share",
+        "spec_reworked_after_g1",
+        "plan_adherence_share",
+        "open_waiting",
+        "open_waiting_by_rule",
+        "throughput_per_week",
+        "advisory_would_block_share",
+        "first_feedback_minutes",
+        "approval_wait_minutes",
+        "flow_efficiency",
+        "spec_rework_rate",
+        "loop_speed"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+        },
+        "events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "changes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "final_decisions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Changes by the decision of their last event."
+        },
+        "routes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Changes by the route of their last event."
+        },
+        "first_pass_tests_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Share of heads whose tests passed on the first evaluation that saw them."
+        },
+        "route_corrections": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "top_failed_rules": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            }
+          },
+          "description": "Up to eight [rule, count] pairs, most frequent first."
+        },
+        "median_changed_lines": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "ai_assisted_share": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "raised_to_major": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "median_wait_minutes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Median minutes each pending rule (approval or check) held a change, by rule id."
+        },
+        "wait_above_target": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "The rules whose median wait is above --target-wait."
+        },
+        "median_hours_to_pass": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "median_hours_to_first_approval": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "first_pass_share": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Share of passed changes that passed on the first head the tests ran on."
+        },
+        "spec_reworked_after_g1": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Changes whose Spec hash changed after Spec approval held."
+        },
+        "plan_adherence_share": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "open_waiting": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_waiting_by_rule": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "throughput_per_week": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "advisory_would_block_share": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "first_feedback_minutes": {
+          "$ref": "#/$defs/spread",
+          "description": "Minutes from a head's push to the first gate decision holding its test results."
+        },
+        "approval_wait_minutes": {
+          "$ref": "#/$defs/approval_wait"
+        },
+        "flow_efficiency": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Active minutes over lead minutes, over the changes that passed."
+        },
+        "spec_rework_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Share of approved Specs reworked after Spec approval."
+        },
+        "fast_major_merge_approvals": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "within_minutes",
+            "count",
+            "of",
+            "changes"
+          ],
+          "description": "The rubber-stamp indicator: of the major changes whose Merge approval wait ended, how many ended within `within_minutes` of the gate first asking for it, and which (at most 20). A signal for a retrospective, never a gate rule; null when no major change's wait ended in the events.",
+          "properties": {
+            "within_minutes": {
+              "type": "number",
+              "minimum": 0
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "of": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "changes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20
+            }
+          }
+        },
+        "loop_speed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/loop_row"
+          }
+        },
+        "released_specs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "With --specs."
+        },
+        "change_failure_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "With --specs."
+        },
+        "median_days_to_restore": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "With --specs."
+        },
+        "cost": {
+          "$ref": "#/$defs/cost"
+        }
+      }
+    },
+    "grouped": {
+      "type": "object",
+      "description": "`--by`: one summary per group.",
+      "additionalProperties": {
+        "$ref": "#/$defs/summary"
+      }
+    },
+    "guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "denials",
+        "by_reason",
+        "by_role",
+        "by_tool"
+      ],
+      "description": "`aidd metrics --guard --json`: the edit-time guard's denials.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+        },
+        "denials": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_reason": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "by_role": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "by_tool": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "proposals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "proposals"
+      ],
+      "description": "`aidd metrics --autonomy --propose --json`.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+        },
+        "proposals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "agent",
+              "type",
+              "evidence",
+              "toml"
+            ],
+            "properties": {
+              "agent": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "evidence": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "changes",
+                  "passed",
+                  "first_pass_share",
+                  "failed",
+                  "reworked"
+                ],
+                "properties": {
+                  "changes": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "passed": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "first_pass_share": {
+                    "type": "number"
+                  },
+                  "failed": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reworked": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "toml": {
+                "type": "string",
+                "description": "A [[standard_changes]] entry for a person to fill and merge."
+              }
+            }
+          }
+        }
+      }
+    },
+    "dora_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "name",
+        "value",
+        "target",
+        "met",
+        "better",
+        "measures"
+      ],
+      "properties": {
+        "metric": {
+          "type": "string",
+          "description": "The metric's key, and its `[targets]` key.",
+          "enum": [
+            "deployments_per_week",
+            "lead_time_hours",
+            "change_fail_rate",
+            "recovery_days",
+            "rework_rate"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "target": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "met": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Null when there is no value or no target."
+        },
+        "better": {
+          "enum": [
+            "higher",
+            "lower"
+          ]
+        },
+        "measures": {
+          "type": "string",
+          "description": "What aidd actually measures, said plainly."
+        }
+      }
+    },
+    "autonomy_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent",
+        "type",
+        "changes",
+        "passed",
+        "first_pass",
+        "failed",
+        "reworked",
+        "first_pass_share",
+        "stage"
+      ],
+      "properties": {
+        "agent": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "changes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "first_pass": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reworked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "first_pass_share": {
+          "type": "number"
+        },
+        "stage": {
+          "enum": [
+            "review every change",
+            "review the trade-offs",
+            "candidate standard change"
+          ]
+        }
+      }
+    },
+    "loop_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "name",
+        "value",
+        "target",
+        "met",
+        "better",
+        "measures",
+        "paired_with"
+      ],
+      "properties": {
+        "metric": {
+          "type": "string",
+          "description": "The metric's key, and its `[targets]` key.",
+          "enum": [
+            "first_feedback_minutes",
+            "approval_wait_p90_minutes",
+            "flow_efficiency_min"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "target": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "met": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Null when there is no value or no target."
+        },
+        "better": {
+          "enum": [
+            "higher",
+            "lower"
+          ]
+        },
+        "measures": {
+          "type": "string",
+          "description": "What aidd actually measures, said plainly."
+        },
+        "paired_with": {
+          "$ref": "#/$defs/paired"
+        }
+      }
+    },
+    "paired": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "name",
+        "value"
+      ],
+      "properties": {
+        "metric": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "description": "The quality metric shown beside a speed or cost metric, so neither improves by degrading the other."
+    },
+    "spread": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "p50",
+        "p90",
+        "samples"
+      ],
+      "properties": {
+        "p50": {
+          "type": "number"
+        },
+        "p90": {
+          "type": "number"
+        },
+        "samples": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "description": "The median, the nearest-rank 90th percentile, and the number of samples; null with no sample."
+    },
+    "approval_wait": {
+      "type": "object",
+      "description": "Per approval (Spec approval, Merge approval, specialist review), by rule id: minutes it stayed pending.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "p50",
+          "p90",
+          "samples"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "p50": {
+            "type": "number"
+          },
+          "p90": {
+            "type": "number"
+          },
+          "samples": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entries",
+        "joined_by",
+        "currencies",
+        "unattributed",
+        "by_agent",
+        "target",
+        "met",
+        "paired_with",
+        "display_only"
+      ],
+      "description": "Cost per change from a host-exported ledger (`--cost`). Display only: never a gate rule, never pauses work, never sets the exit code.",
+      "properties": {
+        "entries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "joined_by": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Ledger entries by how they joined a change: spec, sha, branch, or none."
+        },
+        "currencies": {
+          "type": "object",
+          "description": "Per currency: aidd converts nothing.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "total",
+              "changes",
+              "per_change",
+              "median_per_change"
+            ],
+            "properties": {
+              "total": {
+                "type": "number"
+              },
+              "changes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "per_change": {
+                "type": "number"
+              },
+              "median_per_change": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "unattributed": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Cost of entries that joined no change, per currency."
+        },
+        "by_agent": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "description": "Cost per agent (the ledger's `agent`), per currency."
+        },
+        "target": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "met": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Null without a target, or with several currencies."
+        },
+        "paired_with": {
+          "$ref": "#/$defs/paired"
+        },
+        "display_only": {
+          "const": true
+        }
+      }
+    }
+  }
+}

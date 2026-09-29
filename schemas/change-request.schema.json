@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:change-request",
+  "title": "Change Request block",
+  "description": "The declared part of a Change Request: one ```toml aidd fenced block in the PR/MR description. The gate derives everything else from the platform and never trusts this block for evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "spec": {
+      "$ref": "urn:aidd:1:common#/$defs/repo_path",
+      "description": "Repo path of the Spec. Required on normal and major. When set, the Spec supplies every other field."
+    },
+    "trace_id": {
+      "$ref": "urn:aidd:1:common#/$defs/trace_id",
+      "description": "Copy of the Spec trace_id. Child changes in other repos use the same value."
+    },
+    "route": {
+      "allOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/route"
+        },
+        {
+          "enum": [
+            "minor",
+            "standard",
+            "emergency"
+          ]
+        }
+      ],
+      "description": "Inline only: minor, standard, or emergency. Normal and major need a Spec."
+    },
+    "type": {
+      "$ref": "urn:aidd:1:common#/$defs/type",
+      "description": "Default chore."
+    },
+    "confidence": {
+      "$ref": "urn:aidd:1:common#/$defs/confidence",
+      "description": "Default high."
+    },
+    "risk": {
+      "$ref": "urn:aidd:1:common#/$defs/risk",
+      "description": "Inline blast radius. Default: no dimensions, reversible. The gate fails when the paths imply a dimension the block omits."
+    },
+    "scope": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/glob"
+      },
+      "minItems": 1,
+      "description": "Inline scope: globs the diff may change. Required on emergency. On minor it defaults to the changed paths and is recorded as undeclared."
+    },
+    "rollback": {
+      "type": "string",
+      "minLength": 1,
+      "description": "How to undo. Default: revert the change."
+    },
+    "residual_risk": {
+      "type": "string",
+      "description": "What stays true after release."
+    },
+    "assisted_by": {
+      "$ref": "urn:aidd:1:common#/$defs/assisted_by"
+    },
+    "tests": {
+      "$ref": "urn:aidd:1:common#/$defs/tests",
+      "description": "Inline tests, such as smoke tests on an emergency. They add to the repository suite, never replace it."
+    },
+    "emergency": {
+      "$ref": "urn:aidd:1:common#/$defs/emergency",
+      "description": "Required when route is emergency."
+    },
+    "backfill": {
+      "$ref": "urn:aidd:1:common#/$defs/repo_path",
+      "description": "Emergency only: the repo path of the backfill Spec, committed as a stub with the repair (`aidd new spec <ID> --title \"<incident>\" --route emergency`). `aidd validate` fails once its review_due passes without outcome.learn_ref."
+    },
+    "standard_change": {
+      "type": "string",
+      "description": "Name of the config standard_changes entry this change claims."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "not": {
+          "required": [
+            "spec"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "route",
+          "assisted_by"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "route"
+        ],
+        "properties": {
+          "route": {
+            "const": "emergency"
+          }
+        },
+        "not": {
+          "required": [
+            "spec"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "emergency",
+          "backfill",
+          "scope"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "route"
+        ],
+        "properties": {
+          "route": {
+            "const": "standard"
+          }
+        },
+        "not": {
+          "required": [
+            "spec"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "standard_change"
+        ]
+      }
+    }
+  ]
+}

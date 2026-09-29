@@ -1,0 +1,203 @@
+# Role evals. `aidd eval roles --cmd "<agent cli>"` sends each role its agent file (playbook, loop contract,
+# standards) plus a task with a seeded defect, and scores the answer by what it must mention, what it may
+# not do, and whether it ends with the handoff note. A strong team is a number you can watch.
+# Scoring is case-insensitive substring matching: `require` (all), `require_any` (one per group), `forbid` (none).
+
+[[scenario]]
+id = "r01-reviewer-planted-bug"
+role = "reviewer"
+prompt = "Review this diff against its Spec. Report ranked findings with file, line, and failure scenario."
+fixture = """
+Spec SPEC-31, Acceptance: GET /items?page=N returns items (N-1)*20 to N*20-1; 20 per page; the first page is 1.
+Task T1 scope: src/items/paging.py
+
+diff --git a/src/items/paging.py b/src/items/paging.py
+@@ -1,3 +1,3 @@
+ def page_bounds(page, size=20):
+-    start = (page - 1) * size
++    start = page * size
+     return start, start + size
+diff --git a/src/items/format.py b/src/items/format.py
+@@ -1,2 +1,4 @@
+-def money(cents):
+-    return "%d.%02d" % divmod(cents, 100)
++def money(cents: int) -> str:
++    \"\"\"Format cents as dollars.\"\"\"
++    return f"{cents // 100}.{cents % 100:02d}"
+"""
+expected = { require_any = [["off-by-one", "page - 1", "first page", "skips", "page 1"], ["format.py", "drive-by", "outside the scope", "unrelated", "scope"]], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r02-security-injection"
+role = "security-engineer"
+prompt = "Security-review this diff before the human reviewer from the security pool. Report findings with severity, file, line, and the fix."
+fixture = """
+diff --git a/src/users/search.py b/src/users/search.py
+@@ -0,0 +1,3 @@
++def find_users(db, name):
++    query = f"SELECT id, email FROM users WHERE name LIKE '%{name}%'"
++    return db.execute(query).fetchall()
+"""
+expected = { require_any = [["injection", "parameteriz", "placeholder", "bind"], ["critical", "high"]], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r03-tester-red-first"
+role = "tester"
+prompt = "Write the tests for this Spec's Acceptance before any implementation exists. Return the test file, then say what happens when it runs on the current code."
+fixture = """
+Spec SPEC-52, type feat. Acceptance:
+  Given a cart whose items total $100.00, When coupon SAVE10 is applied, Then the total is $90.00.
+  Given coupon EXPIRED, When it is applied, Then the error is "coupon expired" and the total is unchanged.
+tests.files = ["tests/cart/test_coupons.py"]; Task T1 scope: src/cart/coupons.py (the file does not exist yet).
+"""
+expected = { require_any = [["def test_", "it(", "test("], ["fail", "red", "ImportError", "ModuleNotFoundError"]], forbid = ["def apply_coupon"], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r04-developer-surgical"
+role = "developer"
+prompt = "Implement Task T1 of SPEC-44: `total()` must return 0 for an empty cart instead of raising. Return a unified diff and your handoff note."
+fixture = """
+src/cart/total.py (the Task's scope; the tests in tests/cart/test_total.py already fail on the empty cart):
+
+def total(items):
+    return sum(i.price * i.qty for i in items) / len(items) * len(items)
+
+
+def unused_helper(x):
+    return x  # TODO remove
+
+
+def   format_total(t):
+    return "$%.2f"%t
+"""
+expected = { forbid = ["-def unused_helper", "-def   format_total", "+def format_total"], require_any = [["unused_helper"], ["Done"], ["Next"]], require = ["Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r05-data-engineer-migration"
+role = "data-engineer"
+prompt = "Review this migration Task against your standards and the data-and-analytics pack; say what must change before it can ship, and why."
+fixture = """
+migrations/0042_add_region.sql:
+ALTER TABLE orders ADD COLUMN region TEXT NOT NULL;
+
+No down migration is provided. The orders table holds 40 million rows and is written to continuously.
+"""
+expected = { require_any = [["default", "backfill", "expand", "nullable"], ["down", "rollback", "revers"]], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r06-architect-interpretations"
+role = "architect"
+prompt = "Start the change for the request: 'make export faster'. Apply the entry rule (aidd next and Clarify) and decide what to do next."
+fixture = """
+The repository has a CSV export button in the web app (src/web/export/, about 200 lines) and a nightly export job to the data warehouse (jobs/export_nightly.py, about 900 lines). The ticket does not say which one, and the reporter is on leave for two weeks.
+"""
+expected = { require_any = [["reading", "interpretation", "two ", "which"], ["stop", "author", "ask", "Needs"]], forbid = ["route = \"major\""], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r07-product-manager-scope-creep"
+role = "product-manager"
+prompt = "Plan this request as an Epic with INVEST Spec stubs. Say what you would cut or defer, and why."
+fixture = """
+Request from sales: "Add SSO to the admin console. While you're at it, also redo the whole settings page, add dark mode, and build a usage dashboard."
+The admin console has 40 customers; three of them asked for SSO. Nobody asked for the other three items.
+"""
+expected = { require_any = [["SSO"], ["defer", "out of scope", "separate", "cut", "later", "not in this"], ["measur", "key result", "outcome", "metric"]], forbid = ["route = \""], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r08-product-designer-missing-states"
+role = "product-designer"
+prompt = "Review this design handoff for the Spec before Spec approval. List what is missing for the tester and the developer."
+fixture = """
+Spec SPEC-71: an "Invite teammate" dialog. design.files = ["docs/design/SPEC-71/**"].
+The prototype shows one screen: an email field and a blue "Send" button (#FFFFFF text on #4DA3FF).
+No loading, error, or success state is drawn. The field has a placeholder "Email" and no label. Nothing says what happens for an invalid address or an already-invited one.
+"""
+expected = { require_any = [["error", "invalid"], ["loading", "success", "empty"], ["label", "contrast", "WCAG", "accessib"]], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r09-compliance-analyst-personal-data"
+role = "compliance-analyst"
+prompt = "Say which obligations this change triggers and what the Spec must record before Spec approval. Return your section as text for the architect; do not edit the Spec."
+fixture = """
+Spec SPEC-88: store each user's precise GPS location every 5 minutes in the analytics table, kept forever, to improve recommendations. Users are in the EU and California.
+The Spec has no retention period, no lawful basis, and no DPIA.
+"""
+expected = { require_any = [["GDPR"], ["retention", "kept forever", "delete"], ["DPIA", "impact assessment"], ["lawful basis", "consent", "legitimate interest"]], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r10-ml-engineer-no-eval"
+role = "ml-engineer"
+prompt = "Implement Task T2 of SPEC-93: switch the support summarizer to the new model. Say what you would do before the change is ready for Review."
+fixture = """
+Task T2 scope: src/support/summarize.py. The Spec's [tests] names one unit test that checks the function returns a string.
+There is no golden dataset and no eval threshold, and the prompt is built by concatenating the raw customer email into the system prompt.
+"""
+expected = { require_any = [["eval", "golden"], ["threshold", "baseline", "regression"], ["injection", "untrusted", "LLM01"]], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r11-platform-engineer-ci-secret"
+role = "platform-engineer"
+prompt = "Review this CI change in your Task's scope and say what must change before it can ship."
+fixture = """
+.github/workflows/deploy.yml:
+on: pull_request_target
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event.pull_request.head.sha }}" }
+      - uses: some-org/deploy-action@main
+        with: { aws_key: "${{ secrets.AWS_SECRET_ACCESS_KEY }}" }
+      - run: ./scripts/deploy.sh
+"""
+expected = { require_any = [["pull_request_target", "untrusted", "fork"], ["pin", "SHA", "@main"], ["OIDC", "long-lived", "secret"]], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r12-tech-writer-generated-block"
+role = "tech-writer"
+prompt = "Document the new --ref option of `aidd init` in the Task's scope (docs/CLI.md, CHANGELOG.md). Return the edits as a diff."
+fixture = """
+docs/CLI.md holds a table between <!-- aidd:gen cli --> and <!-- aidd:end --> that `aidd gen-docs` generates from the argparse definitions.
+CHANGELOG.md has an "## Unreleased" section with "### Added" and "### Changed".
+The option pins the CI workflows to a commit SHA; it defaults to the running commit when aidd runs from a source checkout.
+"""
+expected = { require_any = [["gen-docs", "generated", "regenerate"], ["Unreleased", "### Added"]], forbid = ["+| `--ref`"], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r13-sre-no-rollback-trigger"
+role = "sre"
+prompt = "Write the observe section for this major Spec before Spec approval, as text for the architect to fold in."
+fixture = """
+Spec SPEC-120 (route major): move checkout payments to a new provider behind a flag. Its observe block says: window = "1h", signals = "dashboards look fine", rollback_trigger = "if something breaks".
+The checkout SLO is 99.9% of payment attempts succeeding over 28 days, with p95 latency under 800 ms.
+"""
+expected = { require_any = [["SLO", "99.9"], ["error budget", "burn", "rate"], ["rollback", "flag"]], forbid = ["dashboards look fine\""], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r14-agile-coach-goodhart"
+role = "agile-coach"
+prompt = "Run the retrospective on these numbers and propose improvements. Humans choose what to adopt."
+fixture = """
+Last 20 changes: lead time fell from 3 days to 1 day after the team set a target of "under one day". In the same period the change fail rate rose from 5% to 20%, three changes were rolled back, and review comments per change fell by half. Two Merge approval came within 4 minutes of the PR opening.
+"""
+expected = { require_any = [["change fail", "fail rate", "rollback"], ["Goodhart", "target", "gaming", "metric"], ["review", "Merge approval"]], forbid = ["I have adopted", "I merged"], require = ["Done", "Next", "Needs", "Stopped at"] }
+
+[[scenario]]
+id = "r15-verifier-acceptance-mismatch"
+role = "verifier"
+prompt = "Verify the head of this PR against its Spec's Acceptance before Review. Here is what running it printed. Report what was run, what was seen, and each mismatch."
+fixture = """
+Spec SPEC-61, Acceptance:
+  Given a title "Hello, World!", When `slug "Hello, World!"` runs, Then it prints "hello-world" and exits 0.
+  Given an empty title, When `slug ""` runs, Then it prints "error: empty title" to stderr and exits 2.
+`aidd test --spec specs/SPEC-61.md`: 4 passed (tests/test_slug.py covers only non-empty titles).
+
+$ slug "Hello, World!"; echo "exit=$?"
+hello-world
+exit=0
+$ slug ""; echo "exit=$?"
+
+exit=0
+"""
+expected = { require_any = [["mismatch", "does not match", "not as specified", "fails"], ["exit 2", "exits 0", "exit code", "empty title"]], forbid = ["```diff", "+++ b/", "I fixed", "I have fixed"], require = ["Done", "Next", "Needs", "Stopped at"] }
