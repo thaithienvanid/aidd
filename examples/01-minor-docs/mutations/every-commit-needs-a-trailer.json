@@ -1,0 +1,34 @@
+{
+  "summary": "When the config requires a trailer on every commit, one without it fails.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "[owners]\n",
+      "new": "[gates]\nprovenance = \"every_commit\"\n\n[owners]\n"
+    },
+    {
+      "op": "append",
+      "path": "/commits",
+      "value": {
+        "sha": "2222222222222222222222222222222222222222",
+        "author": "alice",
+        "committer": "alice",
+        "message": "Tidy the wording",
+        "merge": false,
+        "verified": true
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "provenance"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail provenance.missing_trailer"
+    ]
+  }
+}

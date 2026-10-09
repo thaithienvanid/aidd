@@ -1,0 +1,27 @@
+{
+  "summary": "A minor change that edits a standard under docs/standards/ fails: a copy of a library standard, or the team's own standard, is a rule agents follow, so a change to it is a normal change (baseline:standards) that a person approves as a Spec.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "docs/standards/python/ruff-lint-format.md"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope = [\"docs/guide.md\"]",
+      "new": "scope = [\"docs/standards/python/ruff-lint-format.md\"]"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

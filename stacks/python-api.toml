@@ -1,0 +1,11 @@
+# A stack: opinionated standards that go together, plus the [project.stack] entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name = "python-api"
+description = "A Python HTTP service: the python-cli base plus pytest, a pinned Python, FastAPI, Pydantic, SQLAlchemy, Alembic, a uv workspace, and Import Linter."
+extends = "python-cli"
+standards = ["python/pytest-tests", "python/python-version", "python/fastapi-api", "python/pydantic-validation", "python/sqlalchemy-orm", "python/alembic-migrations", "python/uv-workspace", "python/import-linter"]
+reviewed = "2026-10-09"
+owner = "@thaithienvanid"
+
+[project.stack]
+adopt = ["pytest", "FastAPI", "Pydantic", "SQLAlchemy", "Alembic", "Import Linter"]

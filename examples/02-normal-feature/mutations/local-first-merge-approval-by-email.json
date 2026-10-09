@@ -1,0 +1,52 @@
+{
+  "summary": "Local-first on a team: the author and the Approver are email: identities recorded on refs/aidd/approvals, and the Approver's Spec approval and Merge approval count as they do on a platform. With no platform account behind a commit email, the gate warns that separation of duties rests on the emails alone.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/platform",
+      "value": "local"
+    },
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "approvers = [\"@checkout-lead\", \"@platform-lead\", \"@oncall-lead\"]",
+      "new": "approvers = [\"email:lead@example.com\", \"email:platform@example.com\"]"
+    },
+    {
+      "op": "set",
+      "path": "/change/author",
+      "value": "email:alice@example.com"
+    },
+    {
+      "op": "set",
+      "path": "/commits/0/author",
+      "value": "email:alice@example.com"
+    },
+    {
+      "op": "set",
+      "path": "/commits/0/committer",
+      "value": "email:alice@example.com"
+    },
+    {
+      "op": "set",
+      "path": "/comments/0/user",
+      "value": "email:lead@example.com"
+    },
+    {
+      "op": "set",
+      "path": "/reviews/0/user",
+      "value": "email:lead@example.com"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "authors"
+    ],
+    "findings": [
+      "warn authors.unlinked"
+    ]
+  }
+}

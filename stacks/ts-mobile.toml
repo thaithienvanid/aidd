@@ -1,0 +1,19 @@
+# A stack: opinionated standards that go together, plus the [project.stack] entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+# It lists the ts-library standards itself instead of extending it: an Expo app runs its unit tests with jest-expo, not Vitest.
+name = "ts-mobile"
+description = "An Expo (React Native) app in TypeScript: pnpm, Biome, tsc strict, Node.js LTS, the current Expo SDK with EAS, Jest with jest-expo, and Maestro."
+standards = [
+  "typescript/pnpm-tooling",
+  "typescript/biome-lint-format",
+  "typescript/tsc-strict",
+  "typescript/node-lts",
+  "typescript/jest-expo",
+  "typescript/expo",
+  "typescript/maestro",
+]
+reviewed = "2026-10-09"
+owner = "@thaithienvanid"
+
+[project.stack]
+adopt = ["TypeScript", "Node.js", "pnpm", "Biome", "Jest", "Expo", "EAS", "Maestro"]

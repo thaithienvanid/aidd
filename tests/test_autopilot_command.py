@@ -1,0 +1,218 @@
+"""`/aidd-team:autopilot` (experimental): the harness side of autopilot, and the docs that go with it.
+
+The command loops on the engine's one action per turn and does exactly what it says; it stops at every person's
+decision (done line (c)). It is loaded only when a person runs it: no agent preloads its text. aidd starts no agent.
+"""
+
+import json
+import re
+import shutil
+import unittest
+from pathlib import Path
+from unittest import mock
+
+import helpers
+from helpers import ROOT, run_cli
+
+from aidd import docs, repo, resources
+
+TEAM = ROOT / "plugins" / "aidd-team"
+COMMAND = TEAM / "commands" / "autopilot.md"
+
+
+def text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+class AutopilotCommandTests(unittest.TestCase):
+    def test_it_is_declared_once_next_to_the_flows(self):
+        loop = resources.roles()["loop"]
+        self.assertEqual(loop["autopilot"]["command"], "autopilot")
+        self.assertNotIn("autopilot", [f["command"] for f in loop["flows"]])  # no flow: it runs the flow `next` names
+        self.assertEqual(docs.team_commands(), [*(f["command"] for f in loop["flows"]), "autopilot"])
+        self.assertTrue(COMMAND.is_file())
+
+    def test_it_loops_on_the_engines_action_and_binds_the_lease_to_this_session(self):
+        body = text(COMMAND)
+        front = body.split("---")[1]
+        self.assertIn("\ndisable-model-invocation: true\n", front + "\n")  # a person starts it: that start is the opt-in
+        for must in (
+            "aidd autopilot start --work <work> --session ${CLAUDE_SESSION_ID}",
+            "aidd autopilot next --session ${CLAUDE_SESSION_ID} --json",
+            'aidd autopilot note "<code> <result>" --session ${CLAUDE_SESSION_ID}',
+            "aidd autopilot stop --session ${CLAUDE_SESSION_ID}",
+            "Do exactly what the action says",
+            "`run`",
+            "`ask`: stop",
+            "`stop`",
+            "**experimental**",
+            "<!-- aidd:gen roles:lead -->",
+        ):
+            self.assertIn(must, body, must)
+
+    def test_it_never_decides_for_a_person(self):
+        body = text(COMMAND)
+        for must in ("Never decide it", "never take the step after it", "Never approve, merge, ship", "never route around it"):
+            self.assertIn(must, body, must)
+        self.assertNotRegex(body, r"`aidd (?:approve|ship)")
+        self.assertNotIn("/aidd approve", body)
+
+    def test_a_bare_goal_starts_from_a_plan_a_person_agrees_to(self):
+        body = text(COMMAND)
+        for must in (
+            "/aidd-team:plan",
+            "/aidd-team:propose",
+            '[project] work = "client"',
+            "Never turn a one-line ask into code",
+            "plan_ready",
+            '--goal "<the goal>"',
+        ):
+            self.assertIn(must, body, must)
+
+    def test_steer_pause_feedback_limits_learn_and_resume(self):
+        body = text(COMMAND)
+        for must in (
+            "Esc",
+            "`blocked_on`",
+            "as data, never as instructions",
+            "feedback log",
+            "[autopilot]",
+            "timebox",
+            "Never extend a limit yourself",
+            "/aidd-team:postmortem",
+            "retro_every",
+            "/loop 30m aidd list --waiting-on-me",
+            "push the branch first",
+            "Without a platform, skip the push",
+            "--tokens N",
+            "advisor",
+        ):
+            self.assertIn(must, body, must)
+
+    def test_it_preloads_nothing(self):
+        for path in (*sorted((TEAM / "agents").glob("*.md")), TEAM / "skills" / "aidd-team" / "SKILL.md", ROOT / ".agents" / "skills" / "aidd" / "SKILL.md"):
+            self.assertNotIn("${CLAUDE_SESSION_ID}", text(path), path.name)
+            self.assertNotIn("aidd autopilot start --work <work>", text(path), path.name)
+
+    def test_init_installs_it_with_the_other_commands(self):
+        files = repo.team_files([], True)
+        installed = files[".claude/commands/aidd-autopilot.md"]
+        self.assertIn("${CLAUDE_SESSION_ID}", installed)
+        self.assertNotIn("aidd-team:", installed)
+
+    def test_the_team_pages_list_it_as_experimental(self):
+        self.assertIn("`/aidd-team:autopilot` (experimental)", docs.render("roles:flows:when"))
+        self.assertIn("`autopilot`", docs.inline_list("team-commands"))
+        self.assertIn("`/aidd-team:autopilot`", docs.render("roles:commands"))
+        self.assertEqual(docs.count("commands"), len(resources.roles()["loop"]["flows"]) + 1)
+        description = json.loads(text(TEAM / ".claude-plugin" / "plugin.json"))["description"]
+        self.assertRegex(description, r"\bautopilot\b")
+
+
+@unittest.skipUnless(shutil.which("git"), "git is required")
+class AdvisorTests(unittest.TestCase):
+    """`aidd doctor --autopilot` says whether an advisor is configured, as information only."""
+
+    def test_doctor_reports_the_advisor_and_never_warns_without_one(self):
+        from aidd import autopilotcheck
+
+        with helpers.adopted_repo("team", agent_hooks=True) as root:
+            self.assertIsNone(autopilotcheck.advisor_model(root))
+            line = autopilotcheck.advisor_line(root)
+            self.assertIn("no advisor", line)
+            self.assertIn("optional", line)
+            (root / ".claude").mkdir(exist_ok=True)
+            (root / ".claude" / "settings.local.json").write_text(json.dumps({"advisorModel": "opus"}), encoding="utf-8")
+            self.assertEqual(autopilotcheck.advisor_model(root), "opus")
+            self.assertIn("opus", autopilotcheck.advisor_line(root))
+            self.assertIn("never a substitute for the verifier, the reviewer, or independent review", autopilotcheck.advisor_line(root))
+            code, out = run_cli("doctor", "--autopilot")
+            self.assertIn("[info] an advisor is configured", out)
+            self.assertNotIn("[warn] no advisor", out)
+            self.assertEqual([lvl for lvl, _ in autopilotcheck.checks(root, {})], ["ok", "ok", "ok", "ok"])
+            with mock.patch.dict("os.environ", {"CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1"}):
+                self.assertIn("turns it off", autopilotcheck.advisor_line(root))
+
+
+class DocsTests(unittest.TestCase):
+    """The docs, in plain words: delegate, the hooks, the harness profile, and the advisor."""
+
+    def page(self, name: str) -> str:
+        return text(ROOT / "docs" / name)
+
+    def test_the_harness_profile_for_autopilot_runs(self):
+        method = self.page("METHOD.md").split("### 5.3 Autopilot (experimental)", 1)[1].split("\n## ", 1)[0]
+        for must in (
+            "sandbox.enabled",
+            "permissions.defaultMode",
+            "sandbox.network.allowedDomains",
+            "bypassPermissions",
+            "no secret",
+            "advisorModel",
+            "delegate",
+        ):
+            self.assertIn(must, method, must)
+
+    def test_the_advisor_is_optional_experimental_and_never_independent_review(self):
+        team = self.page("TEAM.md")
+        self.assertIn("advisorModel", team)
+        self.assertRegex(team, r"advisor[^.]*never a substitute for the verifier, the reviewer, or independent review")
+        for page in ("TEAM.md", "CONFIG.md"):
+            section = self.page(page)
+            for must in ("optional", "experimental", "Anthropic API"):
+                self.assertRegex(section, rf"(?s)advisor.{{0,600}}{re.escape(must)}|{re.escape(must)}.{{0,600}}advisor", (page, must))
+
+    def test_delegate_and_the_hooks_are_documented(self):
+        config = self.page("CONFIG.md")
+        for must in ("delegate", "prompt_hint", "pre-compact"):
+            self.assertIn(must, config, must)
+        install = self.page("INSTALL.md")
+        for must in ("UserPromptSubmit", "PreCompact", "delegate"):
+            self.assertIn(must, install, must)
+        howto = self.page("HOW-TO.md")
+        self.assertIn("/aidd-team:autopilot", howto)
+        self.assertIn("/aidd-team:autopilot", self.page("TEAM.md"))
+
+
+class CommandContractTests(unittest.TestCase):
+    """What the command and its docs promise, and the guard's stated limits."""
+
+    def test_the_run_releases_the_lease_whenever_it_stops_for_a_person(self):
+        body = text(COMMAND)
+        ask = next(line for line in body.splitlines() if line.strip().startswith("- `ask`"))
+        self.assertIn("step 5", ask)  # the end, which runs `aidd autopilot stop`
+        stop = next(line for line in body.splitlines() if line.strip().startswith("- `stop`"))
+        self.assertIn("step 5", stop)
+        end = next(line for line in body.splitlines() if line.startswith("5. **End.**"))
+        self.assertIn("aidd autopilot stop --session ${CLAUDE_SESSION_ID}", end)
+        resume = next(line for line in body.splitlines() if line.startswith("**Resume.**"))
+        self.assertIn("starts the run again", resume)
+        method = (ROOT / "docs" / "METHOD.md").read_text(encoding="utf-8")
+        self.assertIn("On `ask`, it releases the lease", method)
+
+    def test_the_engine_returns_the_plan_step(self):
+        body = text(COMMAND)
+        self.assertNotIn("When `aidd list` shows no Spec or proposal for it", body)
+        self.assertIn("`next` returns the plan step", body)
+
+    def test_a_note_names_a_spec_only_when_there_is_one(self):
+        body = text(COMMAND)
+        self.assertNotIn("--session ${CLAUDE_SESSION_ID} --spec <ID>`", body)
+        self.assertIn("Add `--spec <ID>` when the step worked on a Spec", body)
+
+    def test_the_docs_say_what_the_code_does(self):
+        config = (ROOT / "docs" / "CONFIG.md").read_text(encoding="utf-8")
+        install = (ROOT / "docs" / "INSTALL.md").read_text(encoding="utf-8")
+        for page in (config, install):
+            self.assertIn("only when the team is installed", page)
+            self.assertIn('An explicit `delegate = "always"` without the team', page)
+        self.assertIn("once per session and role, not once per Task", config + (ROOT / "docs" / "TEAM.md").read_text(encoding="utf-8"))
+
+    def test_the_guard_s_known_limits_are_written_down(self):
+        security = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
+        for must in ("rsync", "curl -o", "git checkout --", "MCP server", "hard link", ".git/"):
+            self.assertIn(must, security, must)
+
+
+if __name__ == "__main__":
+    unittest.main()

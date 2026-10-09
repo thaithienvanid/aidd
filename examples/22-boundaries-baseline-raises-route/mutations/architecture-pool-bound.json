@@ -1,0 +1,35 @@
+{
+  "summary": "Once the config binds an architecture pool, the security approval no longer stands in: the change waits for a member of the architecture pool.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "security = [\"@sec-alice\"]",
+      "new": "security = [\"@sec-alice\"]\narchitecture = [\"@arch-bob\"]"
+    },
+    {
+      "op": "append",
+      "path": "/reviews",
+      "value": {
+        "user": "sec-alice",
+        "state": "approved",
+        "commit_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "submitted_at": "2026-09-23T09:40:00Z"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "specialist_approval"
+    ],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "pending specialist_approval.missing",
+      "warn route.raised_to_major"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "summary": "The repository suite marks its smoke set (smoke = true): an emergency runs only those with its own tests, so the slow end-to-end suite need not run on the repair.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "command = [\"make\", \"test\"]",
+      "new": "command = [\"make\", \"test\"]\nsmoke = true\n\n[[tests]]\nname = \"e2e\"\ncommand = [\"make\", \"e2e\"]"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

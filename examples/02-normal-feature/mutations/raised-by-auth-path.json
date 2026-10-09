@@ -1,0 +1,33 @@
+{
+  "summary": "A normal Spec touching auth code is raised to major instead of failing.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "src/checkout/rate_limit/auth/token.py",
+        "previous_path": null,
+        "additions": 3,
+        "deletions": 0
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "observe"
+    ],
+    "pending_rules": [
+      "specialist_approval"
+    ],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "fail observe.missing",
+      "pending specialist_approval.missing",
+      "warn route.raised_to_major",
+      "warn route.undeclared_dimensions"
+    ]
+  }
+}

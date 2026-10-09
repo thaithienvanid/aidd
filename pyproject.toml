@@ -1,0 +1,113 @@
+[build-system]
+requires = ["hatchling>=1.27,<2", "hatch-fancy-pypi-readme>=25.1,<26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aidd"
+dynamic = ["version", "readme"]
+description = "AI-Driven Development: route, prove, and gate software change made with AI agents. A method, a verifier and CI gate, an Agent Skill, and a delivery team of agent roles."
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "Van Hoang" }]
+keywords = ["ai", "agents", "ai-driven development", "spec-driven development", "change management", "ci", "governance", "agent skills"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Software Development :: Version Control :: Git",
+]
+dependencies = []
+
+[project.optional-dependencies]
+# The runtime stays dependency-free: aidd executes inside the trusted gate job and inside an
+# adopter's CI, so a dependency there is a supply-chain edge in the most privileged place in the
+# pipeline. jsonschema is test-only: tests/test_stock_validator.py checks the schemas and the conformance corpus
+# with it when it is importable (CI's lint toolchain installs it) and skips when it is not. The lower bounds
+# match the versions CI pins in .github/requirements/lint.in.
+dev = ["jsonschema>=4.26", "ruff>=0.16.9", "mypy>=2.3.1"]
+
+[project.scripts]
+aidd = "aidd.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/thaithienvanid/aidd"
+Documentation = "https://github.com/thaithienvanid/aidd/blob/main/docs/METHOD.md"
+Changelog = "https://github.com/thaithienvanid/aidd/blob/main/CHANGELOG.md"
+Source = "https://github.com/thaithienvanid/aidd"
+Issues = "https://github.com/thaithienvanid/aidd/issues"
+
+[tool.hatch.version]
+path = "src/aidd/__init__.py"
+
+# The PyPI page is README.md with its relative links made absolute, so they resolve off GitHub.
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '\]\((?!https?://|#|mailto:)([^)\s]+)\)'
+replacement = '](https://github.com/thaithienvanid/aidd/blob/main/\1)'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = 'href="(?!https?://|#|mailto:)([^"]+)"'
+replacement = 'href="https://github.com/thaithienvanid/aidd/blob/main/\1"'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = 'src="(?!https?://|data:)([^"]+)"'
+replacement = 'src="https://raw.githubusercontent.com/thaithienvanid/aidd/main/\1"'
+
+# The data folders are mapped in as sources, not force-included: a force-include copies a folder verbatim, ignored
+# files and all, so eval results or node_modules a maintainer made locally would ship. These honour .gitignore and
+# the excludes (tests/test_release_surface.py).
+[tool.hatch.build.targets.wheel]
+only-include = ["src/aidd", "schemas", ".agents/skills/aidd", "templates", "plugins/aidd-team", "standards", "stacks"]
+exclude = ["evals/results", "node_modules", "__pycache__"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src/aidd" = "aidd"
+"schemas" = "aidd/_data/schemas"
+".agents/skills/aidd" = "aidd/_data/skill"
+"templates" = "aidd/_data/templates"
+"plugins/aidd-team" = "aidd/_data/team"
+"standards" = "aidd/_data/standards"
+"stacks" = "aidd/_data/stacks"
+
+# Every tracked file, so the sdist runs its own tests (ci.yml's build job), except .claude/skills/aidd: a symlink to
+# .agents/skills/aidd, which is here (tests/test_release_surface.py).
+[tool.hatch.build.targets.sdist]
+include = ["src/", "schemas/", ".agents/skills/aidd/", ".aidd/", "templates/", "tests/", "examples/", "evals/", "docs/",
+           ".github/", "tools/", "action.yml", "install.sh", "README.md", "LICENSE", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "AGENTS.md",
+           "RELEASING.md", "GOVERNANCE.md", "REVIEW.md", "llms-install.md", "llms.txt", "hooks/", ".claude-plugin/", "plugins/", "specs/", "standards/", "stacks/", ".gitattributes", ".gitleaks.toml"]
+
+[tool.ruff]
+line-length = 160
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "PLW1514"]
+ignore = ["E501"]
+# PLW1514 (text I/O without an explicit encoding) is a preview rule; explicit-preview-rules keeps every other
+# selected rule on its stable behaviour. Without an encoding, a read or write follows the locale (cp1252 on Windows).
+preview = true
+explicit-preview-rules = true
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src/aidd"]
+check_untyped_defs = true
+warn_unused_ignores = true
+
+[tool.ruff.lint.per-file-ignores]
+# Tests import helpers first: it puts src/ on sys.path before `aidd` is imported.
+"tests/*" = ["I"]

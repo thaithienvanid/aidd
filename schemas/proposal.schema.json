@@ -1,0 +1,291 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:proposal",
+  "title": "Proposal",
+  "description": "A case put to someone who decides, before any code: a bid or pitch to a client, or a change put to the company's leadership. It holds the needs and how each is answered, the options, a range estimate, the assumptions, exclusions, risks, and open questions, and the two human decisions: go or no-go, and the sign-off before it is sent. Once accepted, `aidd proposal convert` turns it into an Initiative and Epics that trace back to it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["aidd_version", "kind", "id", "title", "audience", "addressee", "goal"],
+  "$defs": {
+    "raid_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "owner", "status"],
+      "description": "One entry of the RAID log (risks, assumptions, issues, dependencies), one shape for all four lists. It lives in the proposal while it is decided, then in the Initiative that delivers it (`aidd proposal convert` copies it), and needs no other tracker.",
+      "properties": {
+        "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+        "text": { "type": "string", "minLength": 1, "description": "The risk, assumption, issue, or dependency, in a sentence." },
+        "owner": { "type": "string", "minLength": 1, "description": "Who acts on it: a person (@handle) or a party (\"Acme IT\")." },
+        "status": {
+          "enum": ["open", "resolved", "accepted", "invalid"],
+          "description": "`open`: still to confirm, fix, receive, or mitigate. `resolved`: confirmed, fixed, received, or the risk passed. `accepted`: a person accepts it as it stands, with no further action. `invalid`: an assumption that proved false (it becomes a risk, an issue, or a change order), or an issue that was not one. Everything but `open` is closed."
+        },
+        "due": { "$ref": "urn:aidd:1:common#/$defs/date", "description": "When it must be resolved." },
+        "likelihood": { "enum": ["low", "medium", "high"], "description": "A risk's likelihood; required on `risks`." },
+        "impact": { "enum": ["low", "medium", "high"], "description": "What a risk would cost if it happened; required on `risks`." },
+        "mitigation": { "type": "string", "minLength": 1, "description": "What the plan does to make a risk less likely or less costly." }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "decision", "by", "on", "reason"],
+      "description": "One entry of the scope decisions log: what a person decided about scope, and why. A later entry that reverses or changes it names it in `replaces`. The log is history, not the promise: the proposal hash leaves it out. `aidd proposal convert` copies it to the Initiative, which keeps it from then on.",
+      "properties": {
+        "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+        "decision": { "type": "string", "minLength": 1, "description": "What was decided, in a sentence, such as \"Card payments only in the first release\"." },
+        "by": { "$ref": "urn:aidd:1:common#/$defs/identity", "description": "The person who decided, such as @lead. Never an agent." },
+        "on": { "$ref": "urn:aidd:1:common#/$defs/date", "description": "The day it was decided." },
+        "replaces": { "$ref": "urn:aidd:1:common#/$defs/id", "description": "The id of the earlier entry this one reverses or changes. `aidd digest` reports each such entry." },
+        "reason": { "type": "string", "minLength": 1, "description": "Why, in a sentence, for whoever reads the decision later." }
+      }
+    },
+    "milestone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "due", "trigger"],
+      "description": "A delivery milestone and its invoicing hook: what triggers it, when it is due, and what is invoiced. It is reached when a person records `reached_on`, or when every Spec its trigger names has shipped; a reached milestone is never late. A person sets the amount and sends the invoice.",
+      "properties": {
+        "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+        "name": { "type": "string", "minLength": 1, "description": "A short name, such as \"Order tracking live\"." },
+        "due": { "$ref": "urn:aidd:1:common#/$defs/date", "description": "The date the milestone is committed for; a person sets it." },
+        "reached_on": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "The day it was reached, as a person records it (the client's acceptance, a signed contract). Never an agent."
+        },
+        "amount": { "type": "number", "minimum": 0, "description": "What is invoiced when it is reached, in `currency`." },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "description": "An ISO 4217 code, such as EUR or USD." },
+        "trigger": {
+          "type": "object",
+          "additionalProperties": false,
+          "anyOf": [{ "required": ["specs"] }, { "required": ["acceptance"] }, { "required": ["event"] }],
+          "description": "What reaches the milestone: the client's acceptance of listed Acceptance ids, the listed Specs shipped, or an event such as a signed contract.",
+          "properties": {
+            "specs": { "type": "array", "minItems": 1, "items": { "$ref": "urn:aidd:1:common#/$defs/id" }, "description": "The Spec ids whose shipping reaches it." },
+            "acceptance": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string", "minLength": 1 },
+              "description": "The Acceptance ids the client must accept, as `<Spec id>:<id>` (`SPEC-12:A1`)."
+            },
+            "event": { "type": "string", "minLength": 1, "description": "Any other trigger, such as \"contract signed\"." }
+          }
+        },
+        "invoice_ref": { "type": "string", "minLength": 1, "description": "The invoice's number once a person sends it." }
+      },
+      "if": { "required": ["amount"] },
+      "then": { "required": ["currency"] }
+    }
+  },
+  "properties": {
+    "aidd_version": { "$ref": "urn:aidd:1:common#/$defs/aidd_version" },
+    "kind": { "const": "proposal", "description": "Object kind. Always `proposal`." },
+    "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120, "description": "One line. `locale` may apply." },
+    "audience": {
+      "enum": ["client", "internal"],
+      "description": "`client`: a bid, pitch, or response to a request for proposal. `internal`: a change put to the company's own decision makers, such as leadership, an investment committee, or an architecture board."
+    },
+    "addressee": { "type": "string", "minLength": 1, "description": "Who receives the proposal and decides, such as \"Acme Corp procurement\" or \"the executive committee\"." },
+    "goal": { "$ref": "urn:aidd:1:common#/$defs/goal", "description": "What the addressee gets if they say yes, as an outcome they can check." },
+    "status": {
+      "enum": ["exploring", "no_go", "drafting", "signed_off", "submitted", "accepted", "rejected", "withdrawn"],
+      "description": "Optional cache of the derived status; `aidd validate` refuses one the recorded decisions do not support, and warns about one they have moved past. exploring: no go/no-go yet. no_go: a person decided not to pursue it. drafting: a person decided to go. signed_off: a person signed it off. submitted, accepted, rejected, withdrawn: the recorded `outcome`.",
+      "x-meanings": {
+        "exploring": "Derived: no go_no_go recorded yet.",
+        "no_go": "Derived: go_no_go.decision is no_go.",
+        "drafting": "Derived: go_no_go.decision is go, and no sign_off yet.",
+        "signed_off": "Derived: sign_off is recorded, and no outcome yet. Send it.",
+        "submitted": "Stored: outcome.decision is submitted; the addressee decides.",
+        "accepted": "Stored: outcome.decision is accepted.",
+        "rejected": "Stored: outcome.decision is rejected.",
+        "withdrawn": "Stored: outcome.decision is withdrawn."
+      },
+      "x-groups": { "exploring": "backlog", "no_go": "cancelled", "drafting": "started", "signed_off": "started", "submitted": "started", "accepted": "completed", "rejected": "cancelled", "withdrawn": "cancelled" }
+    },
+    "due": { "$ref": "urn:aidd:1:common#/$defs/date", "description": "When the addressee needs it." },
+    "owner_team": { "type": "string", "description": "Team accountable for the proposal." },
+    "go_no_go": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "by", "on"],
+      "description": "The first human decision: pursue it or not, before the team spends effort drafting.",
+      "properties": {
+        "decision": { "enum": ["go", "no_go"], "description": "`go`: draft it. `no_go`: do not pursue it." },
+        "by": { "$ref": "urn:aidd:1:common#/$defs/identity", "description": "The person who decided, such as @lead. Never an agent." },
+        "on": { "$ref": "urn:aidd:1:common#/$defs/date" },
+        "reason": { "type": "string", "description": "Why, in a sentence, for whoever reads the decision later." }
+      }
+    },
+    "sign_off": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["by", "on"],
+      "description": "The second human decision: the proposal may be sent, with its price, commitments, assumptions, and exclusions.",
+      "properties": {
+        "by": { "$ref": "urn:aidd:1:common#/$defs/identity", "description": "The person who signed it off. Never an agent." },
+        "on": { "$ref": "urn:aidd:1:common#/$defs/date" },
+        "hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{32}$",
+          "description": "The proposal hash the person signed off, as `aidd hash <proposal>` prints it. It covers the body and the front matter. It leaves out the decisions and the living fields that people fill in over time, such as a question's `answer` and a RAID item's `status`; METHOD.md lists them all. `aidd validate` fails when the proposal no longer matches it, unless the `Proposal hash after this change:` line of a change order in the proposal's `change-orders/` folder names the new hash. It warns when a sign-off has no hash."
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "by", "on"],
+      "description": "What happened after the sign-off, as a person records it: sent (submitted), then the addressee's answer (accepted or rejected), or withdrawn. The status after sign_off comes from it.",
+      "properties": {
+        "decision": { "enum": ["submitted", "accepted", "rejected", "withdrawn"], "description": "`submitted`: sent to the addressee. `accepted` or `rejected`: their answer. `withdrawn`: taken back before an answer." },
+        "by": { "$ref": "urn:aidd:1:common#/$defs/identity", "description": "The person who recorded it, such as @lead. Never an agent." },
+        "on": { "$ref": "urn:aidd:1:common#/$defs/date", "description": "The day it happened, the same key as go_no_go and sign_off." }
+      }
+    },
+    "needs": {
+      "type": "array",
+      "description": "What the addressee needs, one entry each, and how the proposal answers it: the compliance matrix of a bid, or the concerns a business case must meet.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "need", "answer"],
+        "properties": {
+          "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+          "need": { "type": "string", "minLength": 1, "description": "The need, in the addressee's terms." },
+          "source": { "type": "string", "description": "Where the need comes from, such as \"RFP 3.2\" or \"CFO, 2026-09-01\"." },
+          "answer": {
+            "enum": ["met", "partly_met", "alternative", "not_met"],
+            "description": "met, partly_met (say what is missing), alternative (a different way to the same end), or not_met (say why)."
+          },
+          "epic": { "type": "string", "description": "The Epic this need belongs to once accepted; `aidd proposal convert` groups needs by it." },
+          "note": { "type": "string", "description": "What a partial, alternative, or unmet answer leaves out, or why." }
+        }
+      }
+    },
+    "options": {
+      "type": "array",
+      "description": "The real alternatives, doing nothing included when it is one.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "summary"],
+        "properties": {
+          "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+          "name": { "type": "string", "minLength": 1, "description": "A short name for the option." },
+          "summary": { "type": "string", "minLength": 1, "description": "What the option does and what it costs, in a sentence or two." },
+          "recommended": { "type": "boolean", "description": "The option the proposal recommends." }
+        }
+      }
+    },
+    "estimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit", "low", "likely", "high", "basis"],
+      "description": "A range, never a single number: low, most likely, and high, and what it rests on. Optional `parts` break it down.",
+      "properties": {
+        "unit": { "type": "string", "minLength": 1, "description": "Such as person-days, person-weeks, or EUR." },
+        "low": { "type": "number", "minimum": 0, "description": "The low end of the range, in `unit`." },
+        "likely": { "type": "number", "minimum": 0, "description": "The most likely value, in `unit`." },
+        "high": { "type": "number", "minimum": 0, "description": "The high end of the range, in `unit`." },
+        "basis": { "type": "string", "minLength": 1, "description": "What the range rests on: comparable past work, `aidd metrics` lead times, or a breakdown." },
+        "parts": {
+          "type": "array",
+          "description": "The breakdown behind the range, one entry per part, in the total's `unit`. `aidd validate` fails when the PERT roll-up of the parts falls outside the total's low to high. The roll-up is the sum of (low + 4 × likely + high) / 6.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "low", "likely", "high", "kind"],
+            "properties": {
+              "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+              "name": { "type": "string", "minLength": 1, "description": "A short name for the part." },
+              "low": { "type": "number", "minimum": 0, "description": "The low end of the part, in the total's `unit`." },
+              "likely": { "type": "number", "minimum": 0, "description": "The most likely value of the part." },
+              "high": { "type": "number", "minimum": 0, "description": "The high end of the part." },
+              "kind": {
+                "enum": ["build", "port", "integration", "research", "human"],
+                "description": "`build`: new work. `port`: existing work moved or rewritten. `integration`: joining systems the team does not own. `research`: finding out before building. `human`: what only people do, such as decisions, reviews, the addressee's tasks, and waiting."
+              }
+            }
+          }
+        }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fit", "budget", "authority", "decision_process", "recommendation"],
+      "description": "The qualification the delivery manager records before any drafting: what is known of each point, or what is still to ask (the gap goes in `questions`; the date the addressee needs it is the proposal's `due`, and each risk a `risks` entry). It recommends; a person still decides in `go_no_go`.",
+      "properties": {
+        "fit": { "type": "string", "minLength": 1, "description": "Why the work fits the team, or not: comparable past work, the skills it needs, and the capacity for it." },
+        "budget": { "type": "string", "minLength": 1, "description": "The budget or its cap, and who confirmed it; `unknown` makes it the first question." },
+        "authority": { "type": "string", "minLength": 1, "description": "Who signs, and who else can say no." },
+        "decision_process": { "type": "string", "minLength": 1, "description": "How the addressee decides: the steps, the criteria, the competition, and the dates." },
+        "recommendation": { "enum": ["go", "no_go", "ask"], "description": "`go` or `no_go`: the delivery manager's advice for the go/no-go. `ask`: too much is unknown to advise; the questions come first." }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/raid_item" },
+      "description": "What must hold for the proposal to stand; the A of the RAID log. Each is a risk if it turns out false."
+    },
+    "issues": { "type": "array", "items": { "$ref": "#/$defs/raid_item" }, "description": "What is already going wrong and needs action; the I of the RAID log." },
+    "dependencies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/raid_item" },
+      "description": "What the work waits on from someone else (access, data, a decision, another vendor); the D of the RAID log."
+    },
+    "milestones": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/milestone" },
+      "description": "The delivery milestones and their invoicing hooks, as promised; `aidd proposal convert` copies them to the Initiative, which keeps them from then on."
+    },
+    "exclusions": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "What the proposal does not include, said plainly." },
+    "risks": {
+      "type": "array",
+      "description": "What could make the work fail to deliver; the R of the RAID log. Each carries its likelihood and impact (low, medium, or high).",
+      "items": { "allOf": [{ "$ref": "#/$defs/raid_item" }], "required": ["likelihood", "impact"] }
+    },
+    "claims": {
+      "type": "array",
+      "description": "The claims register: each thing the proposal says works, its evidence, and where the evidence was seen. `aidd validate` warns on a claim with no evidence. It also warns on an absolute word, such as every or always, in a claim seen only in simulation.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "scope"],
+        "properties": {
+          "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+          "text": { "type": "string", "minLength": 1, "description": "The claim, as the proposal states it." },
+          "evidence": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "description": "What shows it: a `file:line`, a test, a recording, or a document."
+          },
+          "scope": {
+            "enum": ["simulated", "real-device", "production", "code", "external"],
+            "description": "Where the evidence was seen. `simulated`: an emulator, a simulator, or a mock. `real-device`: real hardware. `production`: the live system. `code`: read in the code. `external`: a third party's word or document."
+          }
+        }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/decision" },
+      "description": "The scope decisions log: each scope decision a person made, and each reversal. The proposal hash leaves it out. `aidd proposal convert` copies it to the Initiative."
+    },
+    "questions": {
+      "type": "array",
+      "description": "Questions for the addressee, with the answer once known: the clarification log.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "question"],
+        "properties": {
+          "id": { "$ref": "urn:aidd:1:common#/$defs/id" },
+          "question": { "type": "string", "minLength": 1, "description": "The question put to the addressee." },
+          "answer": { "type": "string", "description": "Their answer, once known." }
+        }
+      }
+    }
+  }
+}

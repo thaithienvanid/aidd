@@ -1,0 +1,22 @@
+{
+  "summary": "A base config with [docs] dir = \".\" fails the gate: a folder at the repository's top would turn every pattern built from it, such as baseline:standards, into one over the whole repository.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "[owners]\n",
+      "new": "[docs]\ndir = \".\"\n\n[owners]\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "config"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail config.invalid"
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: debugging-reproduces-first
+context:
+  scaffold_script: fixture.sh

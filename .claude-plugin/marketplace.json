@@ -1,0 +1,46 @@
+{
+  "name": "aidd",
+  "owner": {
+    "name": "Van Hoang"
+  },
+  "metadata": {
+    "description": "aidd: the toolkit for AI-Driven Development (AIDD), one loop from intent to production with change control at its core, with a skill, an MCP server, guard hooks, and an optional delivery team of agent roles."
+  },
+  "plugins": [
+    {
+      "name": "aidd",
+      "source": "./",
+      "description": "AIDD, one loop from intent to production with change control at its core: one skill plus the aidd verifier as MCP tools and an guard hook.",
+      "version": "1.0.0",
+      "relevance": {
+        "topic": "AIDD",
+        "signals": {
+          "cli": [
+            "aidd"
+          ],
+          "filesRead": [
+            "**/.aidd/config.toml"
+          ]
+        }
+      }
+    },
+    {
+      "name": "aidd-team",
+      "source": "./plugins/aidd-team",
+      "description": "Optional: run the aidd loop as a delivery team of agent roles, each applying its discipline's industry standards, with a domain pack per domain and practice skills per kind of work, every standard carrying a checked date (or a reviewed date for a practice), and an edition and source where the document has one. Ships one command per team flow, from onboarding a repository, writing a proposal, or building an MVP, to a quick fix, shipping, and the retrospective. Needs the aidd plugin.",
+      "version": "1.0.0",
+      "dependencies": [
+        "aidd"
+      ],
+      "relevance": {
+        "topic": "an AIDD delivery team",
+        "signals": {
+          "filesRead": [
+            "**/.aidd/config.toml",
+            "**/.claude/agents/aidd-*.md"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "description": "aidd (advisory): answers allow or deny, never a mid-build prompt, and each deny names its route. Before an edit, denies outside the active Spec's scope, on a test or design file frozen by Spec approval or owned by another role, on a protected path outside an approved scope, outside an aidd-team role's write area, for a subagent that is not a role (helpers only read), and for the main session's edit of repository content under `[agents] delegate` (`always`, or `auto` in the session that holds the autopilot lease), naming the role to hand it to. Before a shell command, denies approving or merging a PR/MR, posting `/aidd approve`, the known ways of typing an approval into another terminal or starting one there (tmux send-keys and new-window, orca terminal send and create, orca computer type-text, osascript, and the like, through quoting and escaping too; `aidd approve` itself also asks for a one-time code an agent cannot know), and a configured held command (a production deploy) until a person sets its approval variable, and holds a role's obvious shell writes (redirects, tee, sed -i, cp, mv, git apply, patch) to the same rules. It is a guide, not a control: the shell check is best-effort parsing, so a write through an interpreter or a build tool is not seen, and the gate's scope rule sees that diff anyway and decides. Before an MCP tool whose name could approve or merge (merge, approve, status, review, or a comment, note, thread, issue, PR/MR, commit, push, or file tool; a browser or a docs search never starts it), denies only the tools that merge, approve, submit an approving review, set a commit status, or post `/aidd approve`; PowerShell commands get the shell check. It acts only in a repository with .aidd/config.toml, never uses the network, and allows when it cannot tell (with AIDD_HOOK_FAIL_CLOSED=1, which the regulated managed settings set, it blocks when it cannot run at all). Session hooks, advisory and fail-open: at session start it adds a short `aidd assess` summary (the route of this change, then its next steps) (after a compaction, with a reminder of the handoff note and the state saved before it); before a compaction it saves the state of the work in the git directory, never in a tracked file; under the team and org profiles, each prompt gets one line with the next step and its command; when the agent, or an aidd-team role that writes code, stops with changes in the Spec's scope and no passing `aidd test` evidence on HEAD, it reminds it once (level balanced) or blocks the stop once (level strict), never after a stop hook already continued it. `[hooks]` in the config sets the level and turns each off.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell|mcp__.*(?:[Mm]erge|MERGE|[Aa]pprov|APPROV|[Aa]ccept|ACCEPT|[Cc]omplete|COMPLETE|[Ss]tatus|STATUS|[Rr]eview|REVIEW|[Cc]omment|COMMENT|[Nn]ote|NOTE|[Dd]iscussion|DISCUSSION|[Tt]hread|THREAD|[Rr]eply|REPLY|[Ii]ssue|ISSUE|[Pp]ull|PULL|[Rr]equest|REQUEST|[Cc]ommit|COMMIT|[Pp]ush|PUSH|[Ff]ile|FILE|(?:_|-)(?:[Pp][Rr]|[Mm][Rr])s?(?:_|-|$)|(?<=[a-z])(?:Pr|PR|Mr|MR)(?:[A-Z_-]|s?$)).*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "unset CDPATH; unset -f test cd pwd command 2>/dev/null; R=\"${CLAUDE_PLUGIN_ROOT}/src\"; L='import sys; sys.version_info < (3, 11) and sys.exit(3); sys.path.insert(0, sys.argv.pop(1)); sys.argv[0] = sys.argv.pop(1); from aidd.cli import main; sys.exit(main())'; D=$(cd -P -- \"${CLAUDE_PROJECT_DIR:-.}\" 2>/dev/null && pwd -P) || D=; W=$(pwd -P); ok() { case \"$1\" in /*) ;; *) return 1;; esac; p=$(cd -P -- \"${1%/*}/\" 2>/dev/null && pwd -P) || return 1; for d in \"$D\" \"$W\"; do test -n \"$d\" || return 1; x=$p; while :; do test \"$x\" -ef \"$d\" && return 1; case \"$x\" in \"\"|/) break;; esac; x=${x%/*}; test -n \"$x\" || x=/; done; done; }; s=127; P3=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v python3); if ok \"$P3\"; then AIDD_HOOK_OFFLINE=1 \"$P3\" -I -S -c \"$L\" \"$R\" aidd hook pre-tool && exit 0; s=$?; fi; PY=; UV=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v uv); if { test \"$s\" = 3 || test \"$s\" = 127; } && ok \"$UV\"; then PY=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && unset VIRTUAL_ENV && \"$UV\" python find --offline --no-project --no-config --no-python-downloads --system '>=3.11' 2>/dev/null) && ok \"$PY\" || PY=; fi; test -n \"$PY\" && AIDD_HOOK_OFFLINE=1 \"$PY\" -I -S -c \"$L\" \"$R\" aidd hook pre-tool && exit 0; if test \"${AIDD_HOOK_FAIL_CLOSED:-}\" = 1; then echo \"aidd hook: could not run (it needs Python 3.11 or later, or uv with a Python outside any virtual environment: uv python install 3.12); blocking, because AIDD_HOOK_FAIL_CLOSED=1 requires the guard\" >&2; exit 2; fi; echo \"aidd hook: could not run (it needs Python 3.11 or later, or uv with a Python outside any virtual environment: uv python install 3.12); allowing the edit, because the gate still decides\" >&2; exit 0;",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "unset CDPATH; unset -f test cd pwd command 2>/dev/null; R=\"${CLAUDE_PLUGIN_ROOT}/src\"; L='import sys; sys.version_info < (3, 11) and sys.exit(3); sys.path.insert(0, sys.argv.pop(1)); sys.argv[0] = sys.argv.pop(1); from aidd.cli import main; sys.exit(main())'; D=$(cd -P -- \"${CLAUDE_PROJECT_DIR:-.}\" 2>/dev/null && pwd -P) || D=; W=$(pwd -P); ok() { case \"$1\" in /*) ;; *) return 1;; esac; p=$(cd -P -- \"${1%/*}/\" 2>/dev/null && pwd -P) || return 1; for d in \"$D\" \"$W\"; do test -n \"$d\" || return 1; x=$p; while :; do test \"$x\" -ef \"$d\" && return 1; case \"$x\" in \"\"|/) break;; esac; x=${x%/*}; test -n \"$x\" || x=/; done; done; }; s=127; P3=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v python3); if ok \"$P3\"; then AIDD_HOOK_OFFLINE=1 \"$P3\" -I -S -c \"$L\" \"$R\" aidd hook session-start && exit 0; s=$?; fi; PY=; UV=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v uv); if { test \"$s\" = 3 || test \"$s\" = 127; } && ok \"$UV\"; then PY=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && unset VIRTUAL_ENV && \"$UV\" python find --offline --no-project --no-config --no-python-downloads --system '>=3.11' 2>/dev/null) && ok \"$PY\" || PY=; fi; test -n \"$PY\" && AIDD_HOOK_OFFLINE=1 \"$PY\" -I -S -c \"$L\" \"$R\" aidd hook session-start && exit 0; echo \"aidd hook: could not run (it needs Python 3.11 or later, or uv with a Python outside any virtual environment: uv python install 3.12); skipping this advisory hook\" >&2; exit 0;",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "unset CDPATH; unset -f test cd pwd command 2>/dev/null; R=\"${CLAUDE_PLUGIN_ROOT}/src\"; L='import sys; sys.version_info < (3, 11) and sys.exit(3); sys.path.insert(0, sys.argv.pop(1)); sys.argv[0] = sys.argv.pop(1); from aidd.cli import main; sys.exit(main())'; D=$(cd -P -- \"${CLAUDE_PROJECT_DIR:-.}\" 2>/dev/null && pwd -P) || D=; W=$(pwd -P); ok() { case \"$1\" in /*) ;; *) return 1;; esac; p=$(cd -P -- \"${1%/*}/\" 2>/dev/null && pwd -P) || return 1; for d in \"$D\" \"$W\"; do test -n \"$d\" || return 1; x=$p; while :; do test \"$x\" -ef \"$d\" && return 1; case \"$x\" in \"\"|/) break;; esac; x=${x%/*}; test -n \"$x\" || x=/; done; done; }; s=127; P3=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v python3); if ok \"$P3\"; then AIDD_HOOK_OFFLINE=1 \"$P3\" -I -S -c \"$L\" \"$R\" aidd hook prompt-submit && exit 0; s=$?; fi; PY=; UV=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v uv); if { test \"$s\" = 3 || test \"$s\" = 127; } && ok \"$UV\"; then PY=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && unset VIRTUAL_ENV && \"$UV\" python find --offline --no-project --no-config --no-python-downloads --system '>=3.11' 2>/dev/null) && ok \"$PY\" || PY=; fi; test -n \"$PY\" && AIDD_HOOK_OFFLINE=1 \"$PY\" -I -S -c \"$L\" \"$R\" aidd hook prompt-submit && exit 0; echo \"aidd hook: could not run (it needs Python 3.11 or later, or uv with a Python outside any virtual environment: uv python install 3.12); skipping this advisory hook\" >&2; exit 0;",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "unset CDPATH; unset -f test cd pwd command 2>/dev/null; R=\"${CLAUDE_PLUGIN_ROOT}/src\"; L='import sys; sys.version_info < (3, 11) and sys.exit(3); sys.path.insert(0, sys.argv.pop(1)); sys.argv[0] = sys.argv.pop(1); from aidd.cli import main; sys.exit(main())'; D=$(cd -P -- \"${CLAUDE_PROJECT_DIR:-.}\" 2>/dev/null && pwd -P) || D=; W=$(pwd -P); ok() { case \"$1\" in /*) ;; *) return 1;; esac; p=$(cd -P -- \"${1%/*}/\" 2>/dev/null && pwd -P) || return 1; for d in \"$D\" \"$W\"; do test -n \"$d\" || return 1; x=$p; while :; do test \"$x\" -ef \"$d\" && return 1; case \"$x\" in \"\"|/) break;; esac; x=${x%/*}; test -n \"$x\" || x=/; done; done; }; s=127; P3=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v python3); if ok \"$P3\"; then AIDD_HOOK_OFFLINE=1 \"$P3\" -I -S -c \"$L\" \"$R\" aidd hook stop && exit 0; s=$?; fi; PY=; UV=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v uv); if { test \"$s\" = 3 || test \"$s\" = 127; } && ok \"$UV\"; then PY=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && unset VIRTUAL_ENV && \"$UV\" python find --offline --no-project --no-config --no-python-downloads --system '>=3.11' 2>/dev/null) && ok \"$PY\" || PY=; fi; test -n \"$PY\" && AIDD_HOOK_OFFLINE=1 \"$PY\" -I -S -c \"$L\" \"$R\" aidd hook stop && exit 0; echo \"aidd hook: could not run (it needs Python 3.11 or later, or uv with a Python outside any virtual environment: uv python install 3.12); skipping this advisory hook\" >&2; exit 0;",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "unset CDPATH; unset -f test cd pwd command 2>/dev/null; R=\"${CLAUDE_PLUGIN_ROOT}/src\"; L='import sys; sys.version_info < (3, 11) and sys.exit(3); sys.path.insert(0, sys.argv.pop(1)); sys.argv[0] = sys.argv.pop(1); from aidd.cli import main; sys.exit(main())'; D=$(cd -P -- \"${CLAUDE_PROJECT_DIR:-.}\" 2>/dev/null && pwd -P) || D=; W=$(pwd -P); ok() { case \"$1\" in /*) ;; *) return 1;; esac; p=$(cd -P -- \"${1%/*}/\" 2>/dev/null && pwd -P) || return 1; for d in \"$D\" \"$W\"; do test -n \"$d\" || return 1; x=$p; while :; do test \"$x\" -ef \"$d\" && return 1; case \"$x\" in \"\"|/) break;; esac; x=${x%/*}; test -n \"$x\" || x=/; done; done; }; s=127; P3=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v python3); if ok \"$P3\"; then AIDD_HOOK_OFFLINE=1 \"$P3\" -I -S -c \"$L\" \"$R\" aidd hook stop && exit 0; s=$?; fi; PY=; UV=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v uv); if { test \"$s\" = 3 || test \"$s\" = 127; } && ok \"$UV\"; then PY=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && unset VIRTUAL_ENV && \"$UV\" python find --offline --no-project --no-config --no-python-downloads --system '>=3.11' 2>/dev/null) && ok \"$PY\" || PY=; fi; test -n \"$PY\" && AIDD_HOOK_OFFLINE=1 \"$PY\" -I -S -c \"$L\" \"$R\" aidd hook stop && exit 0; echo \"aidd hook: could not run (it needs Python 3.11 or later, or uv with a Python outside any virtual environment: uv python install 3.12); skipping this advisory hook\" >&2; exit 0;",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "unset CDPATH; unset -f test cd pwd command 2>/dev/null; R=\"${CLAUDE_PLUGIN_ROOT}/src\"; L='import sys; sys.version_info < (3, 11) and sys.exit(3); sys.path.insert(0, sys.argv.pop(1)); sys.argv[0] = sys.argv.pop(1); from aidd.cli import main; sys.exit(main())'; D=$(cd -P -- \"${CLAUDE_PROJECT_DIR:-.}\" 2>/dev/null && pwd -P) || D=; W=$(pwd -P); ok() { case \"$1\" in /*) ;; *) return 1;; esac; p=$(cd -P -- \"${1%/*}/\" 2>/dev/null && pwd -P) || return 1; for d in \"$D\" \"$W\"; do test -n \"$d\" || return 1; x=$p; while :; do test \"$x\" -ef \"$d\" && return 1; case \"$x\" in \"\"|/) break;; esac; x=${x%/*}; test -n \"$x\" || x=/; done; done; }; s=127; P3=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v python3); if ok \"$P3\"; then AIDD_HOOK_OFFLINE=1 \"$P3\" -I -S -c \"$L\" \"$R\" aidd hook pre-compact && exit 0; s=$?; fi; PY=; UV=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && command -v uv); if { test \"$s\" = 3 || test \"$s\" = 127; } && ok \"$UV\"; then PY=$(cd -P -- \"${CLAUDE_PLUGIN_ROOT}\" && unset VIRTUAL_ENV && \"$UV\" python find --offline --no-project --no-config --no-python-downloads --system '>=3.11' 2>/dev/null) && ok \"$PY\" || PY=; fi; test -n \"$PY\" && AIDD_HOOK_OFFLINE=1 \"$PY\" -I -S -c \"$L\" \"$R\" aidd hook pre-compact && exit 0; echo \"aidd hook: could not run (it needs Python 3.11 or later, or uv with a Python outside any virtual environment: uv python install 3.12); skipping this advisory hook\" >&2; exit 0;",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

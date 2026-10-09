@@ -1,0 +1,11 @@
+# A stack: opinionated standards that go together, plus the [project.stack] entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+# Every cloud stack carries the cost guards (cost/*). No cost/arm64-first: Cloud Run runs only x86-64.
+name = "gcp-run"
+description = "A container service on Google Cloud Run: capped instances, log retention, storage and registry cleanup, budgets, OpenTofu, and the cost guards."
+standards = ["gcp/cloud-run", "gcp/registry-cleanup", "gcp/log-retention", "gcp/budgets", "gcp/hard-caps", "iac/opentofu", "cost/preview-env-ttl", "cost/llm-spend-caps", "cost/pr-cost-delta-threshold", "cost/policy-caps", "cost/kill-switch"]
+reviewed = "2026-10-07"
+owner = "@thaithienvanid"
+
+[project.stack]
+adopt = ["Google Cloud Run", "Artifact Registry", "Cloud Storage", "Cloud Billing budgets", "OpenTofu", "TFLint", "Infracost", "Conftest"]

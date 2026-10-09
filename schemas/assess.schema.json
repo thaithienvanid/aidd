@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:assess",
+  "title": "aidd assess --json",
+  "description": "What `aidd assess --json` prints, and the MCP `assess` tool answers (with a `note`): this change's route, then its next steps, then the other branches it overlaps. With --paths, the route of the planned paths and the lane's first step. Advisory: the gate recomputes the route from the real diff and can only raise it.",
+  "type": "object",
+  "required": ["schema_version", "route", "steps", "overlaps"],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output: a new key keeps it, a renamed or removed one bumps it."
+    },
+    "route": {
+      "anyOf": [{ "$ref": "#/$defs/route" }, { "type": "null" }],
+      "description": "The route of this change, or null when the branch has no diff and declares no route (or aidd is not set up)."
+    },
+    "steps": {
+      "$ref": "urn:aidd:1:list#/$defs/steps",
+      "description": "The next steps for this change, most urgent first: the Specs this branch changes, or the lane's step when no Spec carries it."
+    },
+    "overlaps": {
+      "$ref": "urn:aidd:1:list#/$defs/steps",
+      "description": "Other branches whose Specs change the same code (code `overlap`), and a note when only some branches were checked (code `overlap.capped`)."
+    },
+    "note": {
+      "type": "string",
+      "description": "The MCP tool only: that the answer is advice, and the gate decides."
+    },
+    "project": {
+      "$ref": "urn:aidd:1:owners#/$defs/project",
+      "description": "The config's `[project]` for the paths assessed: the stack radar and the rules whose `applies` match, must first. Absent when the config has none or nothing was assessed."
+    }
+  },
+  "$defs": {
+    "route": {
+      "type": "object",
+      "required": ["route", "lane", "reasons", "header"],
+      "description": "A route with its lane and why. Further keys may be added in a minor release; a consumer ignores keys it does not know.",
+      "properties": {
+        "route": {
+          "enum": ["standard", "minor", "normal", "major", "emergency"],
+          "description": "The route that applies: the higher of `required` and `declared.route`, as the gate enforces it."
+        },
+        "lane": {
+          "enum": ["fast", "spec", "emergency"],
+          "description": "The lane the route puts the change on."
+        },
+        "reasons": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Why the diff or the planned paths need `required`, one line each."
+        },
+        "header": {
+          "type": "string",
+          "description": "The route in one line, as `aidd assess` prints it first, such as \"Route: major (spec lane), set by SPEC-1; the diff alone needs minor\"."
+        },
+        "required": {
+          "anyOf": [{ "enum": ["standard", "minor", "normal", "major"] }, { "type": "null" }],
+          "description": "The minimum route the diff or the planned paths need, or null when the branch has no diff yet."
+        },
+        "declared": {
+          "anyOf": [
+            {
+              "type": "object",
+              "required": ["route", "by"],
+              "properties": {
+                "route": { "type": "string", "description": "The declared route." },
+                "by": { "type": "string", "description": "Who declares it: a Spec's id, or `the Change Request block`." }
+              }
+            },
+            { "type": "null" }
+          ],
+          "description": "The highest route the change declares, in a Spec on the branch or the Change Request block of its newest commit that holds one; null when it declares none."
+        },
+        "basis": {
+          "type": "string",
+          "description": "What was assessed: the branch's diff against its base, or the planned paths."
+        },
+        "paths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "The paths assessed."
+        },
+        "dimensions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "The risk dimensions the paths imply."
+        },
+        "pools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "The specialist Approver pools a major change would need."
+        },
+        "changed_lines": {
+          "type": "integer",
+          "description": "The branch's changed lines the gate counts against the budget (a diff only)."
+        },
+        "packs": {
+          "type": "array",
+          "description": "The domain packs the change calls for, wherever its code sits: one per dependency the branch adds to its manifests (a diff only), and one per risk that names a pack (privacy-by-default on the privacy dimension or a `gdpr` compliance target). Absent when none.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "oneOf": [{ "required": ["pack", "dependency", "file"] }, { "required": ["pack", "reason"] }],
+            "properties": {
+              "pack": { "type": "string", "description": "The domain pack, loaded as `aidd-team:<pack>`." },
+              "dependency": { "type": "string", "description": "The added dependency, as the manifest spells it." },
+              "file": { "type": "string", "description": "The manifest that adds it." },
+              "reason": { "type": "string", "description": "The risk that calls for the pack, such as `the privacy dimension`." }
+            }
+          }
+        }
+      }
+    }
+  }
+}

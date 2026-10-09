@@ -1,0 +1,77 @@
+# Dogfood: this repository's gate calls the local reusable workflow, which runs aidd
+# from the default branch's own commit, so a PR can never change the gate that judges it.
+name: aidd-gate
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
+  issue_comment:
+    types: [created, edited, deleted]
+  # Merge queues arrive here too, as the completed aidd-tests run of a merge_group. Never trigger on
+  # merge_group itself: that event runs the workflow file from the merge-group commit (see templates/github/aidd-gate.yml).
+  workflow_run:
+    workflows: [aidd-tests, aidd-relay]
+    types: [completed]
+
+permissions: {}
+
+# A pull request event for the same pull request and head waits for the run in progress, and only the newest one
+# queued runs: each run judges the pull request as it is when it starts. A comment or a completed run gets a group of
+# its own, since a comment the job's filter skips must never displace a queued run. The reusable workflow queues the
+# gate job itself per pull request.
+concurrency:
+  group: aidd-gate-run-${{ github.event_name == 'pull_request_target' && format('{0}-{1}', github.event.pull_request.number, github.event.pull_request.head.sha) || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    # /aidd comments from someone with a role on the repository only (see templates/github/aidd-gate.yml).
+    if: >-
+      github.event_name != 'issue_comment' || (github.event.issue.pull_request
+      && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+      && (contains(github.event.comment.body, '/aidd') || contains(github.event.changes.body.from, '/aidd')))
+    uses: ./.github/workflows/gate.yml
+    permissions:
+      contents: read       # the history the Spec and the diff are read from
+      pull-requests: read  # the pull request, its reviews, and its files
+      issues: read         # the /aidd comments
+      actions: read        # the aidd-tests run and its evidence artifact
+      checks: read         # existing CI check runs counted as evidence
+      statuses: write      # post aidd/gate (only when no App is configured)
+
+  # Optional, off unless the repository variable AIDD_ATTEST_CHANGE_RECORD is true: sign a passing change
+  # record (see templates/github/aidd-gate.yml). Only this job holds id-token and attestations.
+  attest:
+    needs: gate
+    if: always() && vars.AIDD_ATTEST_CHANGE_RECORD == 'true' && needs.gate.outputs.pr != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      id-token: write      # mint the OIDC token Sigstore signs with
+      attestations: write  # store the attestation on this repository
+      actions: read        # download the gate's record artifact
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: aidd-gate-${{ github.run_id }}-${{ needs.gate.outputs.pr }}
+          path: aidd-record
+      - id: record
+        shell: bash
+        env:
+          PR: ${{ needs.gate.outputs.pr }}
+        run: |
+          f=aidd-record/change-record.intoto.json
+          [ -f "$f" ] || f="aidd-record/change-record-$PR.intoto.json"
+          if [ ! -f "$f" ] || [ "$(jq -r .predicate.decision "$f")" != pass ]; then
+            echo "no passing change record for #$PR; nothing to sign"
+            echo "sign=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          jq .predicate "$f" > aidd-record/predicate.json
+          { echo "sign=true"; echo "statement=$f"; } >> "$GITHUB_OUTPUT"
+      - if: steps.record.outputs.sign == 'true'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ steps.record.outputs.statement }}
+          predicate-type: https://github.com/thaithienvanid/aidd/blob/main/schemas/change-record.schema.json
+          predicate-path: aidd-record/predicate.json

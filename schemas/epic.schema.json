@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:epic",
+  "title": "Epic",
+  "description": "Optional container: one outcome delivered by several Specs. When two teams share it, the Epic context is their only shared glossary.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aidd_version",
+    "kind",
+    "id",
+    "title",
+    "goal"
+  ],
+  "properties": {
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version"
+    },
+    "kind": {
+      "const": "epic",
+      "description": "Object kind. Always `epic`."
+    },
+    "id": {
+      "$ref": "urn:aidd:1:common#/$defs/id"
+    },
+    "parent": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "description": "Optional Initiative id."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "One line. `locale` may apply."
+    },
+    "goal": {
+      "$ref": "urn:aidd:1:common#/$defs/goal"
+    },
+    "status": {
+      "$ref": "urn:aidd:1:common#/$defs/container_status",
+      "description": "Optional: `done` or `cancelled` when a person closes or stops it; draft and active are derived from the children."
+    },
+    "labels": {
+      "$ref": "urn:aidd:1:common#/$defs/labels"
+    },
+    "relations": {
+      "$ref": "urn:aidd:1:common#/$defs/relations"
+    },
+    "priority": {
+      "$ref": "urn:aidd:1:common#/$defs/priority"
+    },
+    "owner": {
+      "$ref": "urn:aidd:1:common#/$defs/owner"
+    },
+    "owner_team": {
+      "type": "string",
+      "description": "The team accountable for the Epic's outcome. The Epic is multi-team when the Specs under it name two or more `owner_team`s."
+    },
+    "context": {
+      "type": "string",
+      "description": "Shared terms and constraints for every Spec under this Epic."
+    },
+    "covers": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/id"
+      },
+      "uniqueItems": true,
+      "description": "The ids of the proposal needs this Epic delivers, when it came from an accepted proposal."
+    }
+  }
+}

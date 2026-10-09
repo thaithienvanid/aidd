@@ -1,0 +1,25 @@
+{
+  // aidd dev container: run coding agents with outbound traffic denied except to the hosts below.
+  // A starting point, not a guarantee: aidd itself sandboxes nothing. See docs/HOW-TO.md ("run agents in a sandbox").
+  // .devcontainer/** is a protected path: a change to this file goes through the gate as a major change.
+  "name": "aidd sandbox",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      // The code platform: github.com (its published address ranges are added) or your GitLab host.
+      "CODE_HOST": "github.com",
+      // The model API your agent calls, such as your provider's API host or your own gateway.
+      "MODEL_API_HOST": "api.anthropic.com",
+      // Package registries; replace them with your internal mirror when you have one.
+      "PACKAGE_HOSTS": "pypi.org files.pythonhosted.org registry.npmjs.org proxy.golang.org sum.golang.org index.crates.io static.crates.io",
+      // Anything else, space-separated.
+      "EXTRA_HOSTS": ""
+    }
+  },
+  "runArgs": ["--cap-add=NET_ADMIN", "--cap-add=NET_RAW"],
+  "remoteUser": "dev",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "workspaceFolder": "/workspace",
+  "postStartCommand": "sudo /usr/local/sbin/aidd-init-firewall",
+  "waitFor": "postStartCommand"
+}

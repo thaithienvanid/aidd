@@ -1,0 +1,22 @@
+{
+  "summary": "A change under a path with its own owners waits for one of them.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "[owners.specialists]",
+      "new": "[[owners.paths]]\npaths = [\"docs/**\"]\napprovers = [\"@docs-lead\"]\n\n[owners.specialists]"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending merge_approval.owner_area"
+    ]
+  }
+}

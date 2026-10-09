@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:autopilot-next",
+  "title": "aidd autopilot next --json",
+  "description": "What `aidd autopilot next --json` prints. Autopilot (experimental) runs the AIDD loop between your decisions: aidd decides each next step and stops whenever a person must decide. `run` names a team command for an agent step; `ask` names a person's decision and the page to read; `stop` says why the run ends. Agents never approve, merge, or ship: no action does.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "action",
+    "why"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "action": {
+      "enum": [
+        "run",
+        "ask",
+        "stop"
+      ],
+      "description": "What autopilot does now."
+    },
+    "why": {
+      "type": "string",
+      "description": "One line: why this action."
+    },
+    "code": {
+      "type": "string",
+      "pattern": "^[a-z_]+(\\.[a-z_]+)*$",
+      "description": "The step code acted on. `aidd autopilot note` records the result against it."
+    },
+    "flow": {
+      "type": "string",
+      "pattern": "^[a-z][a-z-]*$",
+      "description": "run: the flow whose `starts_on` names the code (roles.json)."
+    },
+    "command": {
+      "type": "string",
+      "description": "run: the team command, such as `/aidd-team:implement`."
+    },
+    "args": {
+      "type": "string",
+      "description": "run: its argument: the Spec id, or the goal."
+    },
+    "spec": {
+      "type": "string",
+      "description": "The item the action is about, when there is one."
+    },
+    "work": {
+      "type": "string",
+      "description": "The lease's work: a Spec, Epic, or Initiative id, a label, or `all`."
+    },
+    "who": {
+      "type": "string",
+      "description": "ask: who decides, as `aidd list` names them."
+    },
+    "what": {
+      "type": "string",
+      "description": "ask: the decision, in a sentence."
+    },
+    "how": {
+      "type": "string",
+      "description": "ask: how the person decides it."
+    },
+    "page": {
+      "type": "string",
+      "description": "ask: the command that writes the decision page."
+    },
+    "waiting": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "ask: how many decisions wait in the work."
+    },
+    "blocked": {
+      "type": "boolean",
+      "description": "ask: true when the run cannot go on until a person acts: a Task out of retries, the circuit breaker, a stop rule, or a setup problem."
+    },
+    "reason": {
+      "enum": [
+        "nothing_open",
+        "plan_ready",
+        "timebox",
+        "token_cap",
+        "cost_cap",
+        "lease_missing",
+        "lease_other"
+      ],
+      "description": "stop: why the run ends. `plan_ready`: the plan or proposal is ready, and only a person starting autopilot again agrees to it and goes on."
+    },
+    "lease": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_id",
+        "work",
+        "expires_at"
+      ],
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "The session that holds the lease."
+        },
+        "work": {
+          "type": "string",
+          "description": "The lease's work: a Spec, Epic, or Initiative id, a label, or `all`."
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the lease's timebox ends, in UTC."
+        }
+      },
+      "description": "The lease the decision read."
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timebox": {
+          "type": "string",
+          "description": "`[autopilot] timebox`."
+        },
+        "max_tokens": {
+          "type": "integer",
+          "description": "`[autopilot] max_tokens`."
+        },
+        "max_cost": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "amount",
+            "currency"
+          ],
+          "properties": {
+            "amount": {
+              "type": "number",
+              "minimum": 0,
+              "description": "The amount, in `currency`."
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$",
+              "description": "Its ISO 4217 currency, such as `USD`."
+            }
+          },
+          "description": "`[autopilot] max_cost`."
+        },
+        "retro_every": {
+          "type": "integer",
+          "description": "`[autopilot] retro_every`."
+        }
+      },
+      "description": "The `[autopilot]` limits in force, shown once when autopilot starts."
+    },
+    "paused": {
+      "type": "array",
+      "description": "What the run set aside, each for one reason: paused with `blocked_on`, a Task out of retries, a stop rule, or the circuit breaker. Other runnable work goes on.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "spec",
+          "why"
+        ],
+        "properties": {
+          "spec": {
+            "type": "string",
+            "description": "The item set aside."
+          },
+          "why": {
+            "type": "string",
+            "description": "Why, in a few words."
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "run"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "code",
+          "flow",
+          "command",
+          "args",
+          "work"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "ask"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "code",
+          "who",
+          "what",
+          "page"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "stop"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reason"
+        ]
+      }
+    }
+  ]
+}

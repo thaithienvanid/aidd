@@ -1,0 +1,397 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:owners",
+  "title": "aidd owners --json",
+  "description": "Who decides and who does the work: the humans who approve, and every agent role with what it writes and the standards it reads.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "mission",
+    "goal",
+    "proactive_roles",
+    "unknown_proactive_roles",
+    "humans",
+    "agent_accounts",
+    "agents",
+    "standards",
+    "unknown_standard_roles",
+    "stewards"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "mission": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The config's `mission`: why the product or team exists; null when unset."
+    },
+    "goal": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The team's goal from the config, or null when not set."
+    },
+    "proactive_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Roles that may suggest work nobody asked for, always as a draft Spec."
+    },
+    "unknown_proactive_roles": {
+      "type": "array",
+      "description": "Names in the config's `agents.proactive_roles` that match no agent role.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "humans": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The people who decide: the Approvers, the specialist pools, the owner areas, and the default team.",
+      "required": [
+        "approvers",
+        "specialist_pools",
+        "area_owners",
+        "codeowners",
+        "default_team"
+      ],
+      "properties": {
+        "approvers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Who gives Spec approval and Merge approval."
+        },
+        "specialist_pools": {
+          "type": "object",
+          "description": "Each specialist pool in `owners.specialists` (such as `security`) and who is bound to it.",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "area_owners": {
+          "type": "array",
+          "description": "The owner areas from `owners.paths`: path globs and who must approve a change that touches them.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "paths",
+              "approvers"
+            ],
+            "properties": {
+              "paths": {
+                "type": "array",
+                "description": "The globs of the paths this area owns.",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "approvers": {
+                "type": "array",
+                "description": "Who approves a change touching those paths.",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "codeowners": {
+          "type": "boolean",
+          "description": "Whether the config reads the repository's CODEOWNERS file as owner areas (`owners.codeowners`)."
+        },
+        "default_team": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The team accountable for a change no area owns (`owners.default_team`); null when unset."
+        }
+      }
+    },
+    "agent_accounts": {
+      "type": "array",
+      "description": "The agent accounts the config names in `identities.bots`: their platform approvals never count.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "agents": {
+      "type": "array",
+      "description": "Every agent role in the team, in the loop's order.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "steps",
+          "lanes",
+          "writes",
+          "tier",
+          "proactive",
+          "starts_when",
+          "standards",
+          "installed",
+          "fallback"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "description": "The role's key, such as `developer` or `reviewer`."
+          },
+          "steps": {
+            "type": "array",
+            "description": "The loop steps the role works in, such as Specify or Implement.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lanes": {
+            "type": "array",
+            "description": "The lanes the role takes part in, such as `fast` or `spec`.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "writes": {
+            "type": "string",
+            "description": "What the role writes, as the team pages name it."
+          },
+          "tier": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The model tier the role runs on by default (such as `execution`); null when the role names none."
+          },
+          "proactive": {
+            "type": "boolean",
+            "description": "Whether the config lets this role suggest work nobody asked for, always as a draft Spec."
+          },
+          "starts_when": {
+            "type": "string",
+            "description": "The event that starts the role's work."
+          },
+          "standards": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The names of the standards this role reads for the given --changed paths."
+          },
+          "installed": {
+            "type": "boolean",
+            "description": "Whether the role is installed here: its `aidd init --team` agent file is in `.claude/agents/`, or no agent file is and the plugin carries every role."
+          },
+          "fallback": {
+            "type": ["string", "null"],
+            "description": "The role that does this role's work where it is not installed (roles.json `fallback`), or null."
+          }
+        }
+      }
+    },
+    "standards": {
+      "type": "array",
+      "description": "The `[[standards]]` of the config: the team's own documents and its copies of library standards, each with its type, and when each applies.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "type",
+          "fills",
+          "library_id",
+          "path",
+          "roles",
+          "when_changed",
+          "enforced_by",
+          "unknown_tests",
+          "enforcement"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The standard's name."
+          },
+          "type": {
+            "enum": ["opinionated", "industry"],
+            "description": "opinionated: a choice the team or company commits to. Today every `[[standards]]` entry is opinionated, since an industry standard lives only in the registry; the field stays so registry rows can join the list later."
+          },
+          "fills": {
+            "type": "array",
+            "description": "The open choices it answers, each `<pack or skill>:<choice>`.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "library_id": {
+            "type": ["string", "null"],
+            "description": "The library standard it copies (`vendored.id`), or null for the team's own."
+          },
+          "path": {
+            "type": "string",
+            "description": "The repository path of the document."
+          },
+          "roles": {
+            "type": "array",
+            "description": "The roles that read it.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "when_changed": {
+            "type": "array",
+            "description": "Path globs: the roles read it when a change touches one; empty means always.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enforced_by": {
+            "type": "array",
+            "description": "The names of the test commands that check it.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unknown_tests": {
+            "type": "array",
+            "description": "Names in `enforced_by` that match no declared test command.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enforcement": {
+            "type": "string",
+            "description": "`enforced by` and the test commands that check it, or `guidance` when none does."
+          }
+        }
+      }
+    },
+    "unknown_standard_roles": {
+      "type": "array",
+      "description": "Role names in a standard's `roles` (other than `*`) that match no agent role.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stewards": {
+      "type": "array",
+      "description": "Who keeps each domain pack and practice skill of aidd-team current, from the roles registry (`steward`) and each skill's front matter (`metadata.steward`): a person or a team, never an agent.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "id",
+          "steward"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "pack",
+              "skill"
+            ],
+            "description": "pack: a domain pack (`domains` in the roles registry). skill: a practice skill."
+          },
+          "id": {
+            "type": "string",
+            "description": "The pack's slug or the practice skill's name: `aidd-team:<id>`."
+          },
+          "steward": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`@user`, `@org/team`, or `email:<address>`; null when none is named."
+          }
+        }
+      }
+    },
+    "project": {
+      "anyOf": [{ "$ref": "#/$defs/project" }, { "type": "null" }],
+      "description": "The config's `[project]` for the --changed paths (every rule without them), or null when the config has none."
+    }
+  },
+  "$defs": {
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["radar", "stack", "hosting", "budget", "rules"],
+      "description": "The project's constraints: the stack radar, the hosting, the budget, and the rules that apply, must first.",
+      "properties": {
+        "radar": { "type": "string", "description": "The stack radar in one line, such as \"Stack: adopt Python; hold MongoDB\"." },
+        "stack": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["adopt", "trial", "hold"],
+          "description": "The `[project.stack]` lists.",
+          "properties": {
+            "adopt": { "type": "array", "items": { "type": "string" }, "description": "The default for new work." },
+            "trial": { "type": "array", "items": { "type": "string" }, "description": "In use on a trial basis." },
+            "hold": { "type": "array", "items": { "type": "string" }, "description": "Not for new work without an ADR and a person's decision." }
+          }
+        },
+        "hosting": { "type": ["string", "null"], "description": "`project.hosting`, or null." },
+        "budget": { "type": ["object", "null"], "description": "`[project.budget]` as configured, or null." },
+        "compliance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["targets", "pack"],
+          "description": "Present when compliance is on: `[project.compliance]` names a target, or the profile is regulated.",
+          "properties": {
+            "targets": { "type": "array", "items": { "type": "string" }, "description": "`[project.compliance] targets`." },
+            "pack": { "const": "enterprise-controls", "description": "The domain pack that carries the control set: `aidd-team:enterprise-controls`." }
+          }
+        },
+        "rules": {
+          "type": "array",
+          "description": "The rules whose `applies` match the paths in question, must first, then should, then may.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "level", "statement", "why", "applies", "check", "source", "owner", "review_due", "waiver"],
+            "properties": {
+              "id": { "type": "string", "description": "The rule's stable id." },
+              "level": { "enum": ["must", "should", "may"], "description": "How binding it is (BCP 14)." },
+              "statement": { "type": "string", "description": "The rule." },
+              "why": { "type": "string", "description": "Why it exists." },
+              "applies": { "type": "array", "items": { "type": "string" }, "description": "Its path globs; empty for the whole repository." },
+              "check": { "type": ["string", "null"], "description": "The command or `[[tests]]` name that enforces it, or null." },
+              "source": { "type": ["string", "null"], "description": "The ADR that decided it, or null." },
+              "owner": { "type": "string", "description": "Who answers for it." },
+              "review_due": { "type": ["string", "null"], "description": "Its next review date, or null." },
+              "waiver": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["until", "approved_by", "reason"],
+                    "properties": {
+                      "until": { "type": "string", "description": "The last day the waiver holds." },
+                      "approved_by": { "type": "string", "description": "The person who approved it." },
+                      "reason": { "type": "string", "description": "Why the rule cannot hold for now." }
+                    }
+                  },
+                  { "type": "null" }
+                ],
+                "description": "The waiver in force today, or null."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

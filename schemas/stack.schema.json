@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:stack",
+  "title": "aidd stack",
+  "description": "One stack in aidd's library (`stacks/<name>.toml`): opinionated standards that go together, plus the `[project.stack]` entries they bring. A stack holds no rule text of its own. `aidd stack add` copies its standards into a project.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "description", "standards", "reviewed", "owner"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,39}$",
+      "description": "The stack's name, the file's stem, such as `python-cli`."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "What the stack is for, in one sentence."
+    },
+    "extends": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,39}$",
+      "description": "One other stack this one builds on, one level deep: a stack that extends a stack that extends another is refused, and so is a cycle."
+    },
+    "standards": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$" },
+      "description": "Ids of active opinionated standards in the library, at most one per open choice and ecosystem."
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Entries `aidd stack add` merges into the project's config.",
+      "properties": {
+        "stack": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Technologies for the project's radar, as in `[project.stack]`.",
+          "properties": {
+            "adopt": { "$ref": "#/$defs/items" },
+            "trial": { "$ref": "#/$defs/items" },
+            "hold": { "$ref": "#/$defs/items" }
+          }
+        }
+      }
+    },
+    "reviewed": {
+      "$ref": "urn:aidd:1:common#/$defs/date",
+      "description": "The day a person last reviewed the stack."
+    },
+    "owner": {
+      "type": "string",
+      "pattern": "^(@[A-Za-z0-9][A-Za-z0-9-]*(/[A-Za-z0-9][A-Za-z0-9._-]*)?|email:[^@\\s]+@[^@\\s]+)$",
+      "description": "The person or team who keeps the stack current; never an agent."
+    }
+  },
+  "$defs": {
+    "items": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 80 },
+      "description": "Technologies by name, such as `uv` or `pytest`."
+    }
+  }
+}

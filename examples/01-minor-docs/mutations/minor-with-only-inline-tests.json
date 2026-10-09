@@ -1,0 +1,43 @@
+{
+  "summary": "A minor change in a repository with no suite cannot stand in its own inline test for one.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "[[tests]]\nname = \"unit\"\ncommand = [\"make\", \"test\"]\n",
+      "new": ""
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "reversible = true\n```",
+      "new": "reversible = true\n\n[tests]\nfiles = [\"tests/docs/test_guide.py\"]\n\n[[tests.commands]]\nname = \"docs\"\ncommand = [\"make\", \"docs-check\"]\n```"
+    },
+    {
+      "op": "append",
+      "path": "/evidence/results",
+      "value": {
+        "name": "docs",
+        "command": [
+          "make",
+          "docs-check"
+        ],
+        "red_green": "green",
+        "status": "passed",
+        "exit": 0,
+        "source": "change_request"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail tests.minor_without_suite"
+    ]
+  }
+}

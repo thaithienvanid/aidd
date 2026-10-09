@@ -1,0 +1,1127 @@
+"""The standards library: opinionated standards, stacks, the open choices they fill, and a company's policy.
+
+Vocabulary (docs/GLOSSARY.md): a standard is `industry` (what the field agrees on; it lives in the registry,
+`schemas/roles.json`, applies everywhere, and is only waived per project) or `opinionated` (a choice a team or company
+commits to). Each pack and practice skill declares its `open_choices`, with aidd's default answer. A library standard
+(`standards/<group>/<topic>.md`, TOML front matter in schemas/standard.schema.json) fills one or more of them, so it
+cannot overlap a pack. The library may hold several options for one choice in one ecosystem; exactly one of them is
+aidd's default (`default = true`). A stack (`stacks/<name>.toml`, schemas/stack.schema.json) lists standards that go together, plus
+`[project.stack]` entries; it holds no rule text.
+
+`aidd standard add` and `aidd stack add` copy library files into `<docs dir>/standards/`, write a `[[standards]]` entry
+that records the id, aidd's version, and the copy's hash, write its `[[tests]]` (`std.<group>.<topic>.<name>`),
+and follow `[standards_policy]` (require, exclude, replace, allow_stacks; opinionated ids only). `aidd upgrade`
+refreshes an unedited copy; `aidd doctor` reports drift, edited copies, policy breaches, and deprecated or renamed ids.
+"""
+
+from __future__ import annotations
+
+import contextlib
+import datetime as dt
+import functools
+import hashlib
+import json
+import os
+import re
+import tempfile
+import tomllib
+from dataclasses import dataclass
+from pathlib import Path
+
+from . import __version__, globs, model, resources, schema
+
+LIBRARY_ID = re.compile(r"^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$")
+# A library standard's body, without its front matter: a short file an agent reads whole before its step.
+WORD_CAP = 300
+# A sentence this long, in a library file and in a pack or skill (or another library file), restates it.
+COPY_WORDS = 12
+# How aidd works is the method, never a standard of either type, so never an open choice (docs/GLOSSARY.md, "Method").
+METHOD_WORDS = frozenset(
+    {
+        *("route", "routes", "routing", "lane", "lanes", "profile", "gate"),
+        *("approval", "approvals", "approve", "approver", "approvers", "sign-off", "signoff"),
+        *("merge", "merges", "review", "reviews", "reviewer", "reviewers"),
+        *("spec", "specs", "commit", "commits", "conventional", "assisted-by", "trailer", "trailers"),
+    }
+)
+POLICY_LISTS = ("require", "exclude")
+# Days between reviews of a library standard, by its maturity (as for the registry: knowledge.REVIEW_EVERY_DAYS).
+REVIEW_EVERY_DAYS = {"established": 365, "emerging": 90}
+INDUSTRY_REFUSAL = (
+    "{where}: {id!r} is an industry standard (the registry, schemas/roles.json); [standards_policy] takes opinionated library ids only. "
+    "An industry standard applies everywhere and is only waived per project, with a reason and an expiry"
+)
+# Who checked a library standard, as `checked_by` says: an entry is checked by an agent until a person reviews it, and
+# an entry without `checked_by` counts as an agent's check.
+TIER_AGENT = "checked by an agent"
+TIER_PERSON = "reviewed by a person"
+BLOCK_START = "# aidd:standard {id}: written by `aidd standard add`; `aidd upgrade` refreshes it. Never edit the copy."
+BLOCK_END = "# aidd:end {id}"
+
+
+@dataclass(frozen=True)
+class Standard:
+    """One library standard: its id, its front matter, its body, the whole file, and its path under the library."""
+
+    id: str
+    meta: dict
+    body: str
+    text: str
+    rel: str
+
+    @property
+    def ecosystem(self) -> str:
+        return ecosystem(self.id)
+
+    @property
+    def active(self) -> bool:
+        return self.meta.get("status", "active") == "active"
+
+    @property
+    def sha256(self) -> str:
+        return digest(self.text)
+
+
+def digest(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def ecosystem(sid: str) -> str:
+    return sid.split("/", 1)[0]
+
+
+def trust_tier(meta: dict) -> str:
+    """A library standard's trust tier from its `checked_by`: a person's identity (`@login` or `email:<address>`) is a
+    person's review; `agent:<harness>/<model>`, or no `checked_by`, is an agent's check."""
+    return TIER_PERSON if str(meta.get("checked_by", "")).startswith(("@", "email:")) else TIER_AGENT
+
+
+def trust_counts(metas: list[dict]) -> dict[str, int]:
+    """How many library standards are in each trust tier, both tiers always named."""
+    tiers = [trust_tier(m) for m in metas]
+    return {tier: tiers.count(tier) for tier in (TIER_AGENT, TIER_PERSON)}
+
+
+def entry_name(sid: str) -> str:
+    """The `[[standards]]` name of a copy: the id with `/` as `-`, such as `python-ruff-lint-format`."""
+    return sid.replace("/", "-")
+
+
+def test_name(sid: str, suffix: str) -> str:
+    """The `[[tests]]` name of an enforcing command: `std.<group>.<topic>.<suffix>`. A test name is a file name in
+    the evidence, so it has no `/` or `:`."""
+    return "std." + sid.replace("/", ".") + "." + suffix
+
+
+# ---- Reading the library ----------------------------------------------------------------------------------------------
+
+
+def read_library(folder: Path | None = None) -> tuple[dict[str, Standard], list[str]]:
+    """Every library standard under `folder` (default: aidd's), and every file that breaks the format."""
+    folder = folder or resources.data_dir("standards")
+    found: dict[str, Standard] = {}
+    errors: list[str] = []
+    for path in sorted(folder.rglob("*.md")):
+        rel = path.relative_to(folder).as_posix()
+        where = f"standards/{rel}"
+        if len(path.relative_to(folder).parts) != 2:
+            errors.append(f"{where}: a library standard is standards/<group>/<topic>.md")
+            continue
+        text = path.read_text(encoding="utf-8")
+        try:
+            meta, body = model.split_front_matter(text, where)
+        except model.ModelError as exc:
+            errors.append(f"{where}: {exc}")
+            continue
+        if not text.startswith("+++"):
+            errors.append(f"{where}: no TOML front matter between +++ lines")
+            continue
+        problems = schema.validate(meta, "standard.schema.json")
+        errors += [f"{where}: {e}" for e in problems]
+        sid = str(meta.get("id", ""))
+        if sid and f"{sid}.md" != rel:
+            errors.append(f"{where}: its id {sid!r} does not match its path; the file is standards/<group>/<topic>.md")
+            continue
+        if not problems:
+            found[sid] = Standard(sid, meta, body, text, rel)
+    return found, errors
+
+
+def read_stacks(folder: Path | None = None) -> tuple[dict[str, dict], list[str]]:
+    folder = folder or resources.data_dir("stacks")
+    found: dict[str, dict] = {}
+    errors: list[str] = []
+    for path in sorted(folder.glob("*.toml")):
+        where = f"stacks/{path.name}"
+        try:
+            data = tomllib.loads(path.read_text(encoding="utf-8"))
+        except tomllib.TOMLDecodeError as exc:
+            errors.append(f"{where}: {exc}")
+            continue
+        problems = schema.validate(data, "stack.schema.json")
+        errors += [f"{where}: {e}" for e in problems]
+        if data.get("name") != path.stem:
+            errors.append(f"{where}: its name {data.get('name')!r} is not its file's stem")
+        elif not problems:
+            found[path.stem] = data
+    return found, errors
+
+
+def read_renames(folder: Path | None = None) -> dict[str, str]:
+    path = (folder or resources.data_dir("standards")) / "renames.toml"
+    return dict(tomllib.loads(path.read_text(encoding="utf-8")).get("renames", {})) if path.is_file() else {}
+
+
+@functools.cache
+def _bundled() -> tuple[dict[str, Standard], dict[str, dict], dict[str, str]]:
+    return read_library()[0], read_stacks()[0], read_renames()
+
+
+def library() -> dict[str, Standard]:
+    """aidd's library standards by id (the files that pass the format; `aidd eval standards` names the others)."""
+    return _bundled()[0]
+
+
+def stacks() -> dict[str, dict]:
+    return _bundled()[1]
+
+
+def renames() -> dict[str, str]:
+    """Old library id -> new id."""
+    return _bundled()[2]
+
+
+def stack_standards(name: str, known: dict[str, dict]) -> list[str]:
+    """A stack's standard ids: the one stack it extends first, then its own, without repeats."""
+    data = known[name]
+    parent = known.get(str(data.get("extends") or "")) if data.get("extends") != name else None
+    ids = list(parent["standards"]) if parent else []
+    return list(dict.fromkeys(ids + list(data["standards"])))
+
+
+def open_choices(roles: dict | None = None) -> dict[str, dict]:
+    """Every open choice the packs and practice skills declare, by `<owner>:<id>`: the choice plus its owner and kind."""
+    data = roles or resources.roles()
+    out: dict[str, dict] = {}
+    for d in data["domains"]:
+        for c in d.get("open_choices", []):
+            out[f"{d['slug']}:{c['id']}"] = {"owner": d["slug"], "kind": "pack", **c}
+    for name, p in data.get("practices", {}).items():
+        for c in p.get("open_choices", []):
+            out[f"{name}:{c['id']}"] = {"owner": name, "kind": "practice", **c}
+    return out
+
+
+def choice_problems(roles: dict | None = None) -> list[str]:
+    """An open choice declared more than once: twice by one owner, or by two owners. Each choice has one home, so a
+    library standard fills it in one place."""
+    data = roles or resources.roles()
+    owners = [(d["slug"], d.get("open_choices", [])) for d in data["domains"]]
+    owners += [(name, p.get("open_choices", [])) for name, p in data.get("practices", {}).items()]
+    out: list[str] = []
+    homes: dict[str, list[str]] = {}
+    for owner, choices in owners:
+        ids = [c["id"] for c in choices]
+        out += [f"{owner} declares the choice {cid} {ids.count(cid)} times; keep one" for cid in sorted(set(ids)) if ids.count(cid) > 1]
+        for cid in dict.fromkeys(ids):
+            homes.setdefault(cid, []).append(owner)
+    for cid, where in sorted(homes.items()):
+        if len(where) > 1:
+            out.append(f"the choice {cid} is declared by {len(where)} packs or skills ({', '.join(where)}); declare it once, where its rule is")
+    return out
+
+
+def _option_name(option: str) -> str:
+    """The name an option goes by in a command: its text before a parenthesis (`Expo (React Native)` is `Expo`)."""
+    return option.split(" (", 1)[0].strip()
+
+
+def _owner_commands(owner: str, data: dict, texts: dict[str, str] | None) -> list[str]:
+    """The test commands a pack or practice skill makes the team run: a pack's `tests` rows, or the rows of the table in
+    a practice skill's Test commands section."""
+    pack = next((d for d in data["domains"] if d["slug"] == owner), None)
+    if pack is not None:
+        return [f"{t['name']} {t['how']}" for t in pack["tests"]]
+    from . import packs
+
+    text = (texts if texts is not None else _team_texts()).get(owner, "")
+    rows = [ln for ln in packs.section(text, "Test commands").splitlines() if ln.startswith("|")]
+    return rows[2:]
+
+
+def deciding_problems(roles: dict | None = None, texts: dict[str, str] | None = None) -> list[str]:
+    """An open choice its own pack or practice skill still decides: one of its test commands names exactly one of the
+    choice's options and not the choice. A command that names the choice (`the team's e2e-test runner`) or two options
+    leaves it open. Another pack may keep a tool for its own check; only the owner's commands are read."""
+    data = roles or resources.roles()
+    out: list[str] = []
+    for ref, c in open_choices(data).items():
+        names = {_option_name(o) for o in c["options"]}
+        pats = {n: re.compile(rf"(?<![\w-]){re.escape(n)}(?![\w-])", re.I) for n in names if n}
+        mention = re.compile(rf"(?<![\w-]){re.escape(c['id'])}(?![\w-])")
+        for cmd in _owner_commands(c["owner"], data, texts):
+            hits = sorted(n for n, p in pats.items() if p.search(cmd))
+            if len(hits) == 1 and not mention.search(cmd):
+                out.append(
+                    f"{ref}: aidd-team:{c['owner']} opens this choice, but its test command {cmd.strip(' |')[:60]!r} names only "
+                    f"{hits[0]}; name the choice (`{c['id']}`) and run the team's answer, or keep the tool and drop the choice"
+                )
+    return out
+
+
+def registry_ids() -> set[str]:
+    return set(resources.roles()["standards"])
+
+
+# ---- The generic library checks ---------------------------------------------------------------------------------------
+
+
+def method_problems(choices: dict[str, dict]) -> list[str]:
+    """An open choice that names the method (routes, approvals, the gate, commit format, `Assisted-by:`)."""
+    out = []
+    for ref, c in choices.items():
+        text = " ".join([c["id"].replace("-", " "), c["id"], c["question"], c["default"], *c["options"]])
+        words = set(re.findall(r"[a-z][a-z-]*", text.lower()))
+        hit = sorted(words & METHOD_WORDS)
+        if hit:
+            out.append(f"open choice {ref}: names the method ({', '.join(hit)}); how aidd works is never an open choice")
+    return out
+
+
+def _words(text: str) -> list[str]:
+    return re.findall(r"[a-z0-9][a-z0-9'_./-]*", text.lower())
+
+
+def _sentences(text: str) -> list[str]:
+    """Normalised sentences of COPY_WORDS words or more, outside code blocks and front matter."""
+    text = re.sub(r"```.*?```", " ", text, flags=re.S)
+    out = []
+    for chunk in re.split(r"\n|\|", text):
+        for sentence in re.split(r"(?<=[.!?])\s+", chunk):
+            words = [w.strip("`*") for w in _words(sentence)]
+            if len(words) >= COPY_WORDS:
+                out.append(" ".join(words))
+    return out
+
+
+def _team_texts() -> dict[str, str]:
+    """Each pack's and practice skill's text an agent reads: its SKILL.md and references."""
+    folder = resources.data_dir("team") / "skills"
+    out = {}
+    for skill in sorted(p for p in folder.iterdir() if p.is_dir() and p.name != "aidd-team"):
+        files = [skill / "SKILL.md", *sorted((skill / "references").glob("*.md"))]
+        out[skill.name] = "\n".join(f.read_text(encoding="utf-8") for f in files if f.is_file() and f.name != "open-choices.md")
+    return out
+
+
+def _pinned_by_team(tool: str) -> list[str]:
+    """The packs and practice skills whose test commands pin `tool` by version."""
+    pin = re.compile(rf"(?<![\w-]){re.escape(tool)}[`'\"]?(?:==|@| \(v?)[0-9]", re.I)
+    data = resources.roles()
+    out = [f"aidd-team:{d['slug']}" for d in data["domains"] if any(pin.search(t.get("how", "")) for t in d["tests"])]
+    from . import packs
+
+    for name, text in _team_texts().items():
+        if name in {d["slug"] for d in data["domains"]}:
+            continue
+        if pin.search(packs.section(text, "Test commands")):
+            out.append(f"aidd-team:{name}")
+    return out
+
+
+def _implements_problem(ref: str) -> str | None:
+    owner, _, rule = ref.partition(":")
+    from . import docs, project
+
+    data = resources.roles()
+    packs_ = {d["slug"] for d in data["domains"]}
+    if owner not in packs_ and owner not in docs.practice_names():
+        return f"implements {ref}: {owner} is no pack or practice skill"
+    if owner == "product-defaults":
+        return None if rule in project.DEFAULTS else f"implements {ref}: {rule} is no product default"
+    return None if _clean(rule) in rule_names(_team_texts().get(owner, "")) else f"implements {ref}: aidd-team:{owner} has no rule {rule!r}"
+
+
+def _clean(text: str) -> str:
+    return " ".join(text.replace("`", "").replace("*", "").strip().rstrip(".:").split()).lower()
+
+
+CITATIONS = "standards"
+
+
+def rule_names(text: str) -> set[str]:
+    """The whole rule names in a pack's or skill's text: its headings, its bold lead-ins (`**Name.**`), and the first
+    cell of each table body row. `implements` names one of them, never a word inside a sentence. The Standards section
+    cites what the field agrees on and holds no rule, so nothing in it counts, nor does a table's header row."""
+    names: set[str] = set()
+    lines = text.splitlines()
+    citing = False
+    for i, line in enumerate(lines):
+        heading = re.match(r"^(#{1,6})\s+(.+?)\s*$", line)
+        if heading:
+            citing = _clean(heading.group(2)) == CITATIONS
+            if not citing:
+                names.add(_clean(heading.group(2)))
+            continue
+        if citing:
+            continue
+        names |= {_clean(b) for b in re.findall(r"\*\*([^*]+?)\*\*", line)}
+        if line.startswith("|") and not re.match(r"^\|\s*:?-", line):
+            header = i + 1 < len(lines) and re.match(r"^\|\s*:?-", lines[i + 1])
+            if not header:
+                names.add(_clean(line.strip("|").split("|")[0]))
+    return names - {""}
+
+
+def library_problems(folder: Path | None = None, stacks_folder: Path | None = None, *, today: dt.date | None = None) -> list[str]:
+    """Every break of the library's rules, over every file: adding a standard or a stack needs no new test code."""
+    today = today or dt.date.today()
+    lib, out = read_library(folder)
+    known_stacks, stack_errors = read_stacks(stacks_folder)
+    out += stack_errors
+    choices = open_choices()
+    out += method_problems(choices)
+    out += choice_problems()
+    out += deciding_problems()
+    roles = set(resources.roles()["order"])
+    team = _team_texts()
+    team_sentences = {s: name for name, text in team.items() for s in _sentences(text)}
+    seen_sentences: dict[str, str] = {}
+    by_choice: dict[tuple[str, str], list[str]] = {}
+    by_tool: dict[str, list[str]] = {}
+    for sid, s in sorted(lib.items()):
+        m = s.meta
+        for ref in m["fills"]:
+            if ref not in choices:
+                out.append(f"{sid}: fills {ref}, which no pack or practice skill declares")
+            if s.active:
+                by_choice.setdefault((ref, s.ecosystem), []).append(sid)
+        if m.get("implements") and (why := _implements_problem(m["implements"])):
+            out.append(f"{sid}: {why}")
+        unknown = [r for r in m["roles"] if r != "*" and r not in roles]
+        if unknown:
+            out.append(f"{sid}: unknown role {', '.join(unknown)}")
+        for key in ("reviewed", "checked"):
+            if m.get(key) and dt.date.fromisoformat(m[key]) > today:
+                out.append(f"{sid}: {key} {m[key]} is in the future")
+        cadence = REVIEW_EVERY_DAYS[m["maturity"]]
+        if (today - dt.date.fromisoformat(m["reviewed"])).days > cadence:
+            out.append(f"{sid}: reviewed {m['reviewed']}, over {cadence} days ago; a person reviews the choice again and sets the date")
+        words = len(_words(s.body))
+        if words > WORD_CAP:
+            out.append(f"{sid}: its body is {words} words; the cap is {WORD_CAP}")
+        for sentence in _sentences(s.body):
+            if sentence in team_sentences:
+                out.append(f"{sid}: restates aidd-team:{team_sentences[sentence]} ({sentence[:60]}...); link the rule with `implements`")
+            if sentence in seen_sentences:
+                out.append(f"{sid} repeats {seen_sentences[sentence]} ({sentence[:60]}...)")
+            seen_sentences.setdefault(sentence, sid)
+        if m["status"] == "deprecated":
+            if m.get("default"):
+                out.append(f"{sid}: a deprecated standard is never a default; set `default = true` on the standard that replaces it")
+            new = m.get("replaced_by")
+            if new and (new not in lib or not lib[new].active or new == sid):
+                out.append(f"{sid} is replaced by {new}, which is no active library standard")
+        tool = (m.get("tool") or {}).get("name")
+        if tool and s.active:
+            by_tool.setdefault(tool, []).append(sid)
+            pin = str(m.get("pin") or "")
+            for e in m.get("enforced_by", []):
+                for arg in e["command"]:
+                    hit = re.fullmatch(rf"{re.escape(tool)}(?:==|@)(.+)", arg)
+                    if hit and pin and hit.group(1) != pin:
+                        out.append(f"{sid}: its test {e['name']} runs {tool} {hit.group(1)}, not its pin {pin}")
+    for (ref, eco), ids in sorted(by_choice.items()):
+        defaults = [sid for sid in ids if lib[sid].meta.get("default")]
+        if not defaults:
+            out.append(f"{ref} for {eco} has no default; set `default = true` on one of {', '.join(ids)}")
+        elif len(defaults) > 1:
+            out.append(f"{ref} for {eco} has {len(defaults)} defaults ({', '.join(defaults)}); keep one")
+    for tool, ids in sorted(by_tool.items()):
+        if len(ids) > 1:
+            out.append(f"the tool {tool} is owned by {len(ids)} library standards ({', '.join(ids)}); one standard owns each tool")
+        for owner in _pinned_by_team(tool):
+            out.append(f"{ids[0]}: {owner} already pins the tool {tool}; the pack keeps it, or opens a choice for it")
+    names = read_renames(folder)
+    for old, new in sorted(names.items()):
+        if old in lib:
+            out.append(f"renames.toml renames {old}, which is still a library file")
+        if new not in lib:
+            out.append(f"renames.toml renames to {new}, which is no library standard")
+        if new in names:
+            out.append(f"renames.toml renames {old} to {new}, which is renamed again; point it at the last id")
+    for name, data in sorted(known_stacks.items()):
+        parent = data.get("extends")
+        if parent == name:
+            out.append(f"stack {name} extends itself")
+        elif parent and parent not in known_stacks:
+            out.append(f"stack {name} extends {parent}, which is no stack")
+        elif parent and known_stacks[parent].get("extends"):
+            out.append(f"stack {name} extends {parent}, which extends {known_stacks[parent]['extends']}: a stack extends one other stack, one level")
+        # One standard per choice, whatever folder each one lives in.
+        picked: dict[str, str] = {}
+        for sid in stack_standards(name, known_stacks):
+            if sid not in lib:
+                out.append(f"stack {name}: {sid} is no library standard")
+                continue
+            if not lib[sid].active:
+                out.append(f"stack {name}: {sid} is deprecated; use {lib[sid].meta.get('replaced_by')}")
+            for ref in lib[sid].meta["fills"]:
+                if ref in picked:
+                    out.append(f"stack {name}: {picked[ref]} and {sid} both fill {ref}; a stack picks one")
+                picked[ref] = sid
+    return out
+
+
+# ---- The company's policy ---------------------------------------------------------------------------------------------
+
+
+def config_problems(raw: dict) -> list[tuple[str, str]]:
+    """(schema path, message) for what a config may never say about standards, in words the schema cannot give: an
+    industry id in `[standards_policy]`, and `type = "industry"` in a `[[standards]]` entry. It reads only values of the
+    right type, so a value of the wrong type is left to the schema's own error."""
+    industry = registry_ids()
+    out: list[tuple[str, str]] = []
+    policy = raw.get("standards_policy")
+    if isinstance(policy, dict):
+        for key in POLICY_LISTS:
+            values = policy.get(key)
+            for i, sid in enumerate(values if isinstance(values, list) else []):
+                if isinstance(sid, str) and sid in industry:
+                    out.append((f"$.standards_policy.{key}[{i}]", INDUSTRY_REFUSAL.format(where=f"standards_policy.{key}", id=sid)))
+        replace = policy.get("replace")
+        for sid in replace if isinstance(replace, dict) else {}:
+            if sid in industry:
+                out.append(("$.standards_policy.replace", INDUSTRY_REFUSAL.format(where="standards_policy.replace", id=sid)))
+            elif not LIBRARY_ID.match(sid):
+                # The schema's checker reads no `propertyNames`, so the form of a key is checked here.
+                out.append(("$.standards_policy.replace", f"standards_policy.replace: {sid!r} is no library id (`<group>/<topic>`)"))
+    entries = raw.get("standards")
+    for i, e in enumerate(entries if isinstance(entries, list) else []):
+        if isinstance(e, dict) and e.get("type") == "industry":
+            out.append(
+                (
+                    f"$.standards[{i}].type",
+                    f"standards {e.get('name')!r}: an industry standard lives only in the registry (schemas/roles.json), and the packs apply it "
+                    "everywhere; a project only waives one, with a reason and an expiry. Drop `type`, or propose the standard to aidd's registry",
+                )
+            )
+    return out
+
+
+def merge_policy(parent: dict, child: dict, where: str, warnings: list[str]) -> dict:
+    """A child's policy on its parent's: it adds and tightens, never loosens."""
+    out = {k: (dict(v) if isinstance(v, dict) else list(v)) for k, v in parent.items()}
+    require, exclude = list(parent.get("require", [])), list(parent.get("exclude", []))
+    replace = dict(parent.get("replace", {}))
+    for sid in child.get("require", []):
+        if sid in exclude or sid in replace:
+            warnings.append(f"{where}: standards_policy.require {sid!r} ignored; a parent config excludes or replaces it")
+        elif sid not in require:
+            require.append(sid)
+    for sid in child.get("exclude", []):
+        if sid in require:
+            warnings.append(f"{where}: standards_policy.exclude {sid!r} ignored; a parent config requires it")
+        elif sid not in exclude:
+            exclude.append(sid)
+    for sid, name in (child.get("replace") or {}).items():
+        if sid in replace and replace[sid] != name:
+            warnings.append(f"{where}: standards_policy.replace {sid!r} ignored; a parent config replaces it with {replace[sid]!r}")
+        elif sid in require:
+            warnings.append(f"{where}: standards_policy.replace {sid!r} ignored; a parent config requires it")
+        else:
+            replace[sid] = name
+    if "allow_stacks" in child:
+        if "allow_stacks" in parent:
+            extra = [s for s in child["allow_stacks"] if s not in parent["allow_stacks"]]
+            if extra:
+                warnings.append(f"{where}: standards_policy.allow_stacks cannot add {extra}; a parent config allows only {parent['allow_stacks']}")
+            out["allow_stacks"] = [s for s in child["allow_stacks"] if s in parent["allow_stacks"]]
+        else:
+            out["allow_stacks"] = list(child["allow_stacks"])
+    for key, value in (("require", require), ("exclude", exclude)):
+        if value or key in out:
+            out[key] = value
+    if replace or "replace" in out:
+        out["replace"] = replace
+    return out
+
+
+def _policy(cfg) -> dict:
+    return dict(cfg.get("standards_policy", default={}) or {}) if cfg else {}
+
+
+def policy_mark(sid: str, policy: dict) -> str:
+    if sid in policy.get("exclude", []):
+        return "excluded"
+    if sid in (policy.get("replace") or {}):
+        return f"replaced by {policy['replace'][sid]}"
+    if sid in policy.get("require", []):
+        return "required"
+    return ""
+
+
+# ---- A project's copies -----------------------------------------------------------------------------------------------
+
+
+def copies(entries: list[dict]) -> list[dict]:
+    """The `[[standards]]` entries that are copies of library standards."""
+    return [e for e in entries if isinstance(e.get("vendored"), dict)]
+
+
+def defaults(lib: dict[str, Standard]) -> dict[tuple[str, str], str]:
+    """aidd's default per (choice, ecosystem): the active standard marked `default = true`. The library may hold
+    several options for one choice; `aidd eval standards` checks that exactly one of them is the default."""
+    out: dict[tuple[str, str], str] = {}
+    for s in sorted(lib.values(), key=lambda x: x.id):
+        if s.active and s.meta.get("default"):
+            for ref in s.meta["fills"]:
+                out.setdefault((ref, s.ecosystem), s.id)
+    return out
+
+
+def _refusal(sid: str, policy: dict, lib: dict[str, Standard], entries: list[dict]) -> str | None:
+    if sid in registry_ids():
+        return f"{sid} is an industry standard: it lives in the registry and reaches a project through the packs, never as a copy"
+    if sid not in lib:
+        return f"no library standard {sid}; `aidd standard list` lists them"
+    s = lib[sid]
+    if not s.active:
+        return f"{sid} is deprecated; add {s.meta.get('replaced_by')}"
+    if sid in policy.get("exclude", []):
+        return f"the company excludes {sid} ([standards_policy] exclude)"
+    if sid in (policy.get("replace") or {}):
+        return f"the company replaces {sid} with its own standard {policy['replace'][sid]} ([standards_policy] replace)"
+    for e in copies(entries):
+        other = e["vendored"]["id"]
+        if other == sid or ecosystem(other) != s.ecosystem:
+            continue
+        shared = sorted(set(e.get("fills", [])) & set(s.meta["fills"]))
+        if shared:
+            return f"{e['name']} already fills {shared[0]} for {s.ecosystem}: one standard per choice; remove it first"
+    return None
+
+
+def _toml(value) -> str:
+    if isinstance(value, dict):
+        return "{ " + ", ".join(f"{k} = {_toml(v)}" for k, v in value.items()) + " }"
+    if isinstance(value, list):
+        return "[" + ", ".join(_toml(v) for v in value) + "]"
+    return json.dumps(value)
+
+
+def block(s: Standard, docs_dir: str, stack: str | None = None, path: str | None = None) -> str:
+    """The config lines for one copy: its `[[standards]]` entry and its `[[tests]]`, between markers `aidd upgrade` finds."""
+    m = s.meta
+    tests = [(test_name(s.id, e["name"]), e["command"]) for e in m.get("enforced_by", [])]
+    vendored: dict = {"id": s.id, "aidd_version": __version__, "sha256": s.sha256}
+    if stack:
+        vendored["stack"] = stack
+    lines = [
+        BLOCK_START.format(id=s.id),
+        "[[standards]]",
+        f"name = {_toml(entry_name(s.id))}",
+        f"path = {_toml(path or copy_path(s.id, docs_dir))}",
+        'type = "opinionated"',
+        f"fills = {_toml(m['fills'])}",
+        f"roles = {_toml(m['roles'])}",
+    ]
+    if m.get("when_changed"):
+        lines.append(f"when_changed = {_toml(m['when_changed'])}")
+    if tests:
+        lines.append(f"enforced_by = {_toml([n for n, _ in tests])}")
+    lines.append(f"vendored = {_toml(vendored)}")
+    for name, command in tests:
+        lines += ["", "[[tests]]", f"name = {_toml(name)}", f"command = {_toml(command)}"]
+        if m.get("when_changed"):
+            lines.append(f"when_changed = {_toml(m['when_changed'])}")
+    lines.append(BLOCK_END.format(id=s.id))
+    return "\n".join(lines) + "\n"
+
+
+def copy_path(sid: str, docs_dir: str) -> str:
+    return globs.under(docs_dir, f"standards/{sid}.md")
+
+
+def _inside(root: Path, rel: str) -> bool:
+    """Whether `rel` names a file inside the repository and no link leads out of it, so a copy is never written elsewhere."""
+    path = root / rel
+    if any(p.is_symlink() for p in (path, *path.parents) if p != root and p.is_relative_to(root)):
+        return False
+    return path.resolve().is_relative_to(root.resolve())
+
+
+def _read(path: Path) -> str | None:
+    """A copy's text, or None when it is not a readable file. Bytes that are not UTF-8 read as replacement characters, so
+    such a copy counts as edited, never as a crash."""
+    try:
+        return path.read_text(encoding="utf-8", errors="replace") if path.is_file() else None
+    except OSError:
+        return None
+
+
+def _foreign(root: Path, rel: str, text: str) -> bool:
+    """Whether a file someone else wrote is at `rel`: something is there, and it is not `text`."""
+    path = root / rel
+    return (path.exists() or path.is_symlink()) and _read(path) != text
+
+
+FOREIGN = "{rel} exists and is not aidd's copy; move it, or name it in [standards_policy] replace"
+
+
+def commit(root: Path, writes: list[tuple[str, str]]) -> None:
+    """Write every file, or none: each goes to a temporary file in its own folder first, and only when every one is
+    written are they all moved into place. On any error, the temporary files and any folder made for them are removed,
+    and ValueError names the file that could not be written."""
+    staged: list[tuple[Path, Path]] = []
+    made: list[Path] = []
+    rel = ""
+    try:
+        for rel, text in writes:
+            dest = root / rel
+            missing = [p for p in (dest.parent, *dest.parent.parents) if p.is_relative_to(root) and p != root and not p.exists()]
+            for folder in reversed(missing):
+                folder.mkdir()
+                made.append(folder)
+            fd, tmp = tempfile.mkstemp(prefix=".aidd-", suffix=".tmp", dir=dest.parent)
+            staged.append((Path(tmp), dest))
+            with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+                f.write(text)
+        for tmp_path, dest in staged:
+            os.replace(tmp_path, dest)
+    except OSError as exc:
+        for tmp_path, _ in staged:
+            tmp_path.unlink(missing_ok=True)
+        for folder in reversed(made):
+            with contextlib.suppress(OSError):
+                folder.rmdir()
+        raise ValueError(f"nothing added: cannot write {rel}: {exc.strerror or type(exc).__name__}") from None
+
+
+def _block_re(sid: str) -> re.Pattern[str]:
+    return re.compile(rf"^# aidd:standard {re.escape(sid)}:.*?^# aidd:end {re.escape(sid)}[ \t]*\n?", re.M | re.S)
+
+
+def merge_radar(text: str, entries: dict[str, list[str]]) -> str:
+    """`text` (a config) with `entries` added to `[project.stack]`: into the table when it exists, else as a new one."""
+    entries = {k: v for k, v in entries.items() if v}
+    if not entries:
+        return text
+    current = (model.parse_toml(text, "config").get("project") or {}).get("stack")
+    header = re.search(r"^\[project\.stack\][ \t]*(#.*)?$", text, re.M)
+    if current is not None and header is None:
+        raise ValueError("[project.stack] is not a table of its own in the config; add the stack's entries by hand")
+    if header is None:
+        lines = ["", "[project.stack]"] + [f"{k} = {_toml(v)}" for k, v in entries.items()]
+        return text.rstrip("\n") + "\n" + "\n".join(lines) + "\n"
+    start = header.end()
+    nxt = re.search(r"^\[", text[start:], re.M)
+    end = start + nxt.start() if nxt else len(text)
+    body = text[start:end]
+    for key, add in entries.items():
+        have = list((current or {}).get(key, []))
+        merged = have + [x for x in add if x not in have]
+        if merged == have:
+            continue
+        line = f"{key} = {_toml(merged)}"
+        found = re.search(rf"^{key}[ \t]*=[ \t]*\[.*?\][ \t]*(#.*)?$", body, re.M | re.S)
+        body = body[: found.start()] + line + body[found.end() :] if found else "\n" + line + body
+    return text[:start] + body + text[end:]
+
+
+def add(root: Path, ids: list[str], *, stack: str | None = None) -> list[str]:
+    """Copy library standards into the repository at `root`, all or nothing; ValueError names every refusal."""
+    from . import config as cfgmod
+
+    cfg_path = root / cfgmod.CONFIG_PATH
+    if not cfg_path.is_file():
+        raise ValueError(f"no {cfgmod.CONFIG_PATH}; run `aidd init` first")
+    cfg = cfgmod.load_file(cfgmod.CONFIG_PATH, str(root))
+    text = cfg_path.read_text(encoding="utf-8")
+    lib, policy, moved = library(), _policy(cfg), renames()
+    entries = list(cfg.standards)
+    notes: list[str] = []
+    problems: list[str] = []
+    radar: dict[str, list[str]] = {}
+    if stack is not None:
+        known = stacks()
+        if stack not in known:
+            raise ValueError(f"no stack {stack}; `aidd stack list` lists them")
+        allowed = policy.get("allow_stacks")
+        if allowed is not None and stack not in allowed:
+            raise ValueError(f"the company allows only the stacks {', '.join(allowed) or 'none'} ([standards_policy] allow_stacks)")
+        ids = stack_standards(stack, known)
+        radar = dict((known[stack].get("project") or {}).get("stack") or {})
+        parent = known.get(str(known[stack].get("extends") or ""))
+        for k, v in ((parent or {}).get("project") or {}).get("stack", {}).items():
+            radar[k] = list(dict.fromkeys(list(v) + radar.get(k, [])))
+    wanted: list[Standard] = []
+    have = {e["vendored"]["id"] for e in copies(entries)}
+    names = {e.get("name") for e in entries}
+    test_names = {x.get("name") for x in cfg.get("tests", default=[]) or []}
+    for raw in dict.fromkeys(ids):
+        sid = moved.get(raw, raw)
+        if sid != raw:
+            notes.append(f"{raw} was renamed to {sid}")
+        if sid in have:
+            notes.append(f"already added: {sid} ({entry_name(sid)}); `aidd upgrade` refreshes it")
+            continue
+        why = _refusal(sid, policy, lib, entries)
+        if why:
+            problems.append(why)
+            continue
+        s = lib[sid]
+        clash = [f"the config already has a [[standards]] entry named {entry_name(sid)}"] if entry_name(sid) in names else []
+        clash += [
+            f"the config already has a [[tests]] entry named {n}" for n in (test_name(sid, e["name"]) for e in s.meta.get("enforced_by", [])) if n in test_names
+        ]
+        rel = copy_path(sid, cfg.docs_dir)
+        if not _inside(root, rel):
+            clash.append(f"{rel} is outside the repository or behind a link")
+        elif _foreign(root, rel, s.text):
+            clash.append(FOREIGN.format(rel=rel))
+        if clash:
+            problems += clash
+            continue
+        wanted.append(s)
+        entries.append({"name": entry_name(sid), "fills": lib[sid].meta["fills"], "vendored": {"id": sid}})
+        have.add(sid)
+    if problems:
+        raise ValueError("nothing added: " + "; ".join(problems))
+    new = text
+    if wanted:
+        new = new.rstrip("\n") + "\n\n" + "\n".join(block(s, cfg.docs_dir, stack) for s in wanted)
+    new = merge_radar(new, radar)
+    if new == text:
+        return notes + ["nothing to add"]
+    errors = schema.validate(model.parse_toml(new, cfgmod.CONFIG_PATH), "config.schema.json")
+    if errors:
+        raise ValueError(f"nothing added: the config would not be valid: {errors[0]}")
+    # Every copy and the config together, or nothing.
+    commit(root, [(copy_path(s.id, cfg.docs_dir), s.text) for s in wanted] + [(cfgmod.CONFIG_PATH, new)])
+    actions = []
+    for s in wanted:
+        tests = len(s.meta.get("enforced_by", []))
+        actions.append(f"added {copy_path(s.id, cfg.docs_dir)} and its [[standards]] entry {entry_name(s.id)}, with {tests} [[tests]]")
+    if radar and merge_radar(text, radar) != text:
+        actions.append(f"added the stack's entries to [project.stack]: {', '.join(f'{k} {v}' for k, v in radar.items())}")
+    return notes + actions
+
+
+# ---- Doctor and upgrade -----------------------------------------------------------------------------------------------
+
+
+def _edited(text: str | None, v: dict, lib: Standard | None) -> bool:
+    """Whether a copy was edited: its text differs from the hash its entry records, or, when this aidd wrote it, from
+    this aidd's library text, whatever hash the entry records (a hash in the config can be edited too)."""
+    if text is None:
+        return False
+    if digest(text) != v.get("sha256"):
+        return True
+    return v.get("aidd_version") == __version__ and lib is not None and digest(text) != lib.sha256
+
+
+def _expected(s_meta: dict, sid: str, path: str) -> tuple[dict, dict[str, dict]]:
+    """The `[[standards]]` entry (without `vendored`) and the `[[tests]]` entries a copy of `sid` brings."""
+    entry: dict = {"name": entry_name(sid), "path": path, "type": "opinionated", "fills": list(s_meta["fills"]), "roles": list(s_meta["roles"])}
+    tests: dict[str, dict] = {}
+    for e in s_meta.get("enforced_by", []):
+        name = test_name(sid, e["name"])
+        test: dict = {"name": name, "command": list(e["command"])}
+        if s_meta.get("when_changed"):
+            test["when_changed"] = list(s_meta["when_changed"])
+        tests[name] = test
+    if s_meta.get("when_changed"):
+        entry["when_changed"] = list(s_meta["when_changed"])
+    if tests:
+        entry["enforced_by"] = list(tests)
+    return entry, tests
+
+
+def weakened(e: dict, s_meta: dict, suite: list[dict]) -> list[str]:
+    """What in a copy's config entry, or in the `[[tests]]` it brought, no longer matches the standard it copies."""
+    sid = e["vendored"]["id"]
+    entry, tests = _expected(s_meta, sid, e["path"])
+    have = {k: v for k, v in e.items() if k != "vendored"}
+    out = [f"the [[standards]] entry's {k}" for k in sorted(set(entry) | set(have)) if entry.get(k) != have.get(k)]
+    by_name = {x.get("name"): x for x in suite}
+    out += [f"the [[tests]] entry {name}" for name, want in tests.items() if by_name.get(name) != want]
+    return out
+
+
+def doctor_checks(root: Path, cfg) -> list[tuple[str, str]]:
+    """The copies' drift, edits, and deprecated or renamed ids; the policy's breaches; and `fills` that name no choice."""
+    out: list[tuple[str, str]] = []
+    lib, moved, policy = library(), renames(), _policy(cfg)
+    choices = open_choices()
+    entries = list(cfg.standards)
+    for e in entries:
+        for ref in e.get("fills", []):
+            if ref not in choices:
+                out.append(("warn", f"standards {e['name']!r}: fills {ref}, which no pack or practice skill declares (`aidd standard list` names them)"))
+    seen: dict[tuple[str, str], str] = {}
+    clean = 0
+    picks = defaults(lib)
+    for e in copies(entries):
+        v, name = e["vendored"], e["name"]
+        sid = v["id"]
+        where = f"standards {name!r}"
+        for ref in e.get("fills", []):
+            slot = (ref, ecosystem(sid))
+            if slot in seen:
+                hint = f" (aidd's default: {picks[slot]})" if slot in picks else ""
+                out.append(("warn", f"{where}: {seen[slot]} already fills {ref} for {ecosystem(sid)}; keep one standard per choice{hint}"))
+            seen[slot] = name
+        path = root / e["path"]
+        text = _read(path)
+        edited = _edited(text, v, lib.get(sid))
+        required = sid in policy.get("require", [])
+        # The entry and its tests must still say what the standard says: compare them with the copy (or the library's text).
+        source = lib[sid].meta if (edited or text is None) and sid in lib else None
+        if source is None and text is not None:
+            try:
+                source = model.split_front_matter(text, e["path"])[0]
+            except model.ModelError:
+                source = lib[sid].meta if sid in lib else None
+        if isinstance(source, dict) and schema.validate(source, "standard.schema.json"):
+            source = lib[sid].meta if sid in lib else None
+        weak = weakened(e, source, list(cfg.get("tests", default=[]) or [])) if isinstance(source, dict) else []
+        if weak and required:
+            out.append(
+                (
+                    "fail",
+                    f"standards policy: {name}: its config entry no longer matches {sid} ({', '.join(weak)}), which the company requires as it is; restore it",
+                )
+            )
+        elif weak:
+            out.append(
+                (
+                    "warn",
+                    f"{where}: its config entry no longer matches {sid} ({', '.join(weak)}); restore it between its `# aidd:standard` markers, "
+                    "or remove the entry and run `aidd standard add` again",
+                )
+            )
+        if edited and required:
+            out.append(("fail", f"standards policy: {name} is an edited copy of {sid}, which the company requires as it is; restore the copy"))
+        elif edited:
+            out.append(
+                (
+                    "warn",
+                    f"{where}: the copy of {sid} was edited; never edit a copy: restore it, or write your own standard and name it in [standards_policy] replace",
+                )
+            )
+        if sid in moved:
+            out.append(("warn", f"{where}: {sid} was renamed to {moved[sid]}; `aidd upgrade --yes` moves the copy"))
+        elif sid not in lib:
+            out.append(("warn", f"{where}: {sid} is no longer in aidd's library; keep it as your own standard, or remove it"))
+        elif not lib[sid].active:
+            new = lib[sid].meta.get("replaced_by")
+            out.append(("warn", f"{where}: {sid} is deprecated, replaced by {new}; `aidd standard add {new}`, then remove this one"))
+        elif lib[sid].sha256 != v["sha256"] and not edited:
+            out.append(("warn", f"{where}: aidd {__version__} ships a newer {sid}; `aidd upgrade --yes` refreshes the copy"))
+        elif not edited and not weak and path.is_file():
+            clean += 1
+        if sid in policy.get("exclude", []):
+            out.append(("fail", f"standards policy: {name} copies {sid}, which the company excludes; remove it"))
+        if sid in (policy.get("replace") or {}):
+            out.append(("fail", f"standards policy: {name} copies {sid}, which the company replaces with its own standard {policy['replace'][sid]}"))
+        allowed = policy.get("allow_stacks")
+        if v.get("stack") and allowed is not None and v["stack"] not in allowed:
+            out.append(
+                (
+                    "fail",
+                    f"standards policy: {name} came with the stack {v['stack']}, which the company does not allow (allow_stacks: {', '.join(allowed) or 'none'})",
+                )
+            )
+    present = {e["vendored"]["id"] for e in copies(entries)}
+    for sid in policy.get("require", []):
+        if sid not in present:
+            out.append(("fail", f"standards policy: the company requires {sid}; `aidd standard add {sid}`"))
+    named = {e["name"] for e in entries}
+    for sid, name in sorted((policy.get("replace") or {}).items()):
+        if name not in named:
+            out.append(("warn", f"standards policy: {sid} is replaced by {name}, which is no [[standards]] entry here"))
+    for key in ("require", "exclude"):
+        for sid in policy.get(key, []):
+            if sid not in lib and sid not in moved:
+                out.append(("warn", f"standards policy: {key} names {sid}, which is no library standard of aidd {__version__}"))
+    if clean and not any(level != "ok" for level, _ in out):
+        out.append(("ok", f"library standards: {clean} copies match aidd {__version__}"))
+    return out
+
+
+def refresh(root: Path, text: str, docs_dir: str) -> tuple[str, list[tuple[str, str | None, str]], list[str]]:
+    """What `aidd upgrade` does to the copies: the new config text, the files to write (None: remove), and notes.
+    An unedited copy is refreshed from the library, and a renamed one moves; an edited copy is kept and named."""
+    lib, moved = library(), renames()
+    raw = model.parse_toml(text, "config")
+    files: list[tuple[str, str | None, str]] = []
+    notes: list[str] = []
+    if copies(list(raw.get("standards") or [])) and schema.validate(raw, "config.schema.json"):
+        return text, files, ["the config is not valid, so no library standard was refreshed; `aidd validate` names the problem"]
+    for e in copies(list(raw.get("standards") or [])):
+        folder = globs.under(docs_dir, "standards/")
+        v = e["vendored"]
+        sid, rel = v["id"], e["path"]
+        path = root / rel
+        if not rel.startswith(folder):
+            notes.append(f"{rel}: not under {folder}, so it is not refreshed; a copy lives there")
+            continue
+        if _edited(_read(path), v, lib.get(sid)):
+            notes.append(f"kept {rel}: the copy was edited, so it is not refreshed; restore it, or replace it with your own standard")
+            continue
+        new_id = moved.get(sid, sid)
+        s = lib.get(new_id)
+        if s is None:
+            notes.append(f"{rel}: {sid} is no longer in aidd's library; keep it as your own standard, or remove it")
+            continue
+        if new_id == sid and s.sha256 == v["sha256"] and path.is_file():
+            continue
+        found = _block_re(sid).search(text)
+        if not found:
+            notes.append(f"{rel}: its config entry has no `# aidd:standard {sid}` markers; refresh it by hand (`aidd standard add` writes them)")
+            continue
+        dest = rel if new_id == sid else copy_path(new_id, docs_dir)
+        if not (_inside(root, dest) and _inside(root, rel)):
+            notes.append(f"{rel}: outside the repository or behind a link, so it is not refreshed")
+            continue
+        if new_id != sid and _foreign(root, dest, s.text):
+            notes.append(FOREIGN.format(rel=dest) + f"; {sid} was renamed to {new_id}, so the copy stays at {rel}")
+            continue
+        text = text[: found.start()] + block(s, docs_dir, v.get("stack"), dest) + text[found.end() :]
+        why = f"{sid} renamed to {new_id}" if new_id != sid else f"{sid}, to aidd {__version__}"
+        files.append((dest, s.text, why))
+        if new_id != sid:
+            files.append((rel, None, f"{sid} renamed to {new_id}"))
+        if not s.active:
+            notes.append(f"{new_id} is deprecated, replaced by {s.meta.get('replaced_by')}: `aidd standard add {s.meta.get('replaced_by')}`")
+    return text, files, notes
+
+
+# ---- Lists for the commands and the docs ------------------------------------------------------------------------------
+
+
+# The version of `aidd standard list --json` and `aidd stack list --json` (schemas/standard-list.schema.json,
+# schemas/stack-list.schema.json): a new key keeps it, a renamed or removed one bumps it.
+LIST_SCHEMA_VERSION = "1"
+
+
+def rows(cfg) -> dict:
+    """`aidd standard list --json`: the open choices, and each library standard with its policy mark and whether it is here."""
+    policy = _policy(cfg)
+    present = {e["vendored"]["id"] for e in copies(list(cfg.standards))} if cfg else set()
+    lib = library()
+    fills: dict[str, list[str]] = {}
+    for s in lib.values():
+        for ref in s.meta["fills"]:
+            fills.setdefault(ref, []).append(s.id)
+    picks = defaults(lib)
+    return {
+        "schema_version": LIST_SCHEMA_VERSION,
+        "open_choices": [
+            {
+                "ref": ref,
+                "pack": c["owner"],
+                "question": c["question"],
+                "default_answer": c["default"],
+                "options": c["options"],
+                "filled_by": sorted(fills.get(ref, [])),
+                "default_by_ecosystem": {eco: sid for (r, eco), sid in sorted(picks.items()) if r == ref},
+            }
+            for ref, c in open_choices().items()
+        ],
+        "standards": [
+            {
+                "id": s.id,
+                "fills": s.meta["fills"],
+                "tool": (s.meta.get("tool") or {}).get("name"),
+                "checked_version": s.meta.get("checked_version"),
+                "checked": s.meta.get("checked"),
+                "status": s.meta["status"],
+                "default": bool(s.meta.get("default")) and s.active,
+                "trust": trust_tier(s.meta),
+                "policy": policy_mark(s.id, policy),
+                "added": s.id in present,
+            }
+            for s in sorted(lib.values(), key=lambda x: x.id)
+        ],
+    }
+
+
+def stack_rows(cfg) -> dict:
+    policy = _policy(cfg)
+    allowed = policy.get("allow_stacks")
+    known = stacks()
+    return {
+        "schema_version": LIST_SCHEMA_VERSION,
+        "stacks": [
+            {
+                "name": name,
+                "description": data["description"],
+                "extends": data.get("extends"),
+                "standards": stack_standards(name, known),
+                "allowed": allowed is None or name in allowed,
+            }
+            for name, data in sorted(known.items())
+        ],
+    }
+
+
+def _cell(text: object) -> str:
+    return str(text).replace("|", "\\|")
+
+
+def open_choices_table(owner: str) -> str:
+    """One pack's or skill's open choices as a table: the choice, the question, aidd's default, and the options."""
+    rows_ = [c for c in open_choices().values() if c["owner"] == owner]
+    lines = ["| Choice | Question | aidd's default | Options |", "| --- | --- | --- | --- |"]
+    lines += [f"| `{c['id']}` | {_cell(c['question'])} | {_cell(c['default'])} | {_cell(', '.join(c['options']))} |" for c in rows_]
+    return "\n".join(lines)
+
+
+def catalog_choices() -> str:
+    """docs/STANDARDS.md: every open choice, its default, and the library standards that fill it. Where an ecosystem has
+    several options for a choice, aidd's default among them is marked."""
+    lib = library()
+    picks = set(defaults(lib).items())
+    options: dict[tuple[str, str], int] = {}
+    for s in lib.values():
+        for ref in s.meta["fills"]:
+            options[(ref, s.ecosystem)] = options.get((ref, s.ecosystem), 0) + s.active
+    fills: dict[str, list[str]] = {}
+    for s in lib.values():
+        for ref in s.meta["fills"]:
+            mark = " (default)" if options[(ref, s.ecosystem)] > 1 and ((ref, s.ecosystem), s.id) in picks else ""
+            fills.setdefault(ref, []).append(f"`{s.id}`{mark}")
+    lines = ["| Choice | Question | aidd's default | Library standards |", "| --- | --- | --- | --- |"]
+    for ref, c in open_choices().items():
+        lines.append(f"| `{ref}` | {_cell(c['question'])} | {_cell(c['default'])} | {', '.join(sorted(fills.get(ref, []))) or '—'} |")
+    return "\n".join(lines)
+
+
+def catalog_library() -> str:
+    """docs/STANDARDS.md: the library by ecosystem, with each tool's checked version and date."""
+    by_eco: dict[str, list[Standard]] = {}
+    for s in sorted(library().values(), key=lambda x: x.id):
+        by_eco.setdefault(s.ecosystem, []).append(s)
+    parts = []
+    for eco, items in sorted(by_eco.items()):
+        lines = [f"### {eco}", "", "| Standard | Fills | Tool | Checked version | Checked | Reviewed | Status |", "| --- | --- | --- | --- | --- | --- | --- |"]
+        for s in items:
+            m = s.meta
+            tool = (m.get("tool") or {}).get("name", "—")
+            status = m["status"] + (f", replaced by `{m['replaced_by']}`" if m.get("replaced_by") else "")
+            lines.append(
+                f"| `{s.id}` | {', '.join(f'`{r}`' for r in m['fills'])} | {tool} | {m.get('checked_version', '—')} | {m.get('checked', '—')} | {m['reviewed']} | {status} |"
+            )
+        parts.append("\n".join(lines))
+    return "\n\n".join(parts)
+
+
+def catalog_stacks() -> str:
+    known = stacks()
+    lines = ["| Stack | For | Extends | Standards |", "| --- | --- | --- | --- |"]
+    for name, data in sorted(known.items()):
+        ids = ", ".join(f"`{x}`" for x in stack_standards(name, known))
+        lines.append(f"| `{name}` | {_cell(data['description'])} | {('`' + data['extends'] + '`') if data.get('extends') else '—'} | {ids} |")
+    return "\n".join(lines)

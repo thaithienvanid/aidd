@@ -1,0 +1,21 @@
+{
+  "summary": "The recorded Spec approval names a hash the Spec and its tests no longer have: the approval that was optional still binds them, so the change fails instead of waiting.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/comments/0/body",
+      "value": "/aidd approve-spec SPEC-220 0123456789abcdef0123456789abcdef"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec_approval"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec_approval.voided"
+    ]
+  }
+}

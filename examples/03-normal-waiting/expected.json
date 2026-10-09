@@ -1,0 +1,17 @@
+{
+  "decision": "pending",
+  "failed_rules": [],
+  "pending_rules": [
+    "merge_approval",
+    "spec_approval",
+    "tests"
+  ],
+  "warn_rules": [],
+  "findings": [
+    "pending merge_approval.missing",
+    "pending spec_approval.missing",
+    "pending tests.no_evidence"
+  ],
+  "title": "Normal change waiting",
+  "summary": "The same change right after the PR opens: the gate waits for Spec approval, tests, and a reviewer."
+}

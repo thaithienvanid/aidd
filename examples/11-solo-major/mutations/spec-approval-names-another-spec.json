@@ -1,0 +1,22 @@
+{
+  "summary": "The Spec approval comment names a different Spec id with the right hash: it approves nothing here.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/comments/0/body",
+      "old": "approve-spec SPEC-223 ",
+      "new": "approve-spec SPEC-999 "
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending spec_approval.missing"
+    ]
+  }
+}

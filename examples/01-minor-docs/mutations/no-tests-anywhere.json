@@ -1,0 +1,22 @@
+{
+  "summary": "The repository has no suite, no status checks, and the change declares no tests: nothing proves it, so it fails.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "[[tests]]\nname = \"unit\"\ncommand = [\"make\", \"test\"]\n\n",
+      "new": ""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail tests.none"
+    ]
+  }
+}

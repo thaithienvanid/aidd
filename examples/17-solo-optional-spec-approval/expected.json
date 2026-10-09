@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "Solo optional Spec approval",
+  "summary": "Under solo a normal change needs no Spec approval, but one was recorded: it binds the Spec and its tests by hash, and red-then-green becomes required for that Spec."
+}

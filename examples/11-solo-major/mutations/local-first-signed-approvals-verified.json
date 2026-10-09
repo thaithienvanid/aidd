@@ -1,0 +1,63 @@
+{
+  "summary": "Local-first under gates.local_approvals = \"signed\": approvals the adapter marked verified: true count, so the change passes as it does with any approvals.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/platform",
+      "value": "local"
+    },
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "approvers = [\"van\"]",
+      "new": "approvers = [\"email:van@example.com\"]\n\n[gates]\nlocal_approvals = \"signed\""
+    },
+    {
+      "op": "set",
+      "path": "/change/author",
+      "value": "email:van@example.com"
+    },
+    {
+      "op": "set",
+      "path": "/commits/0/author",
+      "value": "email:van@example.com"
+    },
+    {
+      "op": "set",
+      "path": "/commits/0/committer",
+      "value": "email:van@example.com"
+    },
+    {
+      "op": "set",
+      "path": "/comments/0/user",
+      "value": "email:van@example.com"
+    },
+    {
+      "op": "set",
+      "path": "/comments/0/verified",
+      "value": true
+    },
+    {
+      "op": "remove",
+      "path": "/comments/1"
+    },
+    {
+      "op": "append",
+      "path": "/reviews",
+      "value": {
+        "user": "email:van@example.com",
+        "state": "approved",
+        "commit_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "submitted_at": "2026-09-23T09:45:00Z",
+        "verified": true
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

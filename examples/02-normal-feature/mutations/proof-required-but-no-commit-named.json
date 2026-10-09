@@ -1,0 +1,23 @@
+{
+  "summary": "When the config requires proof, a Spec approval that names no commit does not count.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "[owners]\n",
+      "new": "[gates]\nspec_approval_proof = \"require\"\n\n[owners]\n"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending spec_approval.commit_required",
+      "pending spec_approval.missing"
+    ]
+  }
+}

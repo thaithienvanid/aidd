@@ -1,0 +1,35 @@
+{
+  "summary": "Inline tests paths of ** cannot grant scope to an extra file.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "reversible = true\n```",
+      "new": "reversible = true\n[tests]\nfiles = [\"**\"]\n[[tests.commands]]\nname = \"x\"\ncommand = [\"make\", \"docs\"]\n```"
+    },
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "src/search/ranking.ts",
+        "previous_path": null,
+        "additions": 3,
+        "deletions": 0
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "scope",
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail scope.catch_all",
+      "fail scope.overlaps_test",
+      "fail tests.no_result"
+    ]
+  }
+}

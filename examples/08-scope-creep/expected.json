@@ -1,0 +1,13 @@
+{
+  "decision": "fail",
+  "failed_rules": [
+    "scope"
+  ],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [
+    "fail scope.outside"
+  ],
+  "title": "Scope creep",
+  "summary": "The agent also edited search code outside every Task's scope."
+}

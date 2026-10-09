@@ -1,0 +1,34 @@
+{
+  "summary": "The same profile change declared minor in an inline Change Request block, with no Spec: personal data needs major, so the gate fails the route and the undeclared privacy dimension instead of raising it.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Greet customers by their preferred name.\n\n```toml aidd\nroute = \"minor\"\ntype = \"feat\"\nconfidence = \"high\"\nscope = [\"src/customers/profile.py\"]\nrollback = \"Revert the PR.\"\nassisted_by = [\"claude-code/claude-opus-5-5\"]\n\n[risk]\nsummary = \"Shows a preferred name on the confirmation.\"\ndimensions = []\nreversible = true\n```\n"
+    },
+    {
+      "op": "set",
+      "path": "/files",
+      "value": [
+        {
+          "path": "src/customers/profile.py",
+          "previous_path": null,
+          "additions": 22,
+          "deletions": 2
+        }
+      ]
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low",
+      "fail route.undeclared_dimensions"
+    ]
+  }
+}

@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:conformance",
+  "title": "aidd conformance case files",
+  "description": "The files of the portable conformance suite under examples/: a case's expected.json, and each mutation of it. `aidd eval examples --materialize DIR` writes every case and mutation as a resolved context next to its expectation, so another verifier can run the suite without aidd's loader.",
+  "$defs": {
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "failed_rules",
+        "pending_rules",
+        "warn_rules",
+        "findings"
+      ],
+      "properties": {
+        "decision": {
+          "enum": [
+            "pass",
+            "pending",
+            "fail"
+          ]
+        },
+        "failed_rules": {
+          "$ref": "#/$defs/rules"
+        },
+        "pending_rules": {
+          "$ref": "#/$defs/rules"
+        },
+        "warn_rules": {
+          "$ref": "#/$defs/rules"
+        },
+        "findings": {
+          "type": "array",
+          "uniqueItems": true,
+          "description": "Each finding as `level code`, sorted: the codes pin why each rule fired.",
+          "items": {
+            "type": "string",
+            "pattern": "^(fail|pending|warn) [a-z_]+(\\.[a-z_]+|:[a-z0-9][a-z0-9_.-]*)$"
+          }
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "A case's short name, a few words. `aidd gen-docs` writes it, with the summary, into the case table in examples/README.md."
+        },
+        "summary": {
+          "type": "string",
+          "description": "What the case shows, in one or two sentences. `aidd gen-docs` writes a case's summary into the case table in examples/README.md."
+        }
+      }
+    },
+    "op": {
+      "type": "object",
+      "required": [
+        "op",
+        "path"
+      ],
+      "description": "An edit at a JSON pointer (RFC 6901) into the case's resolved context. `set` replaces or adds a value, `remove` deletes one, `append` adds to a list, and `replace_text` replaces `old` with `new` in a string, where `old` must occur exactly once: the op fails when it is absent or occurs more than once.",
+      "oneOf": [
+        {
+          "properties": {
+            "op": {
+              "const": "set"
+            },
+            "path": {
+              "type": "string"
+            },
+            "value": {}
+          },
+          "required": [
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "op": {
+              "const": "remove"
+            },
+            "path": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "op": {
+              "const": "append"
+            },
+            "path": {
+              "type": "string"
+            },
+            "value": {}
+          },
+          "required": [
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "op": {
+              "const": "replace_text"
+            },
+            "path": {
+              "type": "string"
+            },
+            "old": {
+              "type": "string",
+              "minLength": 1
+            },
+            "new": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "old",
+            "new"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "mutation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "ops",
+        "expected"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ops": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/op"
+          }
+        },
+        "expected": {
+          "$ref": "#/$defs/expected"
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/expected"
+    },
+    {
+      "$ref": "#/$defs/mutation"
+    }
+  ]
+}

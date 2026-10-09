@@ -1,0 +1,17 @@
+{
+  "decision": "pending",
+  "failed_rules": [],
+  "pending_rules": [
+    "specialist_approval"
+  ],
+  "warn_rules": [
+    "route"
+  ],
+  "findings": [
+    "pending specialist_approval.missing",
+    "warn route.raised_to_major",
+    "warn route.undeclared_dimensions"
+  ],
+  "title": "Raised to major on personal data",
+  "summary": "A normal Spec adds a preferred name to the customer profile in src/customers/profile.py. baseline:personal-data matches the customers folder, so the change is raised to major on the privacy dimension and waits for the privacy pool, which the security pool stands in for until one is bound."
+}

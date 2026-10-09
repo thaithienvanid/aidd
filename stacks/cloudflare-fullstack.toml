@@ -1,0 +1,11 @@
+# A stack: opinionated standards that go together, plus the [project.stack] entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name = "cloudflare-fullstack"
+description = "A full web app only on Cloudflare: cloudflare-serverless plus the front end from static assets, R2, D1 or Hyperdrive, and AI Gateway."
+extends = "cloudflare-serverless"
+standards = ["cloudflare/static-assets", "cloudflare/r2-storage", "cloudflare/d1-or-hyperdrive", "cloudflare/ai-gateway"]
+reviewed = "2026-10-07"
+owner = "@thaithienvanid"
+
+[project.stack]
+adopt = ["Cloudflare Workers static assets", "Cloudflare R2", "Cloudflare D1", "Cloudflare Hyperdrive", "Cloudflare AI Gateway"]

@@ -1,0 +1,35 @@
+# aidd
+
+> AIDD is a method for delivering software with AI agents: one loop from intent to production, with change control at its core. aidd is the toolkit that runs it: a zero-dependency Python CLI and gate, a self-contained agent skill, Claude Code plugins, and an optional delivery team of agent roles. Agents write the code; humans approve the Spec and the head commit; the `aidd/gate` status reports what the gate decided. It starts in advisory mode and blocks nothing until `mode = "enforce"` is set in the base branch's config and the platform requires the status.
+
+Install it in a project by following the runbook, or ask a coding agent to: "Install thaithienvanid/aidd and apply it to this project."
+
+## Install
+
+- [llms-install.md](https://raw.githubusercontent.com/thaithienvanid/aidd/main/llms-install.md): the step-by-step runbook for coding agents (install the CLI, `aidd init`, `aidd doctor`, commit, hand back)
+- [docs/INSTALL.md](https://github.com/thaithienvanid/aidd/blob/main/docs/INSTALL.md): every install path, per coding agent, and how to remove it
+- [docs/QUICKSTART.md](https://github.com/thaithienvanid/aidd/blob/main/docs/QUICKSTART.md): the first Spec through the gate, and branch protection
+
+## Use
+
+- [AGENTS.md](https://github.com/thaithienvanid/aidd/blob/main/AGENTS.md): what an agent reads first in a repository that uses aidd
+- [.agents/skills/aidd/SKILL.md](https://github.com/thaithienvanid/aidd/blob/main/.agents/skills/aidd/SKILL.md): the skill: check the route with aidd assess before the first edit, specify, implement and verify in scope, stop for humans
+- [docs/HOW-TO.md](https://github.com/thaithienvanid/aidd/blob/main/docs/HOW-TO.md): short answers to common tasks, and `aidd assess` and `aidd list`
+- [docs/CLI.md](https://github.com/thaithienvanid/aidd/blob/main/docs/CLI.md): every command and flag
+- [docs/TROUBLESHOOTING.md](https://github.com/thaithienvanid/aidd/blob/main/docs/TROUBLESHOOTING.md): symptom, cause, and fix for what goes wrong most often
+- [docs/TEAM.md](https://github.com/thaithienvanid/aidd/blob/main/docs/TEAM.md): the delivery team: roles, packs, practice skills, handoffs, cost
+- [docs/TEAM-REFERENCE.md](https://github.com/thaithienvanid/aidd/blob/main/docs/TEAM-REFERENCE.md): the team's reference tables: standards per role, practice skills, extensions, life cycle coverage, model tiers
+
+## Understand
+
+- [README.md](https://github.com/thaithienvanid/aidd/blob/main/README.md): what it is and why
+- [docs/METHOD.md](https://github.com/thaithienvanid/aidd/blob/main/docs/METHOD.md): the method, normative
+- [docs/GLOSSARY.md](https://github.com/thaithienvanid/aidd/blob/main/docs/GLOSSARY.md): every term
+- [docs/FAQ.md](https://github.com/thaithienvanid/aidd/blob/main/docs/FAQ.md): the questions people ask first
+
+## Optional
+
+- [docs/PLATFORMS.md](https://github.com/thaithienvanid/aidd/blob/main/docs/PLATFORMS.md): GitHub, GitLab, and any other CI
+- [docs/ADOPTION.md](https://github.com/thaithienvanid/aidd/blob/main/docs/ADOPTION.md): solo, team, organization, regulated
+- [docs/ENTERPRISE.md](https://github.com/thaithienvanid/aidd/blob/main/docs/ENTERPRISE.md): what platform, security, and compliance teams check, with the status of each item
+- [plugins/README.md](https://github.com/thaithienvanid/aidd/blob/main/plugins/README.md): how to add a plugin, a skill, a pack, or a role

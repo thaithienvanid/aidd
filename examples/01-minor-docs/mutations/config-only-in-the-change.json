@@ -1,0 +1,26 @@
+{
+  "summary": "The base branch has no config; the change adds one. A change cannot bring the rules it is judged by, so it waits for an administrator to merge the config first.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/base_config",
+      "value": null
+    },
+    {
+      "op": "set",
+      "path": "/head_files/.aidd~1config.toml",
+      "value": "aidd_version = \"1.0.0\"\nprofile = \"team\"\nbudget_exclude_paths = [\"**/package-lock.json\"]\n\n[owners]\ndefault_team = \"checkout\"\napprovers = [\"@checkout-lead\", \"@platform-lead\", \"@oncall-lead\"]\n\n[owners.specialists]\nsecurity = [\"@sec-alice\"]\n\n[[tests]]\nname = \"unit\"\ncommand = [\"make\", \"test\"]\n\n[[standard_changes]]\nname = \"dependency-patch\"\npaths = [\"package.json\", \"package-lock.json\"]\nauthors = [\"dependabot[bot]\"]\nmax_changed_lines = 300\n\n[identities]\nsystem_accounts = [\"web-flow\"]\nbots = [\"claude[bot]\"]\n"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "config"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending config.bootstrap"
+    ]
+  }
+}

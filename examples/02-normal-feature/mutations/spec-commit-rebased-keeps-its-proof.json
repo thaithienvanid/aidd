@@ -1,0 +1,38 @@
+{
+  "summary": "Under spec_approval_proof = require, the Spec commit the approval names was rebased away: it is no longer in head's history, but its own diff holds only the Spec and its test, and its Spec hashes to the approved hash, so the proof holds.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "[identities]",
+      "new": "[gates]\nspec_approval_proof = \"require\"\n\n[identities]"
+    },
+    {
+      "op": "replace_text",
+      "path": "/comments/0/body",
+      "old": "4f7266fb3b8c1a805cd18eb9e3c2f508",
+      "new": "4f7266fb3b8c1a805cd18eb9e3c2f508 5555555555555555555555555555555555555555"
+    },
+    {
+      "op": "set",
+      "path": "/approval_commits",
+      "value": {
+        "5555555555555555555555555555555555555555": {
+          "ancestor": false,
+          "paths": [
+            "specs/SPEC-220.md",
+            "tests/checkout/test_rate_limit.py"
+          ],
+          "spec_hash": "4f7266fb3b8c1a805cd18eb9e3c2f508"
+        }
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

@@ -1,0 +1,140 @@
+# aidd: security scanning for the product (controls EC-08 and EC-04 of the `enterprise-controls` pack). `aidd init`
+# writes it when compliance is on ([project.compliance] names a target, or the profile is regulated), or with
+# --security-ci.
+#
+# Four jobs, each with a read-only token and no secret, and none of them a paid service:
+#   dependencies  known vulnerabilities in every lockfile, against the OSV database (OSV-Scanner)
+#   sast          static analysis of the code (Semgrep Community Edition with the Semgrep Registry's free rules)
+#   sbom          a CycloneDX SBOM of the repository, kept as a build artifact (Syft)
+#   secrets       a secret in the history or the working tree (gitleaks)
+# A finding fails its job. Fix it in a change of its own, or record a person's decision to accept it (an OSV-Scanner
+# config ignore with a reason and an expiry, a `nosemgrep` comment that says why, or a `.gitleaks.toml` allowlist
+# for a test's fake credential). A secret in the history stays valid after its commit is gone: revoke it first.
+# To make the product's evidence gate-bound, name these commands in `[[tests]]` too: the gate reads evidence from
+# aidd-tests, not from this workflow.
+name: aidd-security
+
+on:
+  pull_request:
+  schedule:
+    - cron: "23 5 * * 1"  # weekly: a new advisory reaches code nobody changed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aidd-security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # OSV-Scanner reads the lockfiles of npm, pnpm, Yarn, pip, uv, Poetry, Go, Cargo, Maven, Gradle, Bundler,
+      # Composer, NuGet, and more. The Go toolchain on the runner builds it at this exact version (the Go checksum
+      # database verifies the module), so no third-party action runs here.
+      - name: Dependency scan (OSV-Scanner)
+        run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.6.0 scan source --recursive --allow-no-lockfiles .
+      # Or the stack's own audit tool, pinned the same way, after its toolchain is installed:
+      #   npm:     npm audit --audit-level=high
+      #   Python:  uvx pip-audit==<version> -r requirements.txt   (or: uv export | uvx pip-audit==<version> -r /dev/stdin)
+      #   Go:      go run golang.org/x/vuln/cmd/govulncheck@<version> ./...
+      #   Rust:    cargo install cargo-audit --locked --version <version> && cargo audit
+      #   Ruby:    gem install bundler-audit -v <version> && bundle-audit check --update
+      #   Java:    the OWASP dependency-check Maven or Gradle plugin, pinned in the build
+
+  sast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: 0.12.20
+          enable-cache: false
+      # The Semgrep Registry rules are free under the Semgrep Rules License, for scanning your own code. `--metrics off`
+      # sends no usage data.
+      - name: Static analysis (Semgrep Community Edition)
+        run: uvx semgrep==1.178.0 scan --config p/default --metrics off --error
+      # On a public repository, CodeQL is free too: replace this job with the CodeQL init and analyze steps
+      # (github/codeql-action/init and /analyze, pinned by SHA), and give only that job `security-events: write`.
+      # Per stack, the language's own linter adds rules Semgrep lacks: Bandit (Python), gosec (Go), Brakeman (Rails),
+      # eslint-plugin-security (JavaScript), SpotBugs with Find Security Bugs (Java).
+
+  sbom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # A CycloneDX SBOM of every package the lockfiles and manifests declare. It stays a build artifact: no release
+      # asset, no dependency-graph upload, so the job needs nothing beyond read access.
+      - name: SBOM (CycloneDX, Syft)
+        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom
+          path: sbom.cdx.json
+          retention-days: 90
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0  # the whole history: a secret a later commit deleted is still in an earlier one
+          persist-credentials: false
+      # gitleaks from its GitHub release, checked against the SHA-256 that the release's checksums file lists for
+      # the linux x64 tarball. No third-party action runs here: gitleaks-action needs a licence key in an
+      # organization. Update the version and the SHA-256 together.
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/gitleaks.tar.gz" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "$GITLEAKS_SHA256  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP/gitleaks" gitleaks
+      # On a pull request, the scan takes .gitleaks.toml and .gitleaksignore from the base branch, so the change under
+      # scan cannot turn its own scan off. It names the branch by its full ref, which checkout's fetch-depth 0 fetches,
+      # so a tag cannot stand in for it; without one there, the default rules and no ignore list. A push or a
+      # scheduled run takes them from the checked-out tree. gitleaks reads ./.gitleaksignore whatever
+      # --gitleaks-ignore-path names, so the scan removes it first. --ignore-gitleaks-allow ignores inline
+      # `gitleaks:allow` comments. --redact keeps a found secret out of the log; --verbose names each finding's
+      # file, line, and fingerprint.
+      - name: Secret scan of the history and the working tree (gitleaks)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          unset GITLEAKS_CONFIG GITLEAKS_CONFIG_TOML
+          conf="$RUNNER_TEMP/gitleaks/config.toml"
+          ignore="$RUNNER_TEMP/gitleaks/ignore"
+          if [ -n "$BASE_REF" ]; then
+            git show "refs/remotes/origin/$BASE_REF:.gitleaks.toml" > "$conf" 2>/dev/null || printf '[extend]\nuseDefault = true\n' > "$conf"
+            git show "refs/remotes/origin/$BASE_REF:.gitleaksignore" > "$ignore" 2>/dev/null || : > "$ignore"
+          else
+            cp .gitleaks.toml "$conf" 2>/dev/null || printf '[extend]\nuseDefault = true\n' > "$conf"
+            cp .gitleaksignore "$ignore" 2>/dev/null || : > "$ignore"
+          fi
+          rm -f .gitleaksignore
+          set -- --config "$conf" --gitleaks-ignore-path "$ignore" --ignore-gitleaks-allow --no-banner --redact --verbose
+          status=0
+          "$RUNNER_TEMP/gitleaks/gitleaks" git "$@" . || status=1
+          "$RUNNER_TEMP/gitleaks/gitleaks" dir "$@" . || status=1
+          exit "$status"

@@ -1,0 +1,28 @@
+{
+  "summary": "A proposal's security.docx stays minor: in a proposal-only change, the baseline rules about logic skip a binary document, and it does not count as a binary. baseline:personal-data still matches one.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "proposals/PROP-1/share/security.docx"
+    },
+    {
+      "op": "set",
+      "path": "/files/0/binary",
+      "value": true
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope = [\"docs/guide.md\"]",
+      "new": "scope = [\"proposals/PROP-1/**\"]"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

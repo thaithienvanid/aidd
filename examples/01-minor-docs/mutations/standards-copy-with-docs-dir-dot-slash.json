@@ -1,0 +1,33 @@
+{
+  "summary": "With [docs] dir = \"./custom\", the standards folder is custom/standards/. The leading ./ is dropped before matching, so a minor change that edits a copy there fails: baseline:standards asks for the normal route.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "[owners]\n",
+      "new": "[docs]\ndir = \"./custom\"\n\n[owners]\n"
+    },
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "custom/standards/python/ruff-lint-format.md"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope = [\"docs/guide.md\"]",
+      "new": "scope = [\"custom/standards/python/ruff-lint-format.md\"]"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

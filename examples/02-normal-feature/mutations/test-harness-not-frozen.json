@@ -1,0 +1,26 @@
+{
+  "summary": "The change edits a conftest.py inside the Task's scope. It shapes how the frozen tests run, yet tests.files does not list it, so Spec approval did not freeze it and a later edit could weaken the tests unseen.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "src/checkout/rate_limit/conftest.py",
+        "previous_path": null,
+        "additions": 12,
+        "deletions": 0
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "tests"
+    ],
+    "findings": [
+      "warn tests.harness_unfrozen"
+    ]
+  }
+}

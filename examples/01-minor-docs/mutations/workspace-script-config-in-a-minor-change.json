@@ -1,0 +1,33 @@
+{
+  "summary": "A minor change that edits orca.yaml fails: the file makes the workspace tool run scripts on every new worktree, so it is a protected path and the change is major.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "orca.yaml"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope = [\"docs/guide.md\"]",
+      "new": "scope = [\"orca.yaml\"]"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "type = \"docs\"",
+      "new": "type = \"chore\""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

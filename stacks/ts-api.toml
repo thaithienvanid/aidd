@@ -1,0 +1,11 @@
+# A stack: opinionated standards that go together, plus the [project.stack] entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name = "ts-api"
+description = "A TypeScript HTTP server on Node.js: the ts-library base plus Fastify, Zod at the boundary, Prisma 7 on a managed PostgreSQL, Atlas for its migrations, Turborepo, and dependency-cruiser."
+extends = "ts-library"
+standards = ["typescript/fastify-api", "typescript/zod-validation", "typescript/prisma-orm", "typescript/atlas-migrations", "typescript/pnpm-turborepo-workspace", "typescript/dependency-cruiser"]
+reviewed = "2026-10-09"
+owner = "@thaithienvanid"
+
+[project.stack]
+adopt = ["Fastify", "Zod", "Prisma", "PostgreSQL", "Atlas", "Turborepo", "dependency-cruiser"]

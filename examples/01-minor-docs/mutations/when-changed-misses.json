@@ -1,0 +1,22 @@
+{
+  "summary": "A suite scoped by when_changed does not fail a change it does not cover; it warns.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "command = [\"make\", \"test\"]",
+      "new": "command = [\"make\", \"test\"]\nwhen_changed = [\"services/api/**\"]"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "tests"
+    ],
+    "findings": [
+      "warn tests.none_applies"
+    ]
+  }
+}

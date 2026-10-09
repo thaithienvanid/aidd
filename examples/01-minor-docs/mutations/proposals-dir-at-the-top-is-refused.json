@@ -1,0 +1,22 @@
+{
+  "summary": "A base config with proposals_dir = \"./\" fails the gate: with the proposals folder at the repository's top, every change would count as proposal-only and need no Spec.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "profile = \"team\"\n",
+      "new": "profile = \"team\"\nproposals_dir = \"./\"\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "config"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail config.invalid"
+    ]
+  }
+}

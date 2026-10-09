@@ -1,0 +1,27 @@
+{
+  "summary": "The same document marked living (frozen = false): approval no longer pins it, so it is implementation like any other file, outside every Task's scope and counted against the budget. Changing the Spec also changed its hash.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1SPEC-225.md",
+      "old": "path = \"docs/specs/SPEC-225/tech-spec-limiter.md\"\n",
+      "new": "path = \"docs/specs/SPEC-225/tech-spec-limiter.md\"\nfrozen = false\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "budget",
+      "scope"
+    ],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "fail budget.exceeded",
+      "fail scope.outside",
+      "pending spec_approval.missing"
+    ]
+  }
+}

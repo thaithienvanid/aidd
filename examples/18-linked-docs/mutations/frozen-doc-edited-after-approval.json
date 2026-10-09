@@ -1,0 +1,21 @@
+{
+  "summary": "The linked tech spec changed after the Approver signed the Spec's hash: a frozen doc is part of the hash, so the approval no longer counts.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/head_tree/docs~1specs~1SPEC-225~1tech-spec-limiter.md",
+      "value": "0000000000000000000000000000000000000d0d"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending spec_approval.missing"
+    ]
+  }
+}

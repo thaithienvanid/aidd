@@ -1,0 +1,692 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:context",
+  "title": "Verifier context",
+  "description": "Everything the gate needs, gathered by a platform adapter. Any CI can produce this file and run `aidd gate --context`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "platform",
+    "change",
+    "base_sha",
+    "head_sha",
+    "files",
+    "commits",
+    "reviews",
+    "comments",
+    "head_tree",
+    "head_files"
+  ],
+  "properties": {
+    "platform": {
+      "type": "string",
+      "description": "github, gitlab, local, or another adapter name."
+    },
+    "trusted": {
+      "type": "boolean",
+      "description": "False for local runs. An untrusted decision can never be posted as a status."
+    },
+    "repo": {
+      "type": "string",
+      "description": "The repository as the adapter names it (`owner/name` on GitHub, the project path on GitLab, the folder name locally). Reports and events show it; no rule reads it."
+    },
+    "now": {
+      "type": "string",
+      "description": "The time the gate runs, as an RFC 3339 date-time, such as 2026-09-23T09:00:00Z. The emergency review window is measured from it; when absent, the gate uses the wall clock, so a conformance case always sets it.",
+      "format": "date-time"
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "author",
+        "body"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The PR/MR number or iid, or locally the head ref. Recorded in the gate record; no rule reads it."
+        },
+        "url": {
+          "type": "string",
+          "description": "The PR/MR's web address, for links in reports."
+        },
+        "author": {
+          "$ref": "urn:aidd:1:common#/$defs/identity",
+          "description": "Who opened the change: a platform login, or locally `email:<address>` from git's user.email. An author never approves their own change outside solo."
+        },
+        "body": {
+          "type": "string",
+          "description": "The PR/MR description, where the `toml aidd` Change Request block lives (locally, a block naming the Spec the branch adds)."
+        },
+        "draft": {
+          "type": "boolean",
+          "description": "True while the PR/MR is a draft; the draft rule keeps the gate pending until it is marked ready."
+        },
+        "created_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "When the PR/MR was opened (RFC 3339 date-time, such as 2026-09-23T09:00:00Z), or null. Anchors the emergency review window.",
+          "format": "date-time"
+        }
+      },
+      "description": "The change under review: a PR/MR, or locally the branch being gated."
+    },
+    "base_sha": {
+      "$ref": "urn:aidd:1:common#/$defs/sha"
+    },
+    "head_sha": {
+      "$ref": "urn:aidd:1:common#/$defs/sha"
+    },
+    "head_pushed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "When the head commit reached the platform (RFC 3339 date-time, such as 2026-09-23T09:00:00Z), or null when unknown; the cool-off counts from it, and an unknown time never cools off. Locally, the head commit's committer date.",
+      "format": "date-time"
+    },
+    "base_changed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "When the change was last retargeted to another base branch (RFC 3339 date-time, such as 2026-09-23T09:00:00Z), if ever. An approval given before it approved a different diff, so it no longer counts.",
+      "format": "date-time"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "additions",
+          "deletions"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The repo-relative path at head (for a deletion, the path that was deleted)."
+          },
+          "previous_path": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "For a rename or copy, the path at base; null or absent otherwise. The scope and route rules check it as well as `path`, so a rename cannot move a file out of a protected path unseen."
+          },
+          "additions": {
+            "type": "integer",
+            "description": "Lines added; counts toward the route's line budget."
+          },
+          "deletions": {
+            "type": "integer",
+            "description": "Lines deleted; counts toward the route's line budget."
+          },
+          "binary": {
+            "type": "boolean",
+            "description": "True when the diff is binary; a line budget cannot measure it."
+          },
+          "added_lines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5000,
+            "description": "Optional: the lines the diff adds to this file, for the secrets rule, which warns on a line shaped like a secret. The local adapter passes them (at most 5000 per file, text files only); GitHub and GitLab do not, where the platform's own secret scanning is the control."
+          }
+        }
+      },
+      "description": "Every file the diff from base_sha to head_sha changes, one entry per path. The route, scope, and budget rules read it."
+    },
+    "commits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sha",
+          "author",
+          "message"
+        ],
+        "properties": {
+          "sha": {
+            "$ref": "urn:aidd:1:common#/$defs/sha"
+          },
+          "author": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The commit author: a platform login, or `email:<address>` when the platform cannot map the email to an account (locally, always the email). Null when unknown."
+          },
+          "committer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The committer, in the same form as `author`. A committer counts as an author: whoever committed a change cannot approve it. Null when unknown, or when it is the platform itself (list such accounts in `identities.system_accounts`)."
+          },
+          "message": {
+            "type": "string",
+            "description": "The full commit message, whose `Assisted-by:` and `Co-authored-by:` trailers the provenance rule reads."
+          },
+          "merge": {
+            "type": "boolean",
+            "description": "True for merge commits, which need no provenance trailer."
+          },
+          "verified": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Platform-verified signature. Standard changes require true on every commit."
+          }
+        }
+      },
+      "description": "Every commit between base_sha and head_sha. Their authors and committers are the change's authors, who cannot approve it outside solo, and their trailers are the provenance the gate checks."
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "user",
+          "state"
+        ],
+        "properties": {
+          "user": {
+            "$ref": "urn:aidd:1:common#/$defs/identity",
+            "description": "Who reviewed."
+          },
+          "state": {
+            "enum": [
+              "approved",
+              "changes_requested",
+              "commented",
+              "dismissed"
+            ],
+            "description": "The review's verdict. `changes_requested` from anyone whose approval the change needs blocks Merge approval; `commented` never clears an earlier verdict."
+          },
+          "commit_sha": {
+            "anyOf": [
+              {
+                "$ref": "urn:aidd:1:common#/$defs/sha"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The commit the review was given on. Null when the platform does not say, and then the review is stale: only an approval that names the head commit counts."
+          },
+          "submitted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the review was submitted (RFC 3339 date-time, such as 2026-09-23T09:00:00Z), or null. It orders the reviews and starts the approval's cool-off; a null time sorts first and never passes a cool-off or a base change."
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "Local-first only: true when the adapter verified the approval's git signature as good, from a key git trusts (with SSH signing, the approver's own email principal). With platform `local` and `gates.local_approvals = \"signed\"`, an approval without `verified: true` does not count (`merge_approval.unsigned`). Platforms ignore it."
+          },
+          "cooloff_skipped": {
+            "type": "boolean",
+            "description": "Local-first only: true when the person skipped the route's cool-off at their own terminal (`aidd ship --skip-cooloff`, `aidd approve merge --skip-cooloff`). With platform `local`, such an approval counts before the cool-off ends, and the record names it in `cooloff_skipped_by` (`merge_approval.cooloff_skipped`). Platforms ignore it."
+          }
+        }
+      },
+      "description": "The platform's reviews on the change, in any order. The gate sorts them by `submitted_at` and keeps each user's latest that is not `commented`; an `approved` one counts only when it names the head commit. Locally, each `aidd approve merge` recorded on refs/aidd/approvals is an `approved` review."
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "user",
+          "body"
+        ],
+        "properties": {
+          "user": {
+            "$ref": "urn:aidd:1:common#/$defs/identity",
+            "description": "Who wrote the comment."
+          },
+          "body": {
+            "type": "string",
+            "description": "The comment text. An approval command counts only on a line of its own, outside quotes, code blocks, and HTML comments."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the comment was posted (RFC 3339 date-time, such as 2026-09-23T09:00:00Z), or null; it starts the cool-off of an `/aidd approve` line."
+          },
+          "edited": {
+            "type": "boolean",
+            "description": "True when the comment was edited after creation. Approval commands in edited comments never count."
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "Local-first only: true when the adapter verified the approval's git signature, as for reviews. With platform `local` and `gates.local_approvals = \"signed\"`, an approval line without `verified: true` does not count (`spec_approval.unsigned`, `merge_approval.unsigned`). Platforms ignore it."
+          },
+          "via_app": {
+            "type": "boolean",
+            "description": "True when an App posted the comment for the person it names (GitHub's `performed_via_github_app`, a user-to-server token an agent may hold). Its approval lines never count (`spec_approval.via_app`, `merge_approval.via_app`)."
+          }
+        }
+      },
+      "description": "Comments on the change, where `/aidd approve-spec` (Spec approval) and, under solo, `/aidd approve` lines live. Locally, each approval line recorded on refs/aidd/approvals is a comment."
+    },
+    "head_tree": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{7,64}$"
+      },
+      "description": "path -> blob id at head."
+    },
+    "head_files": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "path -> text for the files the gate reads, such as the Spec."
+    },
+    "base_config": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Text of .aidd/config.toml at base. Null when the base has none."
+    },
+    "extends_texts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Pre-fetched parent configs keyed by path or url."
+    },
+    "team_members": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "description": "@org/team -> member logins."
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "result": {
+          "enum": [
+            "allow",
+            "deny",
+            "freeze",
+            "unbound",
+            "unreachable"
+          ],
+          "description": "allow; deny; freeze (only route emergency passes); unbound (no command; fails on the routes in `gates.policy_required_routes`); unreachable (the command did not answer, which counts as deny)."
+        },
+        "detail": {
+          "type": "string",
+          "description": "The command's own words, shown in the report."
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rule",
+              "level",
+              "message"
+            ],
+            "properties": {
+              "rule": {
+                "type": "string",
+                "description": "The org rule's name; it joins the decision as `policy:<rule>`, and its code is the same."
+              },
+              "level": {
+                "enum": [
+                  "fail",
+                  "pending",
+                  "warn"
+                ],
+                "description": "The level the Policy command chose for the finding."
+              },
+              "message": {
+                "type": "string",
+                "description": "What is wrong, for the report."
+              },
+              "fix": {
+                "type": "string",
+                "description": "How to satisfy it, for the report."
+              }
+            }
+          },
+          "description": "Org rules the Policy command reported; they join the decision as policy:<rule>."
+        }
+      },
+      "description": "The Policy command's answer, which the adapter runs in a checkout of the base branch. Absent or `unbound` when no command is bound; each finding joins the decision as `policy:<rule>`."
+    },
+    "evidence": {
+      "anyOf": [
+        {
+          "$ref": "urn:aidd:1:evidence"
+        },
+        {
+          "type": "object",
+          "required": [
+            "invalid"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "invalid": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Evidence document, an invalid-artifact record, or null when no run exists for head yet."
+    },
+    "commits_truncated": {
+      "type": "boolean",
+      "description": "True when the platform returned only part of the commit list; authors cannot be verified."
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What the adapter wants a person to know, such as local approvals that did not count and why. The report shows each note; the decision never reads them."
+    },
+    "org_preset": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Text of an org preset injected by the gate as the implicit root parent of the repo config."
+    },
+    "approvals_reset_on_push": {
+      "type": [
+        "boolean",
+        "null"
+      ],
+      "description": "Whether the platform removes approvals when commits are pushed (GitLab: `reset_approvals_on_push`), or null when unknown. False warns `merge_approval.time_bound`: GitLab's approval names no commit, so the gate binds it by time, and the platform's own approval count keeps an approval of an older head."
+    },
+    "committer_approval_blocked": {
+      "type": "boolean",
+      "description": "The platform itself stops commit authors from approving (GitLab: prevent approvals by users who add commits), so unlinked commit emails need no finding."
+    },
+    "codeowners": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The base branch's CODEOWNERS text, when the config reads it."
+    },
+    "approval_commits": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ancestor",
+          "paths"
+        ],
+        "properties": {
+          "ancestor": {
+            "type": "boolean",
+            "description": "Whether the commit is an ancestor of head."
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The paths the commit's own diff changes, from where it meets the base (`merge_base(base_sha, sha)..sha`); empty when the commit is unknown."
+          },
+          "spec_hash": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The Spec hash of the change's Spec as this commit holds it, or null when it holds none. A commit rebased away is no longer an ancestor; it still proves Spec approval when this hash is the approved one and its diff touched only the frozen files."
+          }
+        }
+      },
+      "description": "For each commit named in a Spec approval line: whether it is an ancestor of head, the paths its own diff changed, and the Spec's hash there. Proves Spec approval came before implementation, across a rebase too."
+    },
+    "revert_of": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha",
+        "on_base",
+        "exact"
+      ],
+      "properties": {
+        "sha": {
+          "$ref": "urn:aidd:1:common#/$defs/sha",
+          "description": "The commit a revert commit's message names (`This reverts commit <sha>.`)."
+        },
+        "on_base": {
+          "type": "boolean",
+          "description": "Whether that commit is merged on the base branch (an ancestor of `base_sha`)."
+        },
+        "exact": {
+          "type": "boolean",
+          "description": "Whether the change's whole diff is exactly that commit's diff reversed, byte for byte apart from blob ids and hunk line numbers."
+        }
+      },
+      "description": "Set when a commit on the change is a `git revert`: an exact revert of a merged commit may ship on the emergency route with the incident commander's approval alone."
+    },
+    "dependency_updates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "file",
+          "name",
+          "from",
+          "to",
+          "update_type"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "The manifest or lockfile, such as package.json, uv.lock, go.mod, or Cargo.lock."
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The dependency, as the file names it; null when the file changed and no version could be read from it."
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Its version at the base, or null when it was added."
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Its version at head, or null when it was removed."
+          },
+          "update_type": {
+            "enum": [
+              "patch",
+              "minor",
+              "major",
+              "unknown"
+            ],
+            "description": "The first version number that grew; unknown (which counts as major) for an addition, a removal, a downgrade, or a version it cannot read."
+          }
+        }
+      },
+      "description": "The dependency versions the diff's manifests and lockfiles move, which the adapter computes when the config has standard changes. A standard change's class allows only its `update_types`; absent means unknown, which counts as major."
+    },
+    "dependencies_added": {
+      "type": "array",
+      "description": "Every dependency a changed manifest declares at the head and not at the base, read by the adapter from the diff's manifests. A risk rule's `dependencies` match these; absent, no dependency raises the route.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "file",
+          "name"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The manifest's path."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The dependency's name as the manifest spells it."
+          }
+        }
+      }
+    },
+    "approval_equivalents": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "base_sha",
+          "identical_diff",
+          "base_descends",
+          "new_committers"
+        ],
+        "properties": {
+          "base_sha": {
+            "anyOf": [
+              {
+                "$ref": "urn:aidd:1:common#/$defs/sha"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Where that earlier head met the base branch (its merge-base with the base tip); null when the adapter does not have the commit."
+          },
+          "identical_diff": {
+            "type": "boolean",
+            "description": "Its diff from `base_sha` equals the head's diff from the change's `base_sha`, byte for byte, apart from the blob ids on `index` lines and the line numbers on hunk headers (whitespace, modes, and binary patches count; never the default `git patch-id`)."
+          },
+          "base_descends": {
+            "type": "boolean",
+            "description": "The change's `base_sha` descends from that head's base on the base branch."
+          },
+          "new_committers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Identities (`email:<address>`) that authored or committed the head's commits but none of that earlier head's: whoever rebased, when it was someone new."
+          },
+          "pushed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When that earlier head reached the platform, when the adapter knows; a carried approval's cool-off counts from it."
+          }
+        }
+      },
+      "description": "For each earlier head an approval names: what the gate needs to decide whether a trivial rebase carries the approval to this head (`gates.approval_carry`). Absent or empty means no approval carries."
+    },
+    "status_checks": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": [
+          "success",
+          "neutral",
+          "skipped",
+          "failure",
+          "cancelled",
+          "timed_out",
+          "action_required",
+          "pending",
+          "queued",
+          "in_progress",
+          "missing"
+        ]
+      },
+      "description": "State of each named CI check run on head: success, neutral, skipped, failure, cancelled, timed_out, action_required, pending, queued, in_progress, or missing."
+    },
+    "merge_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha",
+        "base_sha",
+        "tree",
+        "merged_tree",
+        "stacked"
+      ],
+      "properties": {
+        "sha": {
+          "$ref": "urn:aidd:1:common#/$defs/sha",
+          "description": "The merge-group commit the queue built and would move the base branch to. Evidence must be for this commit; `aidd/gate` is posted on it."
+        },
+        "ref": {
+          "type": "string",
+          "description": "The queue branch, such as `gh-readonly-queue/main/pr-42-<sha>`. For people; no rule reads it."
+        },
+        "base_sha": {
+          "$ref": "urn:aidd:1:common#/$defs/sha",
+          "description": "The commit the entry was built on: the base branch tip, or the previous queue entry's commit. Evidence must have run against it."
+        },
+        "stacked": {
+          "type": "boolean",
+          "description": "True when `base_sha` is a previous queue entry rather than the base branch tip, so the entry also carries other pull requests' changes."
+        },
+        "tree": {
+          "type": "string",
+          "description": "The tree ID of the merge-group commit."
+        },
+        "merged_tree": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The tree ID the adapter computed by merging the pull request's head (`head_sha`, the commit the approvals bind to) into `base_sha` (`git merge-tree --write-tree`), or null when that merge conflicts."
+        },
+        "all_green": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Whether the platform merges a group only when every entry passed its checks (GitHub: the merge queue rule's `grouping_strategy` is `ALLGREEN`); null when the adapter could not read it."
+        }
+      },
+      "description": "Set when the gate judges a merge-queue entry instead of the pull request head. Approvals stay bound to `head_sha`; the tests are re-run on `merge_group.sha`, whose tree must be exactly `head_sha` merged into `merge_group.base_sha`."
+    }
+  }
+}

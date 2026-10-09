@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:control-evidence",
+  "title": "aidd record export records --by-control",
+  "description": "Evidence grouped by control: what `aidd record export records PATH... --by-control` prints (or writes to `--out DIR` as controls.json). A control is any id a Spec's compliance doc declares in the `Control id` column of its `## Obligations` table, such as `EC-15` from the enterprise-controls pack or a framework's own id. For each control: the obligations that name it, the Specs that declare it, every doc those Specs link, and the gate records of those Specs. The same inputs give the same bytes, so an audit period's export can be diffed and hashed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "controls", "unmapped_records"],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output; a renamed or removed key bumps it."
+    },
+    "controls": {
+      "type": "array",
+      "description": "One entry per control id, sorted by id.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "obligations", "specs", "docs", "records"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "description": "The control id, as the compliance doc writes it." },
+          "obligations": {
+            "type": "array",
+            "description": "Each row of a compliance doc that names this control.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["spec", "doc", "obligation", "control", "evidence", "owner"],
+              "properties": {
+                "spec": { "type": "string", "description": "The Spec that links the compliance doc." },
+                "doc": { "type": "string", "description": "The compliance doc, repository-relative." },
+                "obligation": { "type": "string", "description": "The law, standard, or contract clause, as the row states it." },
+                "control": { "type": "string", "description": "What the change does to meet it." },
+                "evidence": { "type": "string", "description": "The test (an Acceptance id), log, or record the row names." },
+                "owner": { "type": "string", "description": "Who answers for it." }
+              }
+            }
+          },
+          "specs": { "type": "array", "items": { "type": "string" }, "description": "The Specs that declare the control, sorted." },
+          "docs": {
+            "type": "array",
+            "description": "Every doc those Specs link, frozen or living: the compliance doc, threat model, authorization matrix, runbook, and the rest.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["spec", "kind", "path"],
+              "properties": {
+                "spec": { "type": "string", "description": "The Spec that links it." },
+                "kind": { "type": "string", "description": "The doc kind (`[[docs]] kind`)." },
+                "path": { "type": "string", "description": "The file, repository-relative." }
+              }
+            }
+          },
+          "records": {
+            "type": "array",
+            "description": "The gate records (schemas/record.schema.json) of those Specs, by change and head; the full record stays in its file.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["change", "head_sha", "spec_id", "decision", "route", "profile"],
+              "properties": {
+                "change": { "type": ["string", "null"], "description": "The pull request, merge request, or branch." },
+                "head_sha": { "type": ["string", "null"], "description": "The head commit the decision is bound to." },
+                "spec_id": { "type": ["string", "null"], "description": "The Spec the change carries." },
+                "decision": { "type": ["string", "null"], "description": "pass, pending, or fail." },
+                "route": { "type": ["string", "null"], "description": "The route the gate enforced." },
+                "profile": { "type": ["string", "null"], "description": "The config's profile." }
+              }
+            }
+          }
+        }
+      }
+    },
+    "unmapped_records": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How many records no control reaches: their Spec declares no control id, or they carry no Spec."
+    }
+  }
+}

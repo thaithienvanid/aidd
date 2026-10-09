@@ -1,0 +1,25 @@
+{
+  "summary": "The Spec plans two Tasks, but the diff changes nothing in the second one's scope: the plan and the diff disagree, which the Approver should see before Merge approval.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1SPEC-220.md",
+      "old": "[tests]\nfiles = [\"tests/checkout/test_rate_limit.py\"]",
+      "new": "[[tasks]]\nid = \"TASK-221\"\ntitle = \"Show the limit in the admin panel\"\nscope = [\"src/admin/limits/\"]\n\n[tests]\nfiles = [\"tests/checkout/test_rate_limit.py\"]"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [
+      "scope"
+    ],
+    "findings": [
+      "pending spec_approval.missing",
+      "warn scope.untouched_task"
+    ]
+  }
+}

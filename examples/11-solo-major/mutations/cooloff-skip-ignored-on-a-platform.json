@@ -1,0 +1,31 @@
+{
+  "summary": "On a platform the cool-off runs from when the platform saw the head, so an approval that claims to skip it counts only once the cool-off has passed.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/comments/1"
+    },
+    {
+      "op": "append",
+      "path": "/reviews",
+      "value": {
+        "user": "van",
+        "state": "approved",
+        "commit_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "submitted_at": "2026-09-23T09:05:00Z",
+        "cooloff_skipped": true
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending merge_approval.missing"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+# A stack: opinionated standards that go together, plus the [project.stack] entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+# Every cloud stack carries the cost guards. A Wrangler-only project has no OpenTofu plan, so the plan-based
+# guards (cost/policy-caps, cost/pr-cost-delta-threshold) give way to the Wrangler checks of cloudflare/workers-limits
+# and cloudflare/queues-workflows.
+name = "cloudflare-serverless"
+description = "A service only on Cloudflare: Workers with their limits, budget alerts, Queues and Workflows, Wrangler, and the cost guards that a Wrangler project can run."
+standards = ["cloudflare/workers-compute", "cloudflare/workers-limits", "cloudflare/budget-alerts", "cloudflare/queues-workflows", "cloudflare/wrangler", "cost/preview-env-ttl", "cost/llm-spend-caps", "cost/kill-switch"]
+reviewed = "2026-10-07"
+owner = "@thaithienvanid"
+
+[project.stack]
+adopt = ["Cloudflare Workers", "Cloudflare Queues", "Cloudflare Workflows", "Wrangler"]

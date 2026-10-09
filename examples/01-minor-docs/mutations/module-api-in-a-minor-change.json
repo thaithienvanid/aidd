@@ -1,0 +1,33 @@
+{
+  "summary": "A minor change that edits a module's public API fails: a change under modules/*/api/ is a contract change other modules depend on, so baseline:module-api asks for the normal route and a Spec.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "modules/orders/api/index.ts"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope = [\"docs/guide.md\"]",
+      "new": "scope = [\"modules/orders/api/index.ts\"]"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "type = \"docs\"",
+      "new": "type = \"fix\""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

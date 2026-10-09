@@ -1,0 +1,29 @@
+{
+  "summary": "An adopter's typo fix in its own SECURITY.md stays minor: aidd protects its own release documents in its own config, not in the baseline.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "SECURITY.md"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope = [\"docs/guide.md\"]",
+      "new": "scope = [\"SECURITY.md\"]"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "type = \"docs\"",
+      "new": "type = \"docs\""
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

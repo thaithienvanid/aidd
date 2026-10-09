@@ -1,0 +1,28 @@
+{
+  "summary": "A code file in a proposal, proposals/PROP-1/data/auth.py, still matches baseline:auth: the proposals folder lifts no risk rule for code.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "proposals/PROP-1/data/auth.py"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope = [\"docs/guide.md\"]",
+      "new": "scope = [\"proposals/PROP-1/**\"]"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low",
+      "fail route.undeclared_dimensions"
+    ]
+  }
+}

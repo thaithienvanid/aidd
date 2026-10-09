@@ -1,0 +1,24 @@
+{
+  "summary": "The org profile requires a bound Policy on the emergency route.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/policy/result",
+      "value": "unbound"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "policy"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency"
+    ],
+    "findings": [
+      "fail policy.required",
+      "warn emergency.would_be_major"
+    ]
+  }
+}

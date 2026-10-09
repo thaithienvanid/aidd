@@ -1,0 +1,558 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:spec",
+  "title": "Spec",
+  "description": "One change: what, why, how it is proven, who approves it. Stored as TOML front matter in specs/<id>.md; the Markdown body holds Context, Acceptance, Design, and Non-goals.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aidd_version",
+    "kind",
+    "id",
+    "title",
+    "owner_team",
+    "type",
+    "route",
+    "confidence",
+    "risk",
+    "rollback",
+    "assisted_by",
+    "tasks",
+    "tests"
+  ],
+  "properties": {
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version"
+    },
+    "kind": {
+      "const": "spec",
+      "description": "Object kind. Always `spec`."
+    },
+    "id": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "description": "Spec key, such as SPEC-220."
+    },
+    "parent": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "description": "Optional Epic id."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "One line. `locale` may apply."
+    },
+    "owner_team": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Team accountable for the change."
+    },
+    "approvers": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/identity"
+      },
+      "description": "Eligible Approvers for this Spec. Can only narrow the config's `owners.approvers`."
+    },
+    "type": {
+      "$ref": "urn:aidd:1:common#/$defs/type"
+    },
+    "route": {
+      "allOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/route"
+        },
+        {
+          "enum": [
+            "normal",
+            "major",
+            "emergency"
+          ]
+        }
+      ],
+      "description": "normal (the gate raises it to major when the diff demands it), major, or emergency for a backfill Spec. Minor and standard changes have no Spec file."
+    },
+    "confidence": {
+      "$ref": "urn:aidd:1:common#/$defs/confidence"
+    },
+    "open_questions": {
+      "$ref": "urn:aidd:1:common#/$defs/open_questions"
+    },
+    "trace_id": {
+      "$ref": "urn:aidd:1:common#/$defs/trace_id",
+      "description": "Joins the Specs and changes of one piece of work across repositories. Defaults to the id."
+    },
+    "status": {
+      "$ref": "urn:aidd:1:common#/$defs/status",
+      "description": "Optional cache of the derived status; `aidd validate` warns when it disagrees. Record only what nobody can observe: `cancelled` (a person stopped it) or `rolled_back`."
+    },
+    "blocked_on": {
+      "type": "string",
+      "description": "Role, person, or interface the Spec waits on. While it is set, the Spec is blocked: a flag `aidd assess` and `aidd list` show, not a status."
+    },
+    "labels": {
+      "$ref": "urn:aidd:1:common#/$defs/labels"
+    },
+    "relations": {
+      "$ref": "urn:aidd:1:common#/$defs/relations"
+    },
+    "priority": {
+      "$ref": "urn:aidd:1:common#/$defs/priority"
+    },
+    "owner": {
+      "$ref": "urn:aidd:1:common#/$defs/owner"
+    },
+    "suggested_by": {
+      "$ref": "urn:aidd:1:common#/$defs/identity",
+      "description": "Who suggested work nobody asked for: `agent:<role>` for an agent in `[agents] proactive_roles` (or an agent account). Such a Spec stays a draft until a person records `triage`."
+    },
+    "triage": {
+      "$ref": "#/$defs/triage",
+      "description": "A person's decision on suggested work. Required, by a person, before a Spec whose suggested_by is an agent moves past draft."
+    },
+    "risk": {
+      "$ref": "urn:aidd:1:common#/$defs/risk"
+    },
+    "rollback": {
+      "type": "string",
+      "minLength": 1,
+      "description": "How to undo. Name the steps on major and emergency."
+    },
+    "hypothesis": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The measurable result the change should produce after Ship, written before Spec approval and frozen by the Spec hash: a metric, its baseline, the expected move, and by when. Learn records `outcome.result` against it."
+    },
+    "experiment": {
+      "$ref": "#/$defs/experiment",
+      "description": "An A/B test that decides the `hypothesis`, planned before launch: its variants, one primary metric, the guardrails, how long it runs, and the decision rule. Optional; the product manager writes it with the tracking plan, and the flag that serves the variants is a `[[flags]]` entry. Approved content: the Spec hash covers it. `aidd validate` warns when it names no guardrail or the Spec has no hypothesis."
+    },
+    "uat": {
+      "type": "boolean",
+      "description": "True when people accept this change by hand: a client's user acceptance test, a QA owner's manual or exploratory pass, or a device lab run. The required-docs matrix then asks for a test plan (`aidd validate` warns on major, `aidd new spec` suggests it on normal). Approved content: the Spec hash covers it."
+    },
+    "residual_risk": {
+      "type": "string",
+      "description": "What stays true after release. `none` when nothing remains."
+    },
+    "assisted_by": {
+      "$ref": "urn:aidd:1:common#/$defs/assisted_by"
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "ADR paths or links this Spec depends on, and does not change. A repository path must exist (`aidd validate`); an ADR this Spec writes is a `[[docs]]` entry of kind `adr` instead."
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/task"
+      },
+      "minItems": 1,
+      "description": "Slices of the change. Parallel only when their scope is disjoint."
+    },
+    "tests": {
+      "$ref": "urn:aidd:1:common#/$defs/tests"
+    },
+    "design": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "files"
+      ],
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/glob"
+          },
+          "minItems": 1,
+          "description": "Mockups, wireframes, and flows a human approves at Spec approval with the Spec, such as `docs/design/SPEC-220/**`. Frozen by the Spec hash like the tests: never implementation scope."
+        }
+      },
+      "description": "The approved look and flow of a user-facing change. Optional; the product designer writes it before Spec approval."
+    },
+    "docs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/doc"
+      },
+      "description": "The documents that hold the detail this Spec links instead of carrying: a tech spec, a test plan, a prototype or design spec, an ADR, a threat model, an API contract, a migration or tracking plan, a runbook. `aidd new <kind> <topic> --spec <ID>` writes one from its template and adds the entry. A frozen doc is approved with the Spec by hash, like a design file; a living one is only checked to exist."
+    },
+    "observe": {
+      "$ref": "urn:aidd:1:common#/$defs/observe",
+      "description": "Post-release check. Required on the profile's observe_required_routes: major, and normal under regulated."
+    },
+    "flags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/flag"
+      },
+      "description": "Feature flags this change ships behind, so release is separate from deploy: the architect adds one on a normal or major user-facing change that should reach users later than its code reaches production. Optional; a minor change never needs one. Approved content: the Spec hash covers it. `aidd validate` warns, and `aidd list` shows the cleanup as work, once a flag's `cleanup_due` has passed and no Spec lists it in `removes_flags`; a later Spec that declares the same flag with a later date extends it."
+    },
+    "removes_flags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/flag_name"
+      },
+      "uniqueItems": true,
+      "description": "Flags this change deletes from the code, by name: the cleanup Spec for an earlier Spec's `[[flags]]` entry. Once a Spec lists a flag here, `aidd validate` and `aidd list` stop reporting it as overdue."
+    },
+    "emergency": {
+      "$ref": "urn:aidd:1:common#/$defs/emergency",
+      "description": "Required when route is emergency."
+    },
+    "outcome": {
+      "$ref": "#/$defs/outcome",
+      "description": "What happened after Ship. Written during the observe window and in Learn."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "route": {
+            "const": "emergency"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "emergency"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "route": {
+            "const": "major"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "observe"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "confidence": {
+            "const": "high"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "open_questions": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "doc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "path"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "tech-spec",
+            "test-plan",
+            "design-spec",
+            "adr",
+            "threat-model",
+            "authz",
+            "api",
+            "runbook",
+            "slo",
+            "compliance",
+            "analytics",
+            "migration",
+            "acceptance",
+            "data-map",
+            "vendors",
+            "other"
+          ],
+          "description": "What the document is. It names the role that writes it (architect: tech-spec, adr, api; tester: test-plan; product designer: ui, the design spec (with its flows and usability test) or its HTML prototype; security engineer: threat-model, authz (the authorization matrix); SRE: runbook, slo; compliance analyst: compliance; compliance analyst or data engineer: data-map (the repository's living inventory and records of processing); product manager: analytics; delivery manager: acceptance, and vendors (the repository's vendor register); data engineer: migration) and the required-docs matrix `aidd validate` warns from (`[docs.required]`)."
+        },
+        "path": {
+          "$ref": "urn:aidd:1:common#/$defs/glob",
+          "description": "Repo-relative path of the document, or a glob for a folder of files (a prototype with its assets), such as `docs/specs/SPEC-220/tech-spec-limits.md`. It must match a file (`aidd validate`), and a frozen one is never a catch-all and never inside a Task's scope."
+        },
+        "frozen": {
+          "type": "boolean",
+          "description": "Default true: approved with the Spec, and part of the Spec hash like a design file, so any edit after Spec approval voids it; a drift found while implementing goes in the verification report and a later docs-only change. False for a living document several Specs revise (a runbook, an SLO, an area's architecture page): only checked to exist, and a Task that changes it names it in its scope."
+        }
+      },
+      "description": "One linked document."
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "scope"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "urn:aidd:1:common#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "One line describing the slice."
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/glob"
+          },
+          "minItems": 1,
+          "description": "Globs this Task's diff may change. Never a test or design file, never a catch-all."
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/id"
+          },
+          "description": "Task ids that must finish first. Required between Tasks whose scope overlaps."
+        },
+        "assignee": {
+          "$ref": "urn:aidd:1:common#/$defs/identity",
+          "description": "Implementer: `agent:<role>` or a person."
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2,
+          "description": "Skills loaded only for this Task, by directory name: a practice skill such as `api-design` or a stack skill, at most two. Domain packs are named in Context instead."
+        },
+        "risk": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What this Task could break, and how it guards against it. Approved content: frozen by the Spec hash."
+        },
+        "proof": {
+          "type": "string",
+          "minLength": 1,
+          "description": "How this Task is shown to work: the test command, screenshot, or check a reviewer reads. Approved content: frozen by the Spec hash."
+        },
+        "retry_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "Implementation retries used. At 3 the Task stops and the Spec is blocked until a person re-plans it."
+        },
+        "done": {
+          "type": "boolean",
+          "description": "True when the Task is finished and the evidence cannot show it (a changed scope with every command green on head shows it by itself). Bookkeeping: the Spec hash ignores it."
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "released_on": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "Date the change reached production."
+        },
+        "observe_result": {
+          "enum": [
+            "pass",
+            "fail"
+          ],
+          "description": "Result of the observe window."
+        },
+        "rolled_back": {
+          "type": "boolean",
+          "description": "True when the rollback ran."
+        },
+        "restored_on": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "Date service was restored after a failed change (a rollback or a fix). With `released_on`, it gives the time to restore."
+        },
+        "learn_ref": {
+          "type": "string",
+          "description": "Link to the retro or the PR that fed lessons back into AGENTS.md, skills, or tests."
+        },
+        "result": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the metric named in `hypothesis` did after the observe window: met, missed, or inconclusive, with the number. A missed hypothesis is a Learn signal for the author and the product-manager, not a rollback."
+        }
+      },
+      "description": "What happened after Ship. Written during the observe window and in Learn; never part of the Spec hash."
+    },
+    "triage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "by",
+        "on"
+      ],
+      "properties": {
+        "decision": {
+          "enum": [
+            "accepted",
+            "declined",
+            "snoozed"
+          ],
+          "description": "accepted: the work goes ahead. declined: it does not, and the Spec is cancelled (a stored status must not say otherwise). snoozed: decide again on `until`; `aidd list` hides it until then. A duplicate is a relation (`duplicates`), not a triage decision."
+        },
+        "by": {
+          "$ref": "urn:aidd:1:common#/$defs/identity",
+          "description": "The person who decided. Never an agent or an agent account: `aidd validate` fails one."
+        },
+        "on": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "The date of the decision."
+        },
+        "until": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "Snoozed only: the date the item comes back for a decision."
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Why, in one sentence. A later triage of the same idea reads it first, and links the new Spec as `duplicates`. Optional; `aidd validate` warns when a declined triage has none. Bookkeeping, like the rest of `triage`: never part of the Spec hash."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "snoozed"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "until"
+            ]
+          }
+        }
+      ],
+      "description": "A person's decision on work an agent suggested: accepted, declined, or snoozed, with who and when."
+    },
+    "experiment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variants",
+        "metric",
+        "decision"
+      ],
+      "properties": {
+        "variants": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 2,
+          "uniqueItems": true,
+          "description": "The arms by name, control first, such as `[\"control\", \"one-page\"]`: the variants the experiment's flag serves."
+        },
+        "metric": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The one primary metric that decides, the one the `hypothesis` names. Others are guardrails, or read after the decision."
+        },
+        "guardrails": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Metrics that must not get worse while the experiment runs (an error rate, a latency, refunds, unsubscribes); a breach stops it."
+        },
+        "min_sample": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Units (users, accounts, sessions) per variant before anyone reads the result, from a power calculation on the primary metric's baseline and the smallest effect worth shipping."
+        },
+        "duration": {
+          "type": "string",
+          "pattern": "^\\d+(d|w)$",
+          "description": "How long it runs, such as `14d` or `2w`: whole weeks, so weekday effects cancel. With `min_sample`, whichever is reached last."
+        },
+        "decision": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The rule written before launch: when the result ships, when it stops early (a guardrail breach, a sample ratio mismatch), and what an inconclusive result means."
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "min_sample"
+          ]
+        },
+        {
+          "required": [
+            "duration"
+          ]
+        }
+      ],
+      "description": "One A/B test: its variants, the primary metric, the guardrails, a minimum sample or a duration (at least one), and the decision rule."
+    },
+    "flag_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 64,
+      "description": "A flag key in lowercase, with `-`, `.`, or `_` between words, such as `checkout-v2`: the key the code evaluates."
+    },
+    "flag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "default",
+        "owner",
+        "cleanup_due"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/flag_name"
+        },
+        "default": {
+          "enum": [
+            "on",
+            "off"
+          ],
+          "description": "The value the code falls back to when the flag system cannot answer. `off` for a new feature; `on` only for a kill switch that guards existing behavior."
+        },
+        "owner": {
+          "$ref": "urn:aidd:1:common#/$defs/identity",
+          "description": "The person who decides when the flag flips and sees it removed: never an agent or an agent account (`aidd validate` fails one)."
+        },
+        "cleanup_due": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "The date by which a later Spec removes the flag and its dead branch. After it, `aidd validate` warns and `aidd list` shows the cleanup as work."
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Why the flag exists: a release toggle, an experiment, a kill switch, or an operational toggle."
+        }
+      },
+      "description": "One feature flag: its key, safe default, owner, and cleanup date."
+    }
+  }
+}

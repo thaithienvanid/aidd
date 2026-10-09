@@ -1,0 +1,29 @@
+{
+  "summary": "A typo fix in docs/auth/overview.md stays minor: docs and Markdown are excluded from baseline:auth.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "docs/auth/overview.md"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope = [\"docs/guide.md\"]",
+      "new": "scope = [\"docs/auth/overview.md\"]"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "type = \"docs\"",
+      "new": "type = \"docs\""
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "summary": "A commit says it reverts a merged commit, but the diff also changes something else: it is an ordinary repair, and the specialist who would review it still does.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/reviews/1"
+    },
+    {
+      "op": "set",
+      "path": "/revert_of",
+      "value": {
+        "sha": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+        "on_base": true,
+        "exact": false
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "specialist_approval"
+    ],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "pending specialist_approval.missing",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

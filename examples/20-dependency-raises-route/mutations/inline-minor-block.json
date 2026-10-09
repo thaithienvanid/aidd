@@ -1,0 +1,40 @@
+{
+  "summary": "The same dependency in a change that declares itself minor in an inline Change Request block, with no Spec: the added payment SDK needs major, so the gate fails the route and the undeclared financial dimension instead of raising it.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Show the total in the buyer's currency.\n\n```toml aidd\nroute = \"minor\"\ntype = \"feat\"\nconfidence = \"high\"\nscope = [\"web/package.json\", \"lib/money.ts\"]\nrollback = \"Revert the PR.\"\nassisted_by = [\"claude-code/claude-opus-5-5\"]\n\n[risk]\nsummary = \"Formats the total with a client library.\"\ndimensions = [\"third_party\"]\nreversible = true\n```\n"
+    },
+    {
+      "op": "set",
+      "path": "/files",
+      "value": [
+        {
+          "path": "web/package.json",
+          "previous_path": null,
+          "additions": 1,
+          "deletions": 0
+        },
+        {
+          "path": "lib/money.ts",
+          "previous_path": null,
+          "additions": 24,
+          "deletions": 3
+        }
+      ]
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low",
+      "fail route.undeclared_dimensions"
+    ]
+  }
+}

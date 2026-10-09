@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "Payments change, security stands in for finance",
+  "summary": "A refund change routes major by baseline:payments, on the financial dimension, for the finance pool. The config binds only a security pool, so it stands in: its approval on head passes, and a team with no finance reviewer is not deadlocked."
+}

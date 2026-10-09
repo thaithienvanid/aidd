@@ -1,0 +1,34 @@
+{
+  "summary": "With proposals_dir = \"./proposals\", a proposal's security.docx still stays minor: the folder is read in its normal form, proposals/, so the change is proposal-only.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "profile = \"team\"\n",
+      "new": "profile = \"team\"\nproposals_dir = \"./proposals\"\n"
+    },
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "proposals/PROP-1/share/security.docx"
+    },
+    {
+      "op": "set",
+      "path": "/files/0/binary",
+      "value": true
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope = [\"docs/guide.md\"]",
+      "new": "scope = [\"proposals/PROP-1/**\"]"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

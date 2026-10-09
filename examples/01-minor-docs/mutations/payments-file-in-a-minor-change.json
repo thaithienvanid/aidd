@@ -1,0 +1,34 @@
+{
+  "summary": "A minor change to one payments file fails: baseline:payments makes it major, on the financial dimension.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "services/api/handlers/payment.go"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope = [\"docs/guide.md\"]",
+      "new": "scope = [\"services/api/handlers/payment.go\"]"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "type = \"docs\"",
+      "new": "type = \"fix\""
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low",
+      "fail route.undeclared_dimensions"
+    ]
+  }
+}

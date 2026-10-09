@@ -1,0 +1,330 @@
+# ci: the same few jobs on a pull request and on a push to main; the Linux matrix weekly, and every OS by hand, which
+# the release requires before it publishes. Require the `ci passed` job, whose name is the same whatever runs.
+#
+# A pull request and a push to main run two jobs and the summary, all on Linux:
+#   checks  every static check: the secret scan (gitleaks, over the history and the tree), ruff, mypy, the
+#           generated docs, the conformance examples, `aidd validate`, the stock-validator test, the installer, the
+#           plugin manifests, and the Mermaid diagrams; actionlint and zizmor when a workflow, action.yml, or a CI
+#           template changed
+#   test    the wheel built with the hash-locked backend and installed on 3.11 and 3.14, the zipapp on 3.14, and a
+#           byte-compile on 3.11 (the oldest supported Python). On a push to main, the schedule, and a manual run it
+#           also runs the suite on 3.14 under branch coverage, reported in the job summary and never a threshold. A
+#           pull request runs the suite once, in aidd-tests (3.14, the runner of record), not here too. It always
+#           runs: many tests read Markdown (docs, the skill, the examples), so no change is documentation only
+# The weekly schedule adds the rest of the Linux matrix (Python 3.11-3.15), the sdist running its own tests, and the
+# installed wheel on Linux. A manual run (Actions, ci, Run workflow) adds macOS and Windows to both; release.yml
+# refuses a commit without a successful manual run. macOS and Windows stay off every push and the schedule: in a
+# private repository, Windows minutes bill at twice and macOS at ten times the Linux rate, and a weekly run on every
+# OS took most of GitHub Free's 2,000 minutes a month. No tag trigger: a tag-triggered run counts as publishing,
+# where the caches are unsafe.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "37 3 * * 6"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push cancels the older run on the same pull request or branch. The release checks that ci passed on main
+# for the tagged commit: when a newer push cancelled that commit's run, re-run it before tagging (RELEASING.md).
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0  # the whole history, for the secret scan; on a pull request, HEAD^1 is the base
+      # On a pull request, the workflow audits run only when a workflow, action.yml, a CI template, or their
+      # config changed; every other check runs whatever changed. Other events audit every time.
+      - id: scope
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != pull_request ] || git diff --name-only HEAD^1 HEAD | grep -Eq '^(\.github/workflows/|\.github/zizmor|action\.ya?ml$|templates/github/)'; then
+            echo "workflows=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "workflows=false" >> "$GITHUB_OUTPUT"
+            echo "No workflow, action, or CI template changed; actionlint and zizmor are skipped." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      # The secret scan, as the `secrets` job of templates/github/aidd-security.yml runs it: gitleaks from its
+      # release, checked against the SHA-256 the release's checksums file lists. Steps here, not a job of their own:
+      # a pull request runs the checks and the tests only. .gitleaks.toml keeps the default rules and allows the
+      # fake credentials of the guard's redaction tests.
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/gitleaks.tar.gz" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "$GITLEAKS_SHA256  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP/gitleaks" gitleaks
+      # On a pull request, the scan takes .gitleaks.toml and .gitleaksignore from the base branch, so the change under
+      # scan cannot turn its own scan off. It names the branch by its full ref, which checkout's fetch-depth 0 fetches,
+      # so a tag cannot stand in for it; without one there, the default rules and no ignore list. A push or a
+      # scheduled run takes them from the checked-out tree. gitleaks reads ./.gitleaksignore whatever
+      # --gitleaks-ignore-path names, so the scan removes it first. --ignore-gitleaks-allow ignores inline
+      # `gitleaks:allow` comments. --redact keeps a found secret out of the log; --verbose names each finding's
+      # file, line, and fingerprint.
+      - name: Secret scan of the history and the working tree (gitleaks)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          unset GITLEAKS_CONFIG GITLEAKS_CONFIG_TOML
+          conf="$RUNNER_TEMP/gitleaks/config.toml"
+          ignore="$RUNNER_TEMP/gitleaks/ignore"
+          if [ -n "$BASE_REF" ]; then
+            git show "refs/remotes/origin/$BASE_REF:.gitleaks.toml" > "$conf" 2>/dev/null || printf '[extend]\nuseDefault = true\n' > "$conf"
+            git show "refs/remotes/origin/$BASE_REF:.gitleaksignore" > "$ignore" 2>/dev/null || : > "$ignore"
+          else
+            cp .gitleaks.toml "$conf" 2>/dev/null || printf '[extend]\nuseDefault = true\n' > "$conf"
+            cp .gitleaksignore "$ignore" 2>/dev/null || : > "$ignore"
+          fi
+          rm -f .gitleaksignore
+          set -- --config "$conf" --gitleaks-ignore-path "$ignore" --ignore-gitleaks-allow --no-banner --redact --verbose
+          status=0
+          "$RUNNER_TEMP/gitleaks/gitleaks" git "$@" . || status=1
+          "$RUNNER_TEMP/gitleaks/gitleaks" dir "$@" . || status=1
+          exit "$status"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"  # stays on 3.12 with the hash-locked toolchains in .github/requirements/ (runtime jobs use 3.14)
+          cache: pip
+          cache-dependency-path: .github/requirements/lint.txt
+      # Every tool is pinned with hashes in .github/requirements/lint.txt, where Dependabot sees it.
+      - name: Install the lint toolchain
+        run: |
+          python -m venv "$RUNNER_TEMP/lint"
+          "$RUNNER_TEMP/lint/bin/python" -m pip install --quiet --require-hashes --no-deps -r .github/requirements/lint.txt
+          echo "$RUNNER_TEMP/lint/bin" >> "$GITHUB_PATH"
+      # actionlint does not know job.workflow_sha and job.workflow_repository yet (GitHub documents both).
+      - if: steps.scope.outputs.workflows == 'true'
+        run: actionlint -ignore 'property "workflow_(repository|sha)" is not defined' .github/workflows/*.yml templates/github/aidd-*.yml
+      # Workflows are audited online (impostor commits, known-vulnerable actions); the adopter templates
+      # offline, with their own config: their aidd ref is the placeholder `aidd init` rewrites to a SHA.
+      - name: zizmor
+        if: steps.scope.outputs.workflows == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          zizmor --config .github/zizmor.yml .github/workflows action.yml
+          zizmor --offline --config .github/zizmor-templates.yml templates/github/aidd-*.yml
+      - run: ruff check src tests
+      - run: ruff format --check src tests
+      - run: mypy
+      # The CLI from the source tree, as AGENTS.md runs it: no install, so no unpinned build backend.
+      - name: Generated docs, conformance examples, and this repository's own Specs
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m aidd gen-docs --check
+          python -m aidd eval examples
+          python -m aidd validate
+      # The schemas and the materialized conformance corpus, checked with a stock JSON Schema validator
+      # (jsonschema, hash-locked in lint.txt); REQUIRE_JSONSCHEMA=1 turns the test's skip into a failure.
+      - name: A stock validator resolves the schemas and agrees on the corpus
+        env:
+          REQUIRE_JSONSCHEMA: "1"
+        run: python -m unittest discover -s tests -p test_stock_validator.py -v
+      - run: python -m compileall -q src tests
+      - run: sh -n install.sh
+      - run: shellcheck install.sh
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: tools/mermaid/package-lock.json
+      - name: The Claude Code marketplace and plugins validate
+        run: |
+          npm ci --prefix tools/mermaid --no-audit --no-fund
+          export PATH="$PWD/tools/mermaid/node_modules/.bin:$PATH"
+          # --strict also fails on warnings, such as an unknown manifest field or a missing version.
+          claude plugin validate --strict .claude-plugin/plugin.json
+          claude plugin validate --strict .
+          for plugin in plugins/*/; do claude plugin validate --strict "$plugin"; done
+      # A Mermaid diagram with a syntax error renders on GitHub as an error box; parse every one with Mermaid itself.
+      - name: Every Mermaid diagram parses
+        run: node tools/mermaid/check-mermaid.mjs
+
+  # The wheel and the zipapp as users run them, on the oldest and the newest supported Python; off a pull request, the
+  # suite with branch coverage too. One job, so a pull request waits on one runner for it; the other Pythons run
+  # weekly and the other OSes by hand.
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: |
+            3.11
+            3.14
+      # A syntax newer than the oldest supported Python fails here, on every pull request, in seconds; the matrix
+      # runs the suite on 3.11 weekly.
+      - name: Everything compiles on Python 3.11
+        run: python3.11 -m compileall -q src tests
+      # A pull request runs the suite in aidd-tests; a push to main, the schedule, and a manual run run it here, once,
+      # under branch coverage. coverage is hash-locked in .github/requirements/coverage.txt, where Dependabot sees it.
+      - name: The suite on Python 3.14, with branch coverage
+        if: github.event_name != 'pull_request'
+        run: |
+          python3.14 -m pip install --quiet --require-hashes --no-deps -r .github/requirements/coverage.txt
+          python3.14 -m coverage run --branch --source=src/aidd -m unittest discover -s tests
+      # Report only: the numbers go to the job summary, and no threshold fails the run.
+      - name: Coverage report
+        if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+        run: |
+          python3.14 -m coverage report --skip-covered --sort=cover
+          python3.14 -m coverage report --format=markdown --skip-covered --sort=cover >> "$GITHUB_STEP_SUMMARY"
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: 0.12.20  # unquoted: tests/test_version.py reads quoted `version:` lines as aidd pins
+      # The same hash-locked backend the release uses.
+      - run: uv build --wheel --build-constraint .github/requirements/build.txt --require-hashes
+      # A wheel built from a tree holding local eval results or node_modules leaves them out.
+      - name: The wheel leaves ignored local output out
+        working-directory: tests
+        env:
+          BUILD_WHEEL_TEST: "1"
+        run: python3.14 -m unittest test_release_surface.WheelContentsTests
+      # CI has no gh login and no git user.email, so init cannot name the operator as the approver: name one, or
+      # doctor fails, as it should for a solo profile with nobody to approve.
+      - name: The wheel carries schemas, skill, and templates (3.11 and 3.14)
+        run: |
+          for py in python3.11 python3.14; do
+            "$py" -m venv "$RUNNER_TEMP/wheel-$py"
+            bin="$RUNNER_TEMP/wheel-$py/bin"
+            "$bin/python" -m pip install --quiet dist/*.whl
+            mkdir "$RUNNER_TEMP/adopt-$py"
+            (cd "$RUNNER_TEMP/adopt-$py" && "$bin/aidd" --version && git init -q && "$bin/aidd" init --profile solo --ci github --approvers email:ci@example.com && "$bin/aidd" doctor)
+          done
+      # The single-file build, run from outside the checkout with nothing on PYTHONPATH.
+      - name: The zipapp runs on its own (3.14)
+        run: |
+          PYTHONPATH=src python3.14 -m aidd.pyz "$RUNNER_TEMP/aidd.pyz"
+          (cd "$RUNNER_TEMP" && python3.14 aidd.pyz --version)
+
+  # Weekly and by hand, never on a pull request or a push to main: every other Python (3.15 as a prerelease) on
+  # Linux, and on macOS and Windows only in a manual run; Linux 3.14 ran in the test job.
+  matrix:
+    if: github.event_name != 'pull_request' && github.event_name != 'push'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ github.event_name == 'workflow_dispatch' && fromJSON('["ubuntu-latest", "macos-latest", "windows-latest"]') || fromJSON('["ubuntu-latest"]') }}
+        python: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+        exclude:
+          - { os: ubuntu-latest, python: "3.14" }
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+          allow-prereleases: true
+      - run: python -m unittest discover -s tests -v
+      - run: python -m aidd gen-docs --check
+      - run: python -m aidd eval examples
+      - run: python -m aidd validate
+
+  # With the matrix: builds once, uploads the dists for the wheel job, and checks that the sdist runs its own tests
+  # (the test job already built and installed the wheel).
+  build:
+    if: github.event_name != 'pull_request' && github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: 0.12.20  # unquoted: tests/test_version.py reads quoted `version:` lines as aidd pins
+      # The same hash-locked backend the release uses.
+      - run: uv build --build-constraint .github/requirements/build.txt --require-hashes
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ci-dist
+          path: dist/
+          retention-days: 7
+      # Outside any git checkout, as a packager runs it: a test that needs git state builds its own repository.
+      - name: The sdist runs its own tests
+        run: |
+          mkdir "$RUNNER_TEMP/sdist"
+          tar -xzf dist/*.tar.gz -C "$RUNNER_TEMP/sdist"
+          cd "$RUNNER_TEMP"/sdist/*
+          python3.14 -m unittest discover -s tests
+
+  # With the matrix: the installed wheel on the oldest and the newest Python, on Linux weekly and on every OS by hand.
+  # The wheel is pure Python, and the test job installs it on Linux for every pull request and push.
+  wheel:
+    if: github.event_name != 'pull_request' && github.event_name != 'push'
+    needs: build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ github.event_name == 'workflow_dispatch' && fromJSON('["ubuntu-latest", "macos-latest", "windows-latest"]') || fromJSON('["ubuntu-latest"]') }}
+        python: ["3.11", "3.15"]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+          allow-prereleases: true
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ci-dist
+          path: dist/
+      - name: The wheel carries schemas, skill, and templates
+        run: |
+          python -m venv "$RUNNER_TEMP/wheel"
+          if [ -x "$RUNNER_TEMP/wheel/Scripts/python.exe" ]; then bin="$RUNNER_TEMP/wheel/Scripts"; else bin="$RUNNER_TEMP/wheel/bin"; fi
+          "$bin/python" -m pip install --quiet dist/*.whl
+          mkdir "$RUNNER_TEMP/adopt"
+          cd "$RUNNER_TEMP/adopt"
+          "$bin/aidd" --version
+          git init -q
+          "$bin/aidd" init --profile solo --ci github --approvers email:ci@example.com  # CI has no operator to name
+          "$bin/aidd" doctor
+
+  # One stable check for the branch ruleset, whatever runs: it fails when any job above failed or was cancelled,
+  # and a skipped job (the matrix, build, and wheel jobs on a pull request or a push) counts as passing.
+  ci-passed:
+    name: ci passed
+    if: always()
+    needs: [checks, test, matrix, build, wheel]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "results: $RESULTS"
+          for r in $RESULTS; do
+            case "$r" in success|skipped) ;; *) echo "::error::a ci job ended $r"; exit 1 ;; esac
+          done
