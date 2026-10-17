@@ -1,0 +1,24 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+# Every cloud stack carries the cost guards (cost/*).
+name: aws-serverless
+description: "A serverless service on AWS: Lambda on arm64, DynamoDB on demand, S3 lifecycle, log retention, no default NAT, OpenTofu, and the cost guards."
+standards:
+  - aws/lambda-arm64
+  - aws/dynamodb-on-demand
+  - aws/s3-lifecycle
+  - aws/log-retention
+  - aws/no-default-nat
+  - aws/budgets-anomaly
+  - aws/hard-caps
+  - iac/opentofu
+  - cost/arm64-first
+  - cost/preview-env-ttl
+  - cost/llm-spend-caps
+  - cost/pr-cost-delta-threshold
+  - cost/policy-caps
+  - cost/kill-switch
+reviewed: "2026-10-16"
+project:
+  stack:
+    adopt: [AWS Lambda, Amazon DynamoDB, Amazon S3, AWS Budgets, OpenTofu, TFLint, Infracost, Conftest]

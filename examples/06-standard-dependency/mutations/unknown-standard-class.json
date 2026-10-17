@@ -1,0 +1,22 @@
+{
+  "summary": "A standard change must name a class the config defines.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "standard_change: dependency-patch\n",
+      "new": "standard_change: minor-bump\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "standard_change"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail standard_change.unknown_class"
+    ]
+  }
+}

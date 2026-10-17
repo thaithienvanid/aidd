@@ -1,0 +1,15 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [
+    "emergency",
+    "policy"
+  ],
+  "findings": [
+    "warn emergency.would_be_major",
+    "warn policy.break_glass"
+  ],
+  "title": "Emergency under a freeze",
+  "summary": "Production login is broken during a release freeze. Only the emergency route may ship: smoke tests, the commander's approval, and, because the repair touches authentication, an approval from the security pool, which a major change needs anyway."
+}

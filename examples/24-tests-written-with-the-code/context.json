@@ -1,0 +1,121 @@
+{
+  "platform": "github",
+  "trusted": true,
+  "repo": "acme/shop",
+  "now": "2026-09-23T10:00:00Z",
+  "change": {
+    "id": "42",
+    "author": "alice",
+    "body": "Adds gift card balances.\n\n```yaml aidd\nspec: specs/SPEC-230.md\n```\n",
+    "draft": false
+  },
+  "base_sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+  "head_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+  "head_pushed_at": null,
+  "files": [
+    {
+      "path": "specs/SPEC-230.md",
+      "previous_path": null,
+      "additions": 36,
+      "deletions": 0
+    },
+    {
+      "path": "tests/checkout/test_gift_cards.py",
+      "previous_path": null,
+      "additions": 30,
+      "deletions": 0
+    },
+    {
+      "path": "src/checkout/gift_cards/balance.py",
+      "previous_path": null,
+      "additions": 40,
+      "deletions": 0
+    }
+  ],
+  "commits": [
+    {
+      "sha": "1111111111111111111111111111111111111111",
+      "author": "alice",
+      "committer": "alice",
+      "message": "Implement the change\n\nAssisted-by: claude-code/claude-opus-5-5",
+      "merge": false,
+      "verified": true
+    }
+  ],
+  "reviews": [
+    {
+      "user": "checkout-lead",
+      "state": "approved",
+      "commit_sha": "{{head}}",
+      "submitted_at": "2026-09-23T09:30:00Z"
+    }
+  ],
+  "comments": [
+    {
+      "user": "checkout-lead",
+      "body": "/aidd approve-spec SPEC-230 {{spec_hash}}",
+      "created_at": "2026-09-23T08:00:00Z"
+    }
+  ],
+  "head_tree": {
+    "specs/SPEC-230.md": "1111111111111111111111111111111111111111",
+    "tests/checkout/test_gift_cards.py": "2222222222222222222222222222222222222222",
+    "src/checkout/gift_cards/balance.py": "3333333333333333333333333333333333333333"
+  },
+  "head_files": {},
+  "team_members": {},
+  "policy": {
+    "result": "unbound"
+  },
+  "evidence": {
+    "aidd_version": "1.0.0",
+    "head_sha": "{{head}}",
+    "base_sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "runner": {
+      "ci": "github",
+      "run_id": "1"
+    },
+    "results": [
+      {
+        "name": "unit",
+        "command": [
+          "make",
+          "test"
+        ],
+        "red_green": "green",
+        "status": "passed",
+        "exit": 0,
+        "source": "config"
+      },
+      {
+        "name": "gift-cards",
+        "command": [
+          "pytest",
+          "-q",
+          "tests/checkout/test_gift_cards.py"
+        ],
+        "red_green": "green",
+        "status": "passed",
+        "exit": 0,
+        "source": "spec"
+      },
+      {
+        "name": "gift-cards",
+        "command": [
+          "pytest",
+          "-q",
+          "tests/checkout/test_gift_cards.py"
+        ],
+        "red_green": "red",
+        "status": "failed",
+        "exit": 1,
+        "source": "spec"
+      }
+    ]
+  },
+  "base_config_from": "../_configs/team.yaml",
+  "head_files_from": {
+    "specs/SPEC-230.md": "../_specs/SPEC-230.md"
+  },
+  "spec_hash_of": "specs/SPEC-230.md"
+}

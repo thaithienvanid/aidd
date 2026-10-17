@@ -1,0 +1,29 @@
+{
+  "summary": "A configured CI check that was skipped on the head proves nothing, so the gate waits.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "evidence:\n  status_checks: [ci]\nowners:\n"
+    },
+    {
+      "op": "set",
+      "path": "/status_checks",
+      "value": {
+        "ci": "skipped"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "tests"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending tests.check_skipped"
+    ]
+  }
+}

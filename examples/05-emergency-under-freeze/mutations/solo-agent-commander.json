@@ -1,0 +1,33 @@
+{
+  "summary": "An AI agent commander without [bot] suffix is rejected under solo profile.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "profile: org\nowners:\n  default_team: identity\n  approvers: [\"@oncall-lead\", \"@identity-lead\"]\n  specialists:\n    security: [\"@sec-alice\"]\ntests:\n  - name: unit\n    command: [make, test]\npolicy:\n  command: [\"./scripts/aidd-policy\"]\n",
+      "new": "profile: solo\nowners:\n  default_team: identity\n  approvers: [\"@oncall-lead\", \"@identity-lead\"]\n  specialists:\n    security: [\"@sec-alice\"]\ntests:\n  - name: unit\n    command: [make, test]\npolicy:\n  command: [./scripts/aidd-policy]\n"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "  commander: \"@oncall-lead\"\n",
+      "new": "  commander: \"@claude\"\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "emergency"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "fail emergency.commander_is_agent",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

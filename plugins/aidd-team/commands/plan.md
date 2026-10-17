@@ -1,0 +1,42 @@
+---
+description: "Plan work as an Initiative, Epics, and Spec stubs with the product manager"
+disable-model-invocation: true
+argument-hint: "<idea or request>"
+---
+
+Loop step: **Plan**, before the loop, only for work bigger than one Spec.
+
+Lanes: spec.
+
+<!-- aidd:gen roles:lead -->
+**You are the lead.** You run this command and the roles do its work:
+
+1. You route; you never edit an artifact yourself. Send a change to a Spec, a test, a proposal, or code to the role that owns the file. Pass on that role's handoff note.
+2. Hand over file paths, not pasted facts: "read specs/SPEC-1.md and its latest handoff note", never a restatement of what a file already says.
+3. Launch the roles of one group in parallel, in one message, and wait for all of them before you act. Do not take a turn per completion. A role that returns no report ran out of turns: never take silence as done; start it again on what is left, from the files it wrote, and after two silent runs ask the person.
+4. Pass the `model` in every Agent call: the one the role's agent file names, which follows its tier (`opus` for reasoning, `sonnet` for execution). Read-only search helpers (Explore) take the execution tier's model.
+5. Start each command in a fresh session (or after `/clear`). It begins from the files and the latest handoff note, never from an earlier command's conversation.
+6. A revision changes each affected section with one Edit (Write only a new or mostly rewritten file). It reruns only the roles whose part the new facts change.
+7. End with the handoff note, its Spend line included, and stop where the command stops.
+8. Take only the team's decisions (METHOD §5.2, Who decides what), each on its evidence, never an approval. Sort each request first: a question (answer it from the files), new work (triage), a change to an approved Spec (`aidd revise`), or a production repair (the emergency route).
+<!-- aidd:end -->
+
+Run the `aidd-team:product-manager` subagent on this request: $ARGUMENTS. For a new product built from a brief, `/aidd-team:mvp` runs the plan and the build together.
+
+Each question it asks the author comes with its recommended answer and why. It looks up what the repository answers, and never asks it.
+
+**Milestones come from the person.** The plan records a milestone on the Initiative (`milestones`: a name, the date, and the Specs whose shipping reaches it) only when the person names a date or a release. It never invents a date, and never turns a size into one. With no date named, the plan is an ordered list of slices, and `aidd list` shows what ships next.
+
+**Consult round.** When the product manager returns a draft, ask the roles whose view the plan needs, in parallel, in one message, each for a perspective card on the draft. Each returns the card in its final message and edits no file:
+- `aidd-team:architect`, always: is each stub feasible as cut, the hard parts, the shape, and a size per stub (S, M, L).
+- `aidd-team:product-designer`, when the work has a user-facing surface: the flows and screens it implies, and what the stubs miss.
+- `aidd-team:security-engineer`, when a stub touches security, data, privacy, money, or AI: the risks, and the stubs they move.
+- `aidd-team:domain-expert`, when the work sits in a domain a domain pack covers (payments, health, children, the public sector, and the rest): the domain's rules, the cases the plan misses, the words it uses wrongly. Name the packs it loads.
+
+A card has four lines: Assessment (feasible, at risk, or not feasible as cut), Hard parts, Change (to which stubs, and why), Size. Then run the product manager once more with the cards. It revises the stubs, and records each card and what changed in the Initiative's `## Perspectives` section. One round only: a disagreement left goes to the author as a question with a recommended answer.
+
+When it returns, show the author the Initiative, the Epics in order, and the Spec stubs. Give how each Epic ships (`incremental`, `flagged`, or `batched`), the sizes, and the risks the cards named. Then stop. Planning is done only when a human agrees to it. That decision stays theirs under a standing approval too. The plan goes on its own branch. It merges as soon as the human agrees, with the Initiative and the Epics only, since a stub fails `aidd validate` until Specify fills it. Then:
+- An Epic that ships `batched`: `aidd goal open <EPIC>` cuts its goal branch, `goal/<EPIC>`, from the default branch. Each of its Specs starts on `spec/<ID>`, cut from the goal branch. `aidd new spec <ID> --parent <EPIC>` names the goal as the Spec's base. The team integrates each finished Spec (`aidd integrate`). A person releases the goal once.
+- An Epic that ships `incremental` or `flagged`: each Spec starts on `spec/<ID>`, cut from the default branch, and ships there by itself. Under `flagged`, each ships behind the Epic's flag, off. Its `launch` Spec turns the flag on, and a person gives that launch's Merge approval.
+
+The gate gives each Spec's route before the first edit (`aidd gate --paths`). A Spec that depends on another starts after that one lands. A new product's first slice is its walking skeleton (`skeleton: true` on its Task): the structure, the contracts, the test runner, CI, and one smoke test. The architect or the platform engineer builds it before the other slices fan out. When the slices share a contract (an API, a schema, or the types they all use), its Spec goes first. The others carry `relations: [{type: blocked_by, id: <the contract's Spec>}]`: they are specified in parallel and implemented once the contract has landed. Autopilot runs independent Specs side by side (`autopilot.parallel`), and the person approves the ready ones together with one typed `approve`. A new ask that fits an agreed Epic's scope becomes a Spec there. A new slice is a new Epic, and the person agrees to the plan again. The Initiative, the Epics, and the stubs are files in the repository. Mirroring them to a tracker is optional, and only when the project already has one connected.

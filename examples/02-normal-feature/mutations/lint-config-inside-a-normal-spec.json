@@ -1,0 +1,22 @@
+{
+  "summary": "The same lint-config edit inside a Spec-backed normal change passes: baseline:quality-config asks for the normal route, which this change already takes.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "src/checkout/rate_limit/ruff.toml",
+        "previous_path": null,
+        "additions": 3,
+        "deletions": 1
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:context-pack",
+  "title": "aidd context --json",
+  "description": "What `aidd context --json` prints (experimental): the minimal context for one step of a Spec, as what to read, never the contents. Each token estimate is the text's characters divided by four.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "spec",
+    "path",
+    "role",
+    "step",
+    "items",
+    "tokens"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "spec": {
+      "type": "string",
+      "description": "The Spec's id."
+    },
+    "path": {
+      "type": "string",
+      "description": "The Spec's path."
+    },
+    "role": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The role the pack is for (`--role`), or null for every role."
+    },
+    "step": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The step code the pack is for (`--step`), or null."
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/item"
+      },
+      "description": "What the step reads, in reading order."
+    },
+    "tokens": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The items' token estimates, added up."
+    }
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "reason",
+        "tokens"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "summary",
+            "task",
+            "doc",
+            "exemplar",
+            "handoff",
+            "standard"
+          ],
+          "description": "What the item is."
+        },
+        "path": {
+          "type": "string",
+          "description": "The file to read."
+        },
+        "command": {
+          "type": "string",
+          "description": "For the summary: the command that prints it."
+        },
+        "reason": {
+          "type": "string",
+          "description": "One line: why the step reads it."
+        },
+        "tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "About how many tokens reading it costs."
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "required": [
+            "command"
+          ]
+        }
+      ]
+    }
+  }
+}

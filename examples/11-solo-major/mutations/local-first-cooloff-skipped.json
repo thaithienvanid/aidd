@@ -1,0 +1,62 @@
+{
+  "summary": "Local-first, the person skipped the 30-minute cool-off at their own terminal (`aidd ship --skip-cooloff`): locally the cool-off starts at a committer date the committer sets, so the skip counts, and the record and a warning say so.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/platform",
+      "value": "local"
+    },
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "  approvers: [van]\n",
+      "new": "  approvers: [email:van@example.com]\n"
+    },
+    {
+      "op": "set",
+      "path": "/change/author",
+      "value": "email:van@example.com"
+    },
+    {
+      "op": "set",
+      "path": "/commits/0/author",
+      "value": "email:van@example.com"
+    },
+    {
+      "op": "set",
+      "path": "/commits/0/committer",
+      "value": "email:van@example.com"
+    },
+    {
+      "op": "set",
+      "path": "/comments/0/user",
+      "value": "email:van@example.com"
+    },
+    {
+      "op": "remove",
+      "path": "/comments/1"
+    },
+    {
+      "op": "append",
+      "path": "/reviews",
+      "value": {
+        "user": "email:van@example.com",
+        "state": "approved",
+        "commit_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "submitted_at": "2026-09-23T09:05:00Z",
+        "cooloff_skipped": true
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "merge_approval"
+    ],
+    "findings": [
+      "warn merge_approval.cooloff_skipped"
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "aidd-mods",
+  "version": "1.0.0",
+  "description": "Optional, experimental: aidd inside Claude Code's own interface. /aidd status opens a side pane: your next decision and what to type, the shape of the work (each small goal on the ladder of your four decisions), this branch's work grouped by what each item needs, the trunk-based flow, and the autopilot run, refreshed after each turn. Type \"approve SPEC-1\" (or just \"approve\"), \"approve merge\", or \"ship it\", and your own words are the decision: it records exactly the hash or head it names, and the model never sees the prompt. /aidd update and /aidd install update or adopt aidd after one dialog. Otherwise it only shows what the aidd CLI prints, and nothing it draws reaches the model. Needs Claude Code 2.1.295 or later, the aidd plugin, and the aidd CLI on the PATH.",
+  "author": {
+    "name": "Van Hoang"
+  },
+  "homepage": "https://github.com/thaithienvanid/aidd",
+  "repository": "https://github.com/thaithienvanid/aidd",
+  "license": "Apache-2.0",
+  "types": "./types/index.d.ts",
+  "keywords": [
+    "aidd",
+    "mods",
+    "status",
+    "pane"
+  ]
+}

@@ -1,0 +1,35 @@
+name: Bug
+description: The CLI, the gate, or the docs do something wrong.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: A way to get a wrong pass from `aidd/gate` is a security issue. Report it privately instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Commands, config (`.aidd/config.yaml`), and the Change Request block. A context JSON or `aidd-record.json` is ideal. Remove secrets.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: aidd version
+      description: Output of `aidd --version`.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [GitHub, GitLab, other CI, local only]
+    validations:
+      required: true

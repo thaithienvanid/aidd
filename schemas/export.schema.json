@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:export",
+  "title": "aidd record export --format json",
+  "description": "Gate records or gate events, each exactly once and in a stable order, for a tool that cannot read JSON lines. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "items"],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "kind": {
+      "enum": ["records", "events"],
+      "description": "What the items are: gate records (record.schema.json) or gate events (event.schema.json)."
+    },
+    "items": {
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "Each record or event as it was written: records by change and head, events by time, then repository, change, and head."
+    }
+  }
+}

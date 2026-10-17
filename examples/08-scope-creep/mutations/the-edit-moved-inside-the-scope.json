@@ -1,0 +1,17 @@
+{
+  "summary": "The same edit, made in the folder the Task's scope names (src/checkout/rate_limit/), is in scope.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/3/path",
+      "value": "src/checkout/rate_limit/refund.ts"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

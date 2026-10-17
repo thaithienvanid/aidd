@@ -1,0 +1,33 @@
+{
+  "summary": "The same baseline edit declared minor in an inline Change Request block, with no Spec: the violations baseline needs major, so the gate fails the route instead of raising it.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Remove the notifications lines from the boundary baseline.\n\n```yaml aidd\nroute: minor\ntype: chore\nconfidence: high\nscope: [boundaries-baseline.json]\nrollback: Revert the PR.\nassisted_by: [claude-code/claude-opus-5-5]\nrisk:\n  summary: Removes three lines from the boundary baseline.\n  dimensions: []\n  reversible: true\n```\n"
+    },
+    {
+      "op": "set",
+      "path": "/files",
+      "value": [
+        {
+          "path": "boundaries-baseline.json",
+          "previous_path": null,
+          "additions": 0,
+          "deletions": 3
+        }
+      ]
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

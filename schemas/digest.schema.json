@@ -1,0 +1,905 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:digest",
+  "title": "aidd digest --json",
+  "description": "A status rollup for a window (since an ISO date or a git ref), rendered from what aidd already knows: the team view by default, the client view with `--client`. A report for people: never evidence, and the gate never reads it.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "view",
+    "generated_on",
+    "window"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "view": {
+      "enum": [
+        "team",
+        "client"
+      ],
+      "description": "`team`: everything the team tracks. `client`: what a client reads, with a RAG status."
+    },
+    "generated_on": {
+      "$ref": "urn:aidd:1:common#/$defs/date",
+      "description": "The day it was rendered: milestones and blocked days are counted from it."
+    },
+    "window": {
+      "$ref": "#/$defs/window"
+    },
+    "cost": {
+      "$ref": "urn:aidd:1:metrics#/$defs/cost",
+      "description": "Display only: in the team view with `--cost`; in the client view only with `--include-cost`."
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "view": {
+          "const": "team",
+          "description": "The team view."
+        },
+        "shipped": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/shipped"
+          },
+          "description": "The Specs that shipped in the window, oldest first."
+        },
+        "in_progress": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title",
+              "status",
+              "who"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The item's id, such as a Spec id."
+              },
+              "title": {
+                "type": "string",
+                "description": "Its title."
+              },
+              "status": {
+                "enum": [
+                  "ready",
+                  "in_progress",
+                  "in_review"
+                ],
+                "description": "Its status."
+              },
+              "who": {
+                "type": "string",
+                "description": "Who holds the next step, as `aidd list` names them."
+              }
+            }
+          },
+          "description": "Open Specs past Spec approval: ready, in progress, and in review."
+        },
+        "waiting": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "who",
+              "items"
+            ],
+            "properties": {
+              "who": {
+                "type": "string",
+                "description": "The role or person who takes the next step."
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/item"
+                },
+                "description": "The steps they hold."
+              }
+            }
+          },
+          "description": "Every open step that is not blocked, by who takes it next."
+        },
+        "blocked": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/blocked"
+          },
+          "description": "Blocked items, the longest blocked first."
+        },
+        "decisions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/item"
+          },
+          "description": "Open decisions: triage, a handoff note's Needs, and a proposal's go/no-go or sign-off."
+        },
+        "reversed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reversal"
+          },
+          "description": "The scope decisions reversed in the window: each `decisions` entry that names the entry it `replaces`, from a live proposal or Initiative, dated in the window."
+        },
+        "needs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "text"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The item's id, such as a Spec id."
+              },
+              "text": {
+                "type": "string",
+                "description": "The text, as written."
+              }
+            }
+          },
+          "description": "Each Needs item of the latest handoff notes, for the item it names."
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/risk"
+          },
+          "description": "The open risks and issues of the RAID log."
+        },
+        "milestones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/milestone"
+          },
+          "description": "The milestones the proposals and Initiatives list."
+        },
+        "overdue": {
+          "type": "object",
+          "required": [
+            "flags",
+            "outcomes",
+            "waivers",
+            "runbooks"
+          ],
+          "properties": {
+            "flags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Flags past their cleanup_due."
+            },
+            "outcomes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Hypotheses due with no recorded result."
+            },
+            "waivers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "rule",
+                  "until",
+                  "expired"
+                ],
+                "properties": {
+                  "rule": {
+                    "type": "string",
+                    "description": "The rule the waiver waives."
+                  },
+                  "until": {
+                    "type": "string",
+                    "description": "The waiver's last day."
+                  },
+                  "expired": {
+                    "type": "boolean",
+                    "description": "Whether that day has passed."
+                  }
+                }
+              },
+              "description": "Waivers expired, or expiring within 14 days."
+            },
+            "runbooks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Runbooks and restore drills not tested within runbook_max_age_days."
+            }
+          },
+          "description": "What is past its date: flags, outcomes, waivers, and runbook drills."
+        },
+        "feedback": {
+          "$ref": "#/$defs/feedback"
+        },
+        "metrics": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "From the gate events in the window (`aidd metrics`); null when there are none.",
+          "required": [
+            "changes",
+            "throughput_per_week",
+            "median_hours_to_pass",
+            "first_pass_tests_rate",
+            "open_waiting",
+            "loop_speed",
+            "dora"
+          ],
+          "properties": {
+            "changes": {
+              "type": "integer",
+              "description": "Changes the gate judged in the window."
+            },
+            "throughput_per_week": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Changes that passed the gate, per week."
+            },
+            "median_hours_to_pass": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Median hours from a change's first gate run to its first pass."
+            },
+            "first_pass_tests_rate": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Share of heads whose tests passed on the first evaluation."
+            },
+            "open_waiting": {
+              "type": "integer",
+              "description": "Changes whose last decision is pending."
+            },
+            "emergency_rate": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Share of changes on the emergency route."
+            },
+            "flow_efficiency": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Share of lead time spent working rather than waiting."
+            },
+            "loop_speed": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/measure"
+              },
+              "description": "The loop-speed metrics, as `aidd metrics` names them."
+            },
+            "dora": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/measure"
+              },
+              "description": "The five DORA metrics, as `aidd metrics --dora` names them."
+            }
+          }
+        },
+        "team_decisions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/team_decision"
+          },
+          "description": "The decisions the team made on its own, for the open work and what shipped in the window."
+        }
+      },
+      "required": [
+        "shipped",
+        "in_progress",
+        "waiting",
+        "blocked",
+        "decisions",
+        "reversed",
+        "needs",
+        "risks",
+        "milestones",
+        "overdue",
+        "feedback",
+        "metrics"
+      ]
+    },
+    {
+      "properties": {
+        "view": {
+          "const": "client",
+          "description": "The client view."
+        },
+        "rag": {
+          "type": "object",
+          "required": [
+            "status",
+            "reasons",
+            "rules"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "red",
+                "amber",
+                "green"
+              ],
+              "description": "Red, amber, or green."
+            },
+            "reasons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "What decided the status."
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "The three rules, printed with the status so the client reads how it is set."
+            }
+          },
+          "description": "The status, red, amber, or green, by the three rules it carries."
+        },
+        "milestones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/milestone"
+          },
+          "description": "The milestones the proposals and Initiatives list."
+        },
+        "shipped": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title",
+              "type",
+              "merged_on",
+              "intent"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The item's id, such as a Spec id."
+              },
+              "title": {
+                "type": "string",
+                "description": "Its title."
+              },
+              "type": {
+                "type": "string",
+                "description": "The Spec's change type."
+              },
+              "merged_on": {
+                "type": "string",
+                "description": "The newest commit in the window that changed its scope."
+              },
+              "intent": {
+                "type": "string",
+                "description": "The first paragraph of the Spec's Intent, as plain text."
+              }
+            }
+          },
+          "description": "What shipped in the window, in plain words: each Spec's title and intent."
+        },
+        "asks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "source",
+              "text"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "description": "Where it comes from: a proposal, an Initiative, or a Spec."
+              },
+              "text": {
+                "type": "string",
+                "description": "The text, as written."
+              }
+            }
+          },
+          "description": "What waits on the client: a proposal's unanswered question, or a Needs item that starts with `client:` or names the client."
+        },
+        "next_steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title",
+              "status"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The item's id, such as a Spec id."
+              },
+              "title": {
+                "type": "string",
+                "description": "Its title."
+              },
+              "status": {
+                "type": "string",
+                "description": "Its status."
+              }
+            }
+          },
+          "description": "The open Specs past Spec approval, then the milestones not done."
+        },
+        "team_decisions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/team_decision"
+          },
+          "description": "The decisions the team made on its own, for the open work and what shipped in the window."
+        }
+      },
+      "required": [
+        "rag",
+        "milestones",
+        "shipped",
+        "asks",
+        "next_steps"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "metrics"
+            ]
+          },
+          {
+            "required": [
+              "waiting"
+            ]
+          },
+          {
+            "required": [
+              "needs"
+            ]
+          },
+          {
+            "required": [
+              "risks"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "window": {
+      "type": "object",
+      "required": [
+        "since",
+        "kind",
+        "start",
+        "head",
+        "commits",
+        "truncated"
+      ],
+      "properties": {
+        "since": {
+          "type": "string",
+          "description": "`--since` as given."
+        },
+        "kind": {
+          "enum": [
+            "date",
+            "ref"
+          ],
+          "description": "`date`: commits at or after it. `ref`: commits on HEAD that the ref does not hold."
+        },
+        "start": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "The date, or the ref's commit date."
+        },
+        "head": {
+          "type": "string",
+          "description": "The checked-out commit, 12 hex digits; empty with no commit."
+        },
+        "commits": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Commits in the window."
+        },
+        "truncated": {
+          "type": "boolean",
+          "description": "More commits than aidd reads for one window."
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "required": [
+        "id",
+        "what"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The item's id, such as a Spec id."
+        },
+        "what": {
+          "type": "string",
+          "description": "The step, in a sentence."
+        }
+      }
+    },
+    "shipped": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "type",
+        "status",
+        "path",
+        "merged_on",
+        "intent",
+        "labels",
+        "dimensions",
+        "flags",
+        "removes_flags"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The item's id, such as a Spec id."
+        },
+        "title": {
+          "type": "string",
+          "description": "Its title."
+        },
+        "type": {
+          "type": "string",
+          "description": "The Spec's change type."
+        },
+        "status": {
+          "enum": [
+            "shipped",
+            "done",
+            "rolled_back"
+          ],
+          "description": "Its derived status."
+        },
+        "path": {
+          "type": "string",
+          "description": "The Spec's path."
+        },
+        "merged_on": {
+          "type": "string",
+          "description": "The newest commit in the window that changed its scope."
+        },
+        "intent": {
+          "type": "string",
+          "description": "The first paragraph of its Intent, as plain text."
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Its labels."
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Its declared risk dimensions."
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/flag"
+          },
+          "description": "The flags it ships behind."
+        },
+        "removes_flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The flags it removes."
+        }
+      }
+    },
+    "flag": {
+      "type": "object",
+      "required": [
+        "name",
+        "default"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The flag's key."
+        },
+        "default": {
+          "enum": [
+            "on",
+            "off"
+          ],
+          "description": "Its safe default."
+        }
+      }
+    },
+    "blocked": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "what",
+        "days"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The item's id, such as a Spec id."
+        },
+        "title": {
+          "type": "string",
+          "description": "Its title."
+        },
+        "what": {
+          "type": "string",
+          "description": "Why it is blocked, as `aidd list` says it."
+        },
+        "days": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Days since the item last changed on its branch."
+        }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "required": [
+        "kind",
+        "id",
+        "source",
+        "text",
+        "likelihood",
+        "impact"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "risk",
+            "issue"
+          ],
+          "description": "A risk (it may happen) or an issue (it has happened)."
+        },
+        "id": {
+          "type": "string",
+          "description": "The item's id, such as a Spec id."
+        },
+        "source": {
+          "type": "string",
+          "description": "The proposal or Initiative that lists it."
+        },
+        "text": {
+          "type": "string",
+          "description": "The risk or issue, in its source's words."
+        },
+        "likelihood": {
+          "type": "string",
+          "description": "Low, medium, or high; empty when not given."
+        },
+        "impact": {
+          "type": "string",
+          "description": "Low, medium, or high; empty when not given."
+        }
+      }
+    },
+    "reversal": {
+      "type": "object",
+      "required": [
+        "source",
+        "id",
+        "replaces",
+        "decision",
+        "by",
+        "decided_on",
+        "reason"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "The proposal or Initiative that lists it."
+        },
+        "id": {
+          "type": "string",
+          "description": "The id of the entry that reverses or changes the earlier one."
+        },
+        "replaces": {
+          "type": "string",
+          "description": "The id of the earlier entry."
+        },
+        "decision": {
+          "type": "string",
+          "description": "What was decided now, in its source's words."
+        },
+        "by": {
+          "type": "string",
+          "description": "The person who decided."
+        },
+        "decided_on": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "The day it was decided."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in its source's words."
+        }
+      }
+    },
+    "milestone": {
+      "type": "object",
+      "required": [
+        "name",
+        "source",
+        "due",
+        "status",
+        "late"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The milestone's name."
+        },
+        "source": {
+          "type": "string",
+          "description": "The proposal or Initiative that lists it."
+        },
+        "due": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Its due date, or null when it has none."
+        },
+        "status": {
+          "type": "string",
+          "description": "`done`, or its status as written (`open` when none)."
+        },
+        "late": {
+          "type": "boolean",
+          "description": "Past its due date and not done."
+        }
+      }
+    },
+    "feedback": {
+      "type": "object",
+      "required": [
+        "entries",
+        "undated",
+        "themes",
+        "severity",
+        "nps",
+        "scores"
+      ],
+      "properties": {
+        "entries": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Rows dated in the window."
+        },
+        "undated": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Rows with no date, left out of the counts."
+        },
+        "themes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "theme",
+              "count"
+            ],
+            "properties": {
+              "theme": {
+                "type": "string",
+                "description": "The theme, lowercased."
+              },
+              "count": {
+                "type": "integer",
+                "description": "Its rows."
+              }
+            }
+          },
+          "description": "Rows by theme, the most frequent first."
+        },
+        "severity": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "description": "Rows by severity."
+        },
+        "nps": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Net Promoter Score (-100 to 100) from the rows with a 0-10 score."
+        },
+        "scores": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Rows with a 0-10 score."
+        }
+      }
+    },
+    "measure": {
+      "type": "object",
+      "required": [
+        "name",
+        "value",
+        "met"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The metric's name."
+        },
+        "value": {
+          "description": "Its value; null when the events cannot tell."
+        },
+        "met": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Whether it met the team's target; null with no target."
+        }
+      }
+    },
+    "team_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "decision"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The work item the decision is for."
+        },
+        "decision": {
+          "type": "string",
+          "description": "What the team chose, and the standard, rule, or default that settled it (a handoff note's `decided`)."
+        }
+      },
+      "description": "A decision the team made on its own: the person reads it, and overrules it with a change order."
+    }
+  }
+}

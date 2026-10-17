@@ -1,0 +1,106 @@
+# Keeping the team's knowledge current: once a week, and by hand, fetch every standard's evidence URL again and check
+# that the sentence quoted as evidence is still on the page (`aidd eval standards --online`). The report goes to the
+# job summary and is kept as an artifact. The check reads the registry and never edits it, and this workflow never
+# commits: a quote that moved or went missing is a change a person makes, and an Approver approves it
+# (CONTRIBUTING.md, "Update a standard"). An unreachable page is a network answer, not a finding, so it never fails
+# the run; a moved or missing quote does (--strict), so the run's color is the signal. The same run reads the release
+# feed of each library standard's tool and flags a newer major than its `checked_version`, which fails it too.
+#
+# Opening an issue is off by default. Turn it on for the schedule with the repository variable
+# AIDD_STANDARDS_ISSUES=true, or for one manual run with the open_issue input. Only then does the `issue` job run, and
+# it alone holds a token that can write issues; the check itself only reads.
+#
+# templates/github/aidd-standards.yml is the same workflow for an adopter; tests/test_knowledge_maintenance.py keeps
+# the triggers, the permissions, the concurrency, and the conditions of the two identical.
+name: knowledge
+
+on:
+  schedule:
+    - cron: "41 5 * * 1"
+  workflow_dispatch:
+    inputs:
+      open_issue:
+        description: "Open an issue (or add to the open one) when a quote moved or went missing"
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: aidd-standards-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read  # check out the registry
+    outputs:
+      stale: ${{ steps.online.outputs.stale }}
+    env:
+      PYTHONPATH: src  # the CLI from the source tree, with no install
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      # Bounded: a timeout per request, a cap on the whole run, a byte limit per page, and at most two requests in
+      # flight, one per host. Exit 1 means a quote moved or went missing, or a library tool has a newer major release
+      # than its standard's checked_version (the release-feed check); anything above 1 is an error.
+      - name: Re-read every evidence URL
+        id: online
+        env:
+          # Read-only, and sent to api.github.com alone: an extension's evidence is a GitHub API answer, and the API
+          # allows few reads without a token.
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          python3 -P -m aidd eval standards --online --strict --json --max-seconds 900 > knowledge.json
+          code=$?
+          set -e
+          if [ "$code" -gt 1 ]; then cat knowledge.json; exit "$code"; fi
+          python3 -P -c 'import json; from aidd import knowledge; print(knowledge.markdown(json.load(open("knowledge.json", encoding="utf-8"))), end="")' > knowledge.md
+          cat knowledge.md >> "$GITHUB_STEP_SUMMARY"
+          echo "stale=$([ "$code" -eq 1 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - name: Keep the report
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: knowledge
+          path: |
+            knowledge.json
+            knowledge.md
+          retention-days: 90
+      - name: Fail on a moved or missing quote
+        if: steps.online.outputs.stale == 'true'
+        run: |
+          echo "::error::A quote in the standards registry moved or went missing, or a library tool has a newer major release; the job summary lists each one"
+          exit 1
+
+  issue:
+    needs: check
+    if: always() && needs.check.outputs.stale == 'true' && (inputs.open_issue || vars.AIDD_STANDARDS_ISSUES == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write  # open the issue, comment on it, and create its label
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: knowledge
+      # One open issue at a time: a later run with findings adds a comment instead of a new issue.
+      - name: Open the issue, or add to the open one
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          label="aidd-standards"
+          gh label create "$label" --color 1D76DB --description "aidd: a standard's evidence moved or went missing" 2>/dev/null || true
+          open=$(gh issue list --label "$label" --state open --limit 1 --json number --jq '.[0].number // ""')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body-file knowledge.md
+          else
+            gh issue create --title "aidd: a standard's evidence moved or went missing" --label "$label" --body-file knowledge.md
+          fi

@@ -1,0 +1,31 @@
+{
+  "summary": "The same Spec changes the module's own Import Linter contracts in place of boundaries-baseline.json. baseline:module-boundaries matches .importlinter too, so the change is raised to major, and the security pool stands in for the architecture pool.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/3/path",
+      "value": "modules/notifications/.importlinter"
+    },
+    {
+      "op": "append",
+      "path": "/reviews",
+      "value": {
+        "user": "sec-alice",
+        "state": "approved",
+        "commit_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "submitted_at": "2026-09-23T09:40:00Z"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "warn route.raised_to_major"
+    ]
+  }
+}

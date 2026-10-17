@@ -1,0 +1,25 @@
+{
+  "summary": "A green result from a different command than the Spec declares does not count.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/results/1/command",
+      "value": [
+        "pytest",
+        "-q",
+        "tests/"
+      ]
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail tests.command_mismatch"
+    ]
+  }
+}

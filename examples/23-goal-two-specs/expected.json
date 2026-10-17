@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "A goal ships two Specs",
+  "summary": "A goal branch ships SPEC-220 and SPEC-222 to main together (`specs`): each Spec is judged as its own change against the whole diff, with its own approval by hash and its own red-then-green proof, and one Merge approval of the head covers both."
+}

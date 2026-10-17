@@ -1,0 +1,17 @@
+{
+  "decision": "pending",
+  "failed_rules": [],
+  "pending_rules": [
+    "specialist_approval"
+  ],
+  "warn_rules": [
+    "route"
+  ],
+  "findings": [
+    "pending specialist_approval.missing",
+    "warn route.raised_to_major",
+    "warn route.undeclared_dimensions"
+  ],
+  "title": "Raised to major by an added dependency",
+  "summary": "A normal Spec adds the stripe SDK to web/package.json for code in lib/money.ts, outside every folder the built-in rules name. The manifest says what the paths do not: baseline:payments matches the added dependency, so the change is raised to major on the financial dimension and waits for the security pool, which stands in for finance."
+}

@@ -1,0 +1,82 @@
+name: aidd tests
+description: Run the tests aidd requires (green on head, red on base) and upload the evidence the aidd gate reads.
+author: Van Hoang
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  base-ref:
+    description: base branch of the pull request
+    default: ${{ github.base_ref }}
+  red-in-place:
+    description: run red runs in this checkout, reusing installed dependencies (needs a clean tracked tree)
+    default: "true"
+  artifact:
+    description: evidence artifact name; must match evidence.artifact in the config
+    default: aidd-evidence
+
+runs:
+  using: composite
+  steps:
+    # In a merge queue the event carries no description, so read the queued pull request's from the API, in a
+    # step of its own: the token never reaches the step that runs the tests.
+    - name: Read the queued pull request's description
+      if: github.event_name == 'merge_group'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        QUEUE_REF: ${{ github.event.merge_group.head_ref }}
+      run: |
+        number="$(printf '%s' "$QUEUE_REF" | sed -n 's#^refs/heads/gh-readonly-queue/.*/pr-\([1-9][0-9]*\)-[0-9a-f]\{40\}$#\1#p')"
+        if [ -z "$number" ]; then echo "unexpected merge queue branch: $QUEUE_REF" >&2; exit 1; fi
+        gh api "repos/$REPO/pulls/$number" --jq '.body // ""' > "$RUNNER_TEMP/aidd-body.md"
+    # aidd runs from this action's own files: no build, nothing fetched. It is still
+    # untrusted like every step of this job, which runs the pull request's code.
+    - name: Run the tests
+      shell: bash
+      env:
+        BASE_REF: ${{ inputs.base-ref || github.event.merge_group.base_ref }}
+        IN_PLACE: ${{ inputs.red-in-place }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+        MERGE_GROUP: ${{ github.event_name == 'merge_group' }}
+        PYTHONPATH: ${{ github.action_path }}/src
+      run: |
+        py=""
+        # Windows runners (and actions/setup-python there) provide `python`, not `python3.x`.
+        for c in python3.15 python3.14 python3.13 python3.12 python3.11 python3 python; do
+          if command -v "$c" >/dev/null && "$c" -c 'import sys; sys.exit(sys.version_info < (3, 11))'; then py="$c"; break; fi
+        done
+        if [ -z "$py" ]; then echo "aidd needs Python 3.11 or later on the runner (actions/setup-python)" >&2; exit 1; fi
+        if [ -n "$HEAD_SHA" ] && [ "$(git rev-parse HEAD)" != "$HEAD_SHA" ]; then
+          echo "The checkout is $(git rev-parse HEAD), not the head $HEAD_SHA (the pull request head, or the merge-group commit in a queue)." >&2
+          echo "Check out the head (actions/checkout with ref: the pull request's head.sha); evidence for a merge commit never counts." >&2
+          exit 1
+        fi
+        flag=""
+        if [ "$IN_PLACE" = "true" ]; then flag="--red-in-place"; fi
+        if [ "$MERGE_GROUP" = "true" ]; then
+          # The merge-group commit, green, and red against the commit the queue entry was built on.
+          "$py" -P -m aidd test --merge-group --base "origin/${BASE_REF#refs/heads/}" --body-file "$RUNNER_TEMP/aidd-body.md" $flag --out "$RUNNER_TEMP/aidd-evidence"
+          exit $?
+        fi
+        # The description comes from the event file, not an environment variable, which long bodies can overflow.
+        "$py" -P -c 'import json, os, sys; e = json.load(open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8")); sys.stdout.write((e.get("pull_request") or {}).get("body") or "")' > "$RUNNER_TEMP/aidd-body.md"
+        "$py" -P -m aidd test --base "origin/$BASE_REF" --body-file "$RUNNER_TEMP/aidd-body.md" $flag --out "$RUNNER_TEMP/aidd-evidence"
+    # The gate downloads only evidence.json; logs travel separately so a chatty suite cannot slow it.
+    - name: Upload evidence
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: ${{ inputs.artifact }}
+        path: ${{ runner.temp }}/aidd-evidence/evidence.json
+        retention-days: 90
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: ${{ inputs.artifact }}-logs
+        path: ${{ runner.temp }}/aidd-evidence/logs/
+        retention-days: 90
+        if-no-files-found: ignore

@@ -1,0 +1,21 @@
+{
+  "summary": "A partial commit list cannot prove who operated the change.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/commits_truncated",
+      "value": true
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "authors"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail authors.truncated"
+    ]
+  }
+}

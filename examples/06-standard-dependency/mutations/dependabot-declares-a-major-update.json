@@ -1,0 +1,21 @@
+{
+  "summary": "The manifests read as a patch, but Dependabot's updated-dependencies metadata declares a major update: the worst of both counts.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/commits/0/message",
+      "value": "Bump left-pad\n\n---\nupdated-dependencies:\n- dependency-name: left-pad\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n...\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "standard_change"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail standard_change.update_type"
+    ]
+  }
+}

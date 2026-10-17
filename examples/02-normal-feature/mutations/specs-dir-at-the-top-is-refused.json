@@ -1,0 +1,22 @@
+{
+  "summary": "A base config with specs_dir = \".\" fails the gate: with the Specs folder at the repository's top, a role that writes Specs could write anywhere.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "budget_exclude_paths: [\"**/package-lock.json\"]\n",
+      "new": "specs_dir: \".\"\nbudget_exclude_paths: [\"**/package-lock.json\"]\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "config"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail config.invalid"
+    ]
+  }
+}

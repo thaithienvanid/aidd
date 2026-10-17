@@ -1,0 +1,33 @@
+{
+  "summary": "A minor change that edits the boundary violations baseline fails: the baseline never grows, so baseline:module-boundaries asks for the major route and the architecture pool.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "boundaries-baseline.json"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope: [docs/guide.md]\n",
+      "new": "scope: [boundaries-baseline.json]\n"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "type: docs\n",
+      "new": "type: chore\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

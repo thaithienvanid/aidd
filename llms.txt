@@ -1,0 +1,50 @@
+# aidd
+
+> AIDD is a method for delivering software with AI agents: agents do the work, and a person makes four decisions: the plan, Spec approval, the release, and the launch. aidd is the toolkit that runs it: a zero-dependency Python CLI and gate, a self-contained agent skill, Claude Code plugins, and an optional delivery team of agent roles. Every change runs one loop, always on: Plan (for work bigger than one change), Specify, Spec approval, Implement and Verify, Review, Merge approval, Ship, and Learn. The guard checks each step an agent takes; the gate checks each change before it merges, and the `aidd/gate` status reports its decision. The gate starts in advisory mode and blocks nothing until `mode: enforce` is set in the base branch's config and the platform requires the status.
+
+Install it in a project by following the runbook, or ask a coding agent to: "Install thaithienvanid/aidd and apply it to this project."
+
+## Concepts
+
+- Outer loop and inner loop: the person runs the outer loop (the decisions), and the team runs the inner loop (the work). The loops belong to the change: each role takes only its own steps, and a big goal holds its Specs' loops.
+- Lead and change order: the lead (the session that runs the team) takes the team's decisions on evidence, never an approval. A change to an approved Spec is a change order (`aidd revise`), whoever asks for it.
+- Four decisions: D1 the plan, D2 Spec approval, D3 the release (the Merge approval), D4 the launch. Only a person makes them; a standing approval (`approve all`) covers D2 and D3, never D1 or D4.
+- Big goal and small goal: an ask bigger than one Spec is a big goal (an Initiative) of small goals (Epics), each two weeks or less.
+- Ships: how a small goal reaches users. `incremental` (the default): each Spec merges by itself. `flagged`: each Spec merges behind a flag that stays off until the launch. `batched`: the Specs collect on a goal branch, released once.
+- Goal branch: `goal/<EPIC>`, for a small goal that ships batched. Only `aidd integrate` (a Spec's branch into the goal) and `aidd sync` move it.
+- Ship it: the person's typed `ship it`, a standing approval for one change. It covers the head they saw, and a later fix while the Spec and its tests stay as approved. Each approval names it, and it ends when the change lands.
+- Launch: the Merge approval of a flagged Epic's `launch` Spec, which turns the feature on for users. Always the person's.
+- Trunk-based flow: the default branch is the one trunk, with few branches, each short-lived (`gates.max_branch_days`, `max_open_branches`, `max_goal_days`).
+- Explore branch: `explore/<topic>`, free work that never merges as it is. The guard allows every edit there, the gate fails any change from it, and only a person starts one.
+- Guard and gate: the guard is the hook inside the agent; the gate is `aidd gate` and the `aidd/gate` status in CI. What each checks follows the branch (docs/METHOD.md, Checks by branch).
+
+## Install
+
+- [llms-install.md](https://raw.githubusercontent.com/thaithienvanid/aidd/main/llms-install.md): the step-by-step runbook for coding agents (install the CLI, `aidd init`, `aidd doctor`, commit, hand back)
+- [docs/INSTALL.md](https://github.com/thaithienvanid/aidd/blob/main/docs/INSTALL.md): every install path, per coding agent, and how to remove it
+- [docs/QUICKSTART.md](https://github.com/thaithienvanid/aidd/blob/main/docs/QUICKSTART.md): the first Spec through the gate, and branch protection
+
+## Use
+
+- [AGENTS.md](https://github.com/thaithienvanid/aidd/blob/main/AGENTS.md): what an agent reads first in a repository that uses aidd
+- [.agents/skills/aidd/SKILL.md](https://github.com/thaithienvanid/aidd/blob/main/.agents/skills/aidd/SKILL.md): the skill: ask the gate for the route (aidd gate --paths) before the first edit, specify, implement and verify in scope, stop for humans
+- [docs/HOW-TO.md](https://github.com/thaithienvanid/aidd/blob/main/docs/HOW-TO.md): short answers to common tasks: a big goal, a goal branch, an explore branch, and `aidd list`
+- [docs/CLI.md](https://github.com/thaithienvanid/aidd/blob/main/docs/CLI.md): every command and flag
+- [docs/TROUBLESHOOTING.md](https://github.com/thaithienvanid/aidd/blob/main/docs/TROUBLESHOOTING.md): symptom, cause, and fix for what goes wrong most often
+- [docs/TEAM.md](https://github.com/thaithienvanid/aidd/blob/main/docs/TEAM.md): the delivery team: roles, packs, practice skills, handoffs, cost
+- [docs/TEAM-REFERENCE.md](https://github.com/thaithienvanid/aidd/blob/main/docs/TEAM-REFERENCE.md): the team's reference tables: standards per role, practice skills, extensions, life cycle coverage, model tiers
+
+## Understand
+
+- [README.md](https://github.com/thaithienvanid/aidd/blob/main/README.md): what it is and why
+- [docs/METHOD.md](https://github.com/thaithienvanid/aidd/blob/main/docs/METHOD.md): the method, normative: the loop, the routes, the gate's rules as five questions, goals and how each ships (§10.3), and the trunk-based flow (§10.4)
+- [docs/GLOSSARY.md](https://github.com/thaithienvanid/aidd/blob/main/docs/GLOSSARY.md): every term, one meaning each
+- [docs/ARCHITECTURE.md](https://github.com/thaithienvanid/aidd/blob/main/docs/ARCHITECTURE.md): the repository: what each part is, how the parts fit, and the design principles
+- [docs/FAQ.md](https://github.com/thaithienvanid/aidd/blob/main/docs/FAQ.md): the questions people ask first
+
+## Optional
+
+- [docs/PLATFORMS.md](https://github.com/thaithienvanid/aidd/blob/main/docs/PLATFORMS.md): GitHub, GitLab, and any other CI
+- [docs/ADOPTION.md](https://github.com/thaithienvanid/aidd/blob/main/docs/ADOPTION.md): solo, team, organization, audited
+- [docs/ENTERPRISE.md](https://github.com/thaithienvanid/aidd/blob/main/docs/ENTERPRISE.md): what platform, security, and compliance teams check, with the status of each item
+- [plugins/README.md](https://github.com/thaithienvanid/aidd/blob/main/plugins/README.md): how to add a plugin, a skill, a pack, or a role

@@ -1,0 +1,45 @@
+{
+  "summary": "Under `spec_approval_proof: require`, the approval names a commit outside head's history whose Spec does not hash to the approved hash: it proves nothing, with its own code, and the approval does not count.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "identities:\n",
+      "new": "gates:\n  spec_approval_proof: require\nidentities:\n"
+    },
+    {
+      "op": "replace_text",
+      "path": "/comments/0/body",
+      "old": "4f7266fb3b8c1a805cd18eb9e3c2f508",
+      "new": "4f7266fb3b8c1a805cd18eb9e3c2f508 5555555555555555555555555555555555555555"
+    },
+    {
+      "op": "set",
+      "path": "/approval_commits",
+      "value": {
+        "5555555555555555555555555555555555555555": {
+          "ancestor": false,
+          "paths": [
+            "specs/SPEC-220.md"
+          ],
+          "spec_hash": "ffffffffffffffffffffffffffffffff"
+        }
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [
+      "spec_approval"
+    ],
+    "findings": [
+      "pending spec_approval.commit_required",
+      "pending spec_approval.missing",
+      "warn spec_approval.not_ancestor"
+    ]
+  }
+}

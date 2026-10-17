@@ -1,0 +1,21 @@
+{
+  "summary": "Evidence from `aidd test --changed` is partial, so the gate never accepts it as the change's evidence.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/partial",
+      "value": true
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "tests"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending tests.evidence_partial"
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.aidd/bin/aidd hook pre-tool || { echo \"aidd: the guard could not run on this machine: run aidd init --harness codex, and aidd doctor says why\" >&2; unset -f test 2>/dev/null; d=$PWD; while test -n \"$d\" && ! test -r \"$d/.aidd/config.yaml\"; do d=${d%/*}; done; if { unset -f test read true false 2>/dev/null; test \"${AIDD_HOOK_FAIL_CLOSED:-}\" = 1 || { f=; test -r \"$d/.aidd/config.yaml\" && while IFS= read -r l || test -n \"$l\"; do case $l in profile:*) v=${l#profile:}; v=${v%%#*}; while case $v in ' '*|'\t'*) true;; *) false;; esac; do v=${v#?}; done; while case $v in *' '|*'\t'|*'\r') true;; *) false;; esac; do v=${v%?}; done; v=${v#\\\"}; v=${v#\\'}; v=${v%\\\"}; v=${v%\\'}; case $v in audited) f=1;; esac;; esac; done < \"$d/.aidd/config.yaml\"; test \"$f\" = 1; }; }; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"aidd: the guard could not run on this machine, and this project requires it\"}}'; fi; }",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.aidd/bin/aidd hook session-start || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.aidd/bin/aidd hook stop || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.aidd/bin/aidd hook stop || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.aidd/bin/aidd hook prompt-submit || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.aidd/bin/aidd hook pre-compact || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

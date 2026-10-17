@@ -1,0 +1,24 @@
+{
+  "summary": "The solo owner's /aidd approve line was posted through a GitHub App acting for them (performed_via_github_app). An agent holding a person's App token can post it, so it never counts, and the gate says why.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/comments/1/via_app",
+      "value": true
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval"
+    ],
+    "warn_rules": [
+      "merge_approval"
+    ],
+    "findings": [
+      "pending merge_approval.missing",
+      "warn merge_approval.via_app"
+    ]
+  }
+}

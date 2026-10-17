@@ -1,0 +1,109 @@
+# aidd: central test workflow, for an organization required workflow.
+#
+# PREREQUISITE: the `attest` job uses actions/attest-build-provenance, which GitHub offers for
+# public repositories on any plan, and for private or internal repositories only on Enterprise
+# Cloud. On a private repository without it the job fails, no aidd-evidence artifact is uploaded,
+# and aidd/gate stays pending on every pull request. Delete the `attest` job and the
+# `evidence.signer_workflow` config key if that is your plan. A fork's pull request also cannot be
+# granted id-token and attestations write, so it will not attest.
+#
+# Keep this file in a platform repository that only the platform team can change,
+# and require it on the repositories you gate (organization ruleset → "Require
+# workflows to pass before merging"). A pull request then cannot change how its
+# tests run, because this definition does not live in its repository.
+#
+# Each gated repository sets, in .aidd/config.yaml:
+#   evidence:
+#     signer_workflow: "<org>/<platform-repo>/.github/workflows/aidd-tests.yml"
+# and the gate accepts evidence only with an attestation this workflow signed.
+#
+# What this closes: evidence from any other workflow, and edits to the test
+# workflow itself. What it cannot close: the first job runs the pull request's
+# code, which can still make its own tests lie. The Spec approval and Merge approval reviews cover that.
+name: aidd-tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+  pull-requests: read  # in a merge queue: the queued pull request's description, which names its Spec
+
+# One run per pull request head: a repeated event for the same head waits for the one in progress. A description edit
+# gets a group of its own, so it never displaces a queued run for a new head; the tests job below still cancels the
+# run for an older head.
+concurrency:
+  group: aidd-tests-run-${{ github.event.action == 'edited' && github.run_id || format('{0}-{1}', github.event.pull_request.number || 'queue', github.event.pull_request.head.sha || github.event.merge_group.head_sha) }}
+  cancel-in-progress: false
+
+jobs:
+  # A description edit re-runs the tests only when it changes the Change Request block they read (the Spec, or the inline
+  # tests); a title-only edit, or one elsewhere in the description, leaves the earlier run's evidence for this head standing.
+  block:
+    if: github.event.action == 'edited'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      changed: ${{ steps.compare.outputs.changed }}
+    steps:
+      - id: compare
+        shell: python
+        run: |
+          import json, os, re
+          event = json.load(open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8"))
+          fence = re.compile(r"^ {0,3}(`{3,}|~{3,})[ \t]*yaml[ \t]+aidd[ \t]*\r?$(.*?)^ {0,3}\1[ \t]*\r?$", re.M | re.S)
+          blocks = lambda text: [m.group(2).replace("\r\n", "\n") for m in fence.finditer(text or "")]
+          old = ((event.get("changes") or {}).get("body") or {}).get("from")
+          changed = old is not None and blocks(old) != blocks((event.get("pull_request") or {}).get("body"))
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"changed={str(changed).lower()}\n")
+
+  tests:
+    needs: block
+    # !cancelled(): the tests run when the block job was skipped (every event but an edit), and after an edit that changed the block.
+    if: ${{ !cancelled() && (github.event.action != 'edited' || needs.block.outputs.changed == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: aidd-tests-${{ github.event.pull_request.number || github.event.merge_group.head_sha }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Install the repository's toolchain here (a shared setup action per stack works well).
+
+      # aidd-pin: `aidd init` rewrites this ref to the release commit SHA; pin by SHA if you copy the file by hand.
+      - uses: thaithienvanid/aidd@v1.0.0
+        with:
+          artifact: aidd-evidence-raw
+
+  # Runs no pull request code: it only signs the file the first job produced.
+  attest:
+    needs: tests
+    if: always() && needs.tests.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read       # the default read; this job checks out no code
+      id-token: write      # sign the evidence with this workflow's OIDC identity
+      attestations: write  # store the attestation the gate checks against evidence.signer_workflow
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: aidd-evidence-raw
+          path: evidence
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: evidence/evidence.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: aidd-evidence
+          path: evidence/evidence.json
+          retention-days: 90

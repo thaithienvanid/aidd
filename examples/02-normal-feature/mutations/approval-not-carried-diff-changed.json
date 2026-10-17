@@ -1,0 +1,36 @@
+{
+  "summary": "The branch was rebased and its diff changed on the way (a conflict resolved, a line added): the approval of the earlier head does not carry, and the change waits for a new approval.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/reviews/0/commit_sha",
+      "value": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+    },
+    {
+      "op": "set",
+      "path": "/approval_equivalents",
+      "value": {
+        "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3": {
+          "base_sha": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1",
+          "identical_diff": false,
+          "base_descends": true,
+          "new_committers": []
+        }
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval"
+    ],
+    "warn_rules": [
+      "merge_approval"
+    ],
+    "findings": [
+      "pending merge_approval.missing",
+      "warn merge_approval.not_carried"
+    ]
+  }
+}

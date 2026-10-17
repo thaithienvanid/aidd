@@ -1,0 +1,40 @@
+{
+  "summary": "The commander approved an earlier head of the repair, and the new head is a trivial rebase of it: an emergency never carries an approval, so the commander approves the head again.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/reviews/0/commit_sha",
+      "value": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+    },
+    {
+      "op": "set",
+      "path": "/approval_equivalents",
+      "value": {
+        "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3": {
+          "base_sha": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1",
+          "identical_diff": true,
+          "base_descends": true,
+          "new_committers": []
+        }
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "emergency",
+      "merge_approval"
+    ],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "pending emergency.commander_pending",
+      "pending merge_approval.missing",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

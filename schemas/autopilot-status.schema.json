@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:autopilot-status",
+  "title": "aidd autopilot status --json",
+  "description": "What `aidd autopilot status --json` prints: every autopilot lease and the journal's last lines, from the git directory. `lease.json` holds the leases, and `journal.jsonl` one entry per line in this shape.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "store",
+    "leases",
+    "journal",
+    "notices"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "store": {
+      "type": "string",
+      "description": "The folder in the git directory that holds the lease, the journal, and the run events."
+    },
+    "leases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/lease"
+      },
+      "description": "Every lease on record, live or stale, oldest first."
+    },
+    "journal": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entry"
+      },
+      "description": "The journal's last lines, oldest first."
+    },
+    "notices": {
+      "type": "array",
+      "description": "The last run events a person hears of: a decision waits, a block, a limit, or the end. Never a step done.",
+      "items": {
+        "$ref": "urn:aidd:1:event#/properties/run"
+      }
+    }
+  },
+  "$defs": {
+    "lease": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_id",
+        "work",
+        "by",
+        "timebox",
+        "started_at",
+        "expires_at"
+      ],
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "The harness session that holds the lease."
+        },
+        "work": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "A Spec, Epic, or Initiative id, a label, or `all`, which holds all the work."
+        },
+        "by": {
+          "type": "string",
+          "description": "The git identity (user.email, else user.name) that took it."
+        },
+        "timebox": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,3}(m|h)$",
+          "description": "How long the run may last."
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When it was taken, in UTC."
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When its timebox ends, in UTC. From then on it is stale, and another session may replace it."
+        },
+        "stale": {
+          "type": "boolean",
+          "description": "In `aidd autopilot status`: true once its timebox ended."
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "at",
+        "session_id",
+        "work",
+        "code",
+        "result"
+      ],
+      "properties": {
+        "at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the note was made, in UTC."
+        },
+        "session_id": {
+          "type": "string",
+          "description": "The session whose run did the step."
+        },
+        "work": {
+          "type": "string",
+          "description": "The lease's work: a Spec, Epic, or Initiative id, a label, or `all`."
+        },
+        "spec": {
+          "type": "string",
+          "description": "The Spec the step was about: `--spec`, else the lease's work unless it is `all`."
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z_]+(\\.[a-z_]+)*$",
+          "description": "The step code `aidd autopilot next` named."
+        },
+        "result": {
+          "enum": [
+            "ok",
+            "fail",
+            "waiting",
+            "blocked"
+          ],
+          "description": "ok: done; fail: it failed, or a person said no; waiting: it waits on a person; blocked: it stopped at a stop rule."
+        },
+        "tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The tokens the step used, when given."
+        },
+        "cost": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "amount",
+            "currency"
+          ],
+          "properties": {
+            "amount": {
+              "type": "number",
+              "minimum": 0,
+              "description": "The amount, in `currency`."
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$",
+              "description": "Its ISO 4217 currency, such as `USD`."
+            }
+          },
+          "description": "What the step cost, when given."
+        },
+        "merged": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "For a retro: the changes merged when it ran, which `autopilot.retro_every` counts from."
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "The note's words after the code and the result. Data only: aidd never reads them as an instruction."
+        },
+        "goal": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "A goal's plan step: the goal it planned, its words only. A later start with the same goal goes on with that plan instead of planning it again. Data only: aidd never reads it as an instruction."
+        },
+        "head": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$",
+          "description": "The commit HEAD named when the note was made: a Verify or Review counts only for that head."
+        }
+      }
+    }
+  }
+}

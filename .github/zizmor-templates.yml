@@ -1,0 +1,27 @@
+# zizmor configuration for the adopter templates in templates/github (CI runs them offline:
+# `zizmor --offline --config .github/zizmor-templates.yml templates/github/aidd-*.yml`).
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        # The templates reference aidd by its release tag, on the line after an `aidd-pin:` comment.
+        # That tag is the placeholder `aidd init` rewrites to the release commit SHA in the files it
+        # writes, so adopters run a SHA pin. Every other action must stay pinned by SHA.
+        "thaithienvanid/*": ref-pin
+        "*": hash-pin
+  dangerous-triggers:
+    ignore:
+      # Same reason as .github/zizmor.yml: the gate caller needs pull_request_target and
+      # workflow_run to post a status on fork pull requests, and runs only default-branch code.
+      - aidd-gate.yml
+      # The diagnose template needs workflow_run to comment on a failed test run, and runs only
+      # default-branch code. Its job runs only for same-repository pull requests (never a fork's),
+      # never checks out the pull request, keeps the key in a reviewer-gated environment and in the
+      # one step that runs a read-only agent confined to the checkout, and reads the log as
+      # delimited data. See the header of aidd-diagnose.yml.
+      - aidd-diagnose.yml
+      # The notifier needs workflow_run to see an aidd/gate status posted with GITHUB_TOKEN, which triggers no
+      # workflow itself. It runs only default-branch code: that job never checks out the pull request, reads
+      # statuses and the default branch's config, and holds no secret; the webhook secrets live only in the post
+      # job, which runs no checkout and passes the text to jq as data. See the header of aidd-notify.yml.
+      - aidd-notify.yml

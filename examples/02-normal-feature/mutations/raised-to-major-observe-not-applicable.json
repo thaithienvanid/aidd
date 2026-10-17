@@ -1,0 +1,40 @@
+{
+  "summary": "A Spec raised to major that says nothing runs to watch after release (observe.not_applicable) passes the observe rule with a warning the Approver sees, where one with no observe block fails.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "src/checkout/rate_limit/auth/token.py",
+        "previous_path": null,
+        "additions": 3,
+        "deletions": 0
+      }
+    },
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1SPEC-220.md",
+      "old": "rollback: Revert the PR; the limiter keeps no persistent state.\n",
+      "new": "rollback: Revert the PR; the limiter keeps no persistent state.\nobserve: {not_applicable: \"a library change: no service runs it after release\"}\n"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval",
+      "specialist_approval"
+    ],
+    "warn_rules": [
+      "observe",
+      "route"
+    ],
+    "findings": [
+      "pending spec_approval.missing",
+      "pending specialist_approval.missing",
+      "warn observe.not_applicable",
+      "warn route.raised_to_major",
+      "warn route.undeclared_dimensions"
+    ]
+  }
+}

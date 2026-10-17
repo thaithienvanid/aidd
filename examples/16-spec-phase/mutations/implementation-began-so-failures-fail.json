@@ -1,0 +1,31 @@
+{
+  "summary": "Implementation began (a Task's file changed), so the Spec phase is over: failing tests fail the gate again, and Merge approval and the untouched-Task check apply.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "src/checkout/rate_limit/limiter.py",
+        "previous_path": null,
+        "additions": 80,
+        "deletions": 3
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "tests"
+    ],
+    "pending_rules": [
+      "merge_approval",
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "fail tests.failed",
+      "pending merge_approval.missing",
+      "pending spec_approval.missing"
+    ]
+  }
+}

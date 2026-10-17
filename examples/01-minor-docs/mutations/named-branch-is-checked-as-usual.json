@@ -1,0 +1,17 @@
+{
+  "summary": "A change from any other branch is checked as usual: only an explore/ head branch fails the explore rule.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/head_ref",
+      "value": "fix/explore-typo"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

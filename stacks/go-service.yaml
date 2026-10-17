@@ -1,0 +1,19 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: go-service
+description: "A Go HTTP service: the Go toolchain pinned in go.mod, golangci-lint for lint and layout, go test with the race detector, govulncheck, net/http with slog, sqlc, one module, and depguard boundaries."
+standards:
+  - go/go-version
+  - go/go-modules
+  - go/golangci-lint
+  - go/go-test-race
+  - go/govulncheck
+  - go/net-http
+  - go/slog
+  - go/sqlc
+  - go/single-module
+  - go/depguard-boundaries
+reviewed: "2026-10-16"
+project:
+  stack:
+    adopt: [Go, golangci-lint, govulncheck, slog, sqlc]

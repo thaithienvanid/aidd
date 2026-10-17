@@ -1,0 +1,13 @@
+{
+  "name": "aidd-ci-node-tools",
+  "private": true,
+  "description": "The Node tools CI runs (plugin validation, the Mermaid check, and the agent evals), locked so `npm ci` installs exactly them and Dependabot can bump them.",
+  "devDependencies": {
+    "@anthropic-ai/claude-code": "2.1.295",
+    "jsdom": "30.1.2",
+    "mermaid": "12.1.0"
+  },
+  "overrides": {
+    "lodash-es": "4.18.1"
+  }
+}

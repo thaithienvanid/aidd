@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 620" width="1280" height="620" role="img" aria-labelledby="t d">
+  <title id="t">AIDD: AI-Driven Development</title>
+  <desc id="d">One loop, with four decisions that are yours. First, the plan: you agree to what will be built. AI agents write the Spec and its tests. Second, Spec approval: you approve the contract. Agents implement, verify, and review on their own branches, and merge their finished work together. Third, Merge approval: you approve exactly what was built. The aidd/gate check turns green, and the change ships. Fourth, the launch: for a feature built behind a flag, you decide when users see it. Learn feeds every lesson back to Plan.</desc>
+  <style>
+    .bg { fill: #f8fafc; stroke: #e2e8f0; }
+    .ink { fill: #0f172a; }
+    .muted { fill: #475569; }
+    .brand { fill: #4338ca; }
+    .pill { fill: #ffffff; stroke: #6366f1; }
+    .pill-t { fill: #1e1b4b; }
+    .idea { fill: #ffffff; stroke: #94a3b8; }
+    .team { fill: #eef2ff; stroke: #c7d2fe; }
+    .team-t { fill: #4338ca; }
+    .dec { fill: #d97706; }
+    .dec-n { fill: #ffffff; }
+    .dec-t { fill: #b45309; }
+    .ok { fill: #15803d; }
+    .ok-mark { stroke: #ffffff; }
+    .flow { stroke: #64748b; fill: none; }
+    .head { fill: #64748b; }
+    .learn { stroke: #6366f1; fill: none; stroke-dasharray: 7 6; }
+    .learn-head { fill: #6366f1; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0b1020; stroke: #1e293b; }
+      .ink { fill: #f1f5f9; }
+      .muted { fill: #94a3b8; }
+      .brand { fill: #a5b4fc; }
+      .pill { fill: #161b33; stroke: #818cf8; }
+      .pill-t { fill: #e0e7ff; }
+      .idea { fill: #161b33; stroke: #64748b; }
+      .team { fill: #121735; stroke: #312e81; }
+      .team-t { fill: #a5b4fc; }
+      .dec { fill: #f59e0b; }
+      .dec-n { fill: #1c1204; }
+      .dec-t { fill: #fbbf24; }
+      .ok { fill: #22c55e; }
+      .ok-mark { stroke: #052e16; }
+      .ok-t { fill: #4ade80; }
+      .learn { stroke: #818cf8; }
+      .learn-head { fill: #818cf8; }
+    }
+  </style>
+  <defs>
+    <marker id="h" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="head" d="M0 0 L10 5 L0 10z"/>
+    </marker>
+    <marker id="hl" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="learn-head" d="M0 0 L10 5 L0 10z"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="1" y="1" width="1278" height="618" rx="28" stroke-width="2"/>
+
+  <g font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text class="ink" x="64" y="118" font-size="92" font-weight="800" letter-spacing="-3">AIDD</text>
+    <text class="brand" x="68" y="158" font-size="22" font-weight="600" letter-spacing="0.5">AI-Driven Development</text>
+    <text class="ink" x="68" y="206" font-size="26" font-weight="600">You decide what to build and what ships.</text>
+    <text class="muted" x="68" y="240" font-size="20">AI agents do everything in between, and prove it before anything merges.</text>
+
+    <text class="muted" x="1216" y="74" font-size="16" text-anchor="end">One loop from intent to production.</text>
+    <text class="muted" x="1216" y="98" font-size="16" text-anchor="end">Four decisions are yours; the rest is the team's.</text>
+
+    <!-- Where the AI team works on its own: Specify, then Implement to Review -->
+    <rect class="team" x="244" y="296" width="126" height="148" rx="18" stroke-width="1.5"/>
+    <rect class="team" x="498" y="296" width="380" height="148" rx="18" stroke-width="1.5"/>
+    <text class="team-t" x="307" y="322" font-size="13" font-weight="700" text-anchor="middle" letter-spacing="1">AI TEAM</text>
+    <text class="team-t" x="688" y="322" font-size="13" font-weight="700" text-anchor="middle" letter-spacing="1">AI TEAM, ON ITS OWN BRANCHES</text>
+
+    <!-- The path, left to right -->
+    <g class="flow" stroke-width="2.2" marker-end="url(#h)">
+      <path d="M164 400 H184"/>
+      <path d="M226 400 H250"/>
+      <path d="M362 400 H400"/>
+      <path d="M460 400 H508"/>
+      <path d="M716 400 H758"/>
+      <path d="M864 400 H918"/>
+      <path d="M978 400 H1040"/>
+      <path d="M1094 400 H1130"/>
+    </g>
+
+    <rect class="idea" x="64" y="377" width="100" height="46" rx="23" stroke-width="2"/>
+    <text class="ink" x="114" y="406" font-size="18" font-weight="600" text-anchor="middle">Plan</text>
+
+    <g font-size="18" font-weight="600" text-anchor="middle">
+      <rect class="pill" x="254" y="377" width="106" height="46" rx="23" stroke-width="2"/>
+      <text class="pill-t" x="307" y="406">Specify</text>
+      <rect class="pill" x="512" y="377" width="204" height="46" rx="23" stroke-width="2"/>
+      <text class="pill-t" x="614" y="406">Implement <tspan font-size="24">⟲</tspan> Verify</text>
+      <rect class="pill" x="762" y="377" width="102" height="46" rx="23" stroke-width="2"/>
+      <text class="pill-t" x="813" y="406">Review</text>
+      <rect class="pill" x="1134" y="377" width="82" height="46" rx="23" stroke-width="2"/>
+      <text class="pill-t" x="1175" y="406">Ship</text>
+    </g>
+
+    <!-- Your three decisions -->
+    <g font-weight="800" font-size="16" text-anchor="middle">
+      <rect class="dec" x="189" y="384" width="32" height="32" rx="6" transform="rotate(45 205 400)"/>
+      <text class="dec-n" x="205" y="406">1</text>
+      <rect class="dec" x="414" y="384" width="32" height="32" rx="6" transform="rotate(45 430 400)"/>
+      <text class="dec-n" x="430" y="406">2</text>
+      <rect class="dec" x="932" y="384" width="32" height="32" rx="6" transform="rotate(45 948 400)"/>
+      <text class="dec-n" x="948" y="406">3</text>
+      <rect class="dec" x="1162" y="331" width="26" height="26" rx="5" transform="rotate(45 1175 344)"/>
+      <text class="dec-n" x="1175" y="350" font-size="14">4</text>
+    </g>
+    <text class="dec-t" x="1175" y="292" font-size="17" font-weight="700" text-anchor="middle">Launch</text>
+    <text class="muted" x="1175" y="313" font-size="14" text-anchor="middle">when users see it</text>
+
+    <text class="dec-t" x="205" y="350" font-size="17" font-weight="700" text-anchor="middle">The plan</text>
+    <text class="muted" x="205" y="458" font-size="14" text-anchor="middle">what to build</text>
+
+    <text class="dec-t" x="434" y="350" font-size="17" font-weight="700" text-anchor="middle">Spec approval</text>
+    <text class="muted" x="434" y="458" font-size="14" text-anchor="middle">the contract,</text>
+    <text class="muted" x="434" y="477" font-size="14" text-anchor="middle">and its tests</text>
+
+    <text class="dec-t" x="948" y="350" font-size="17" font-weight="700" text-anchor="middle">Merge approval</text>
+    <text class="muted" x="948" y="458" font-size="14" text-anchor="middle">exactly what</text>
+    <text class="muted" x="948" y="477" font-size="14" text-anchor="middle">was built</text>
+
+    <!-- The gate passing -->
+    <circle class="ok" cx="1067" cy="400" r="22"/>
+    <path class="ok-mark" d="M1056 400.5 l7 7 l13 -14" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="ok ok-t" x="1067" y="458" font-size="16" font-weight="700" text-anchor="middle">aidd/gate</text>
+
+    <text class="brand" x="688" y="466" font-size="14" text-anchor="middle">tested on the exact commit, merged together by the team</text>
+
+    <!-- Learn: the return arrow -->
+    <path class="learn" d="M1175 423 V512 Q1175 540 1147 540 H700" stroke-width="2.2"/>
+    <path class="learn" d="M580 540 H142 Q114 540 114 512 V430" stroke-width="2.2" marker-end="url(#hl)"/>
+    <rect class="pill" x="584" y="517" width="112" height="46" rx="23" stroke-width="2"/>
+    <text class="pill-t" x="640" y="546" font-size="18" font-weight="600" text-anchor="middle">Learn</text>
+    <text class="muted" x="640" y="590" font-size="14" text-anchor="middle">every lesson feeds back into the loop</text>
+  </g>
+</svg>

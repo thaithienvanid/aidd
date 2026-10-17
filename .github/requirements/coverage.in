@@ -1,0 +1,3 @@
+# Branch coverage for the suite in ci.yml's test job (report only, never a threshold). Regenerate coverage.txt with:
+#   cd .github/requirements && uv pip compile --universal --generate-hashes --python-version 3.14 coverage.in -o coverage.txt
+coverage==7.16.2

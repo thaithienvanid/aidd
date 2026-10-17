@@ -1,0 +1,315 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:autopilot-next",
+  "title": "aidd autopilot next --json",
+  "description": "What `aidd autopilot next --json` prints. Autopilot runs the AIDD loop between your decisions: aidd decides each next step and stops whenever a person must decide. `run` names a team command for an agent step; `ask` names a person's decision and the page to read; `stop` says why the run ends. Agents never approve or merge on their own. Under the person's standing approval (`approve all`), `run` names the approvals it covers as aidd commands: `aidd approve spec`, `aidd approve merge`, and `aidd ship`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "action",
+    "why"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "action": {
+      "enum": [
+        "run",
+        "ask",
+        "stop"
+      ],
+      "description": "What autopilot does now."
+    },
+    "why": {
+      "type": "string",
+      "description": "One line: why this action."
+    },
+    "code": {
+      "type": "string",
+      "pattern": "^[a-z_]+(\\.[a-z_]+)*$",
+      "description": "The step code acted on. `aidd autopilot note` records the result against it."
+    },
+    "flow": {
+      "type": "string",
+      "pattern": "^[a-z][a-z-]*$",
+      "description": "run: the flow whose `starts_on` names the code (roles.json)."
+    },
+    "command": {
+      "type": "string",
+      "description": "run: the team command, such as `/aidd-team:implement`, or, under the person's standing approval, an aidd command the session runs in its shell on the Spec's branch: `aidd approve spec` (with the Spec's path in `args`), `aidd approve merge`, or `aidd ship`."
+    },
+    "args": {
+      "type": "string",
+      "description": "run: its argument: the Spec id, or the goal."
+    },
+    "spec": {
+      "type": "string",
+      "description": "The item the action is about, when there is one."
+    },
+    "work": {
+      "type": "string",
+      "description": "The lease's work: a Spec, Epic, or Initiative id, a label, or `all`."
+    },
+    "who": {
+      "type": "string",
+      "description": "ask: who decides, as `aidd list` names them."
+    },
+    "what": {
+      "type": "string",
+      "description": "ask: the decision, in a sentence."
+    },
+    "how": {
+      "type": "string",
+      "description": "ask: how the person decides it."
+    },
+    "page": {
+      "type": "string",
+      "description": "ask: the command that writes the decision page."
+    },
+    "waiting": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "ask: how many decisions wait in the work."
+    },
+    "blocked": {
+      "type": "boolean",
+      "description": "ask: true when the run cannot go on until a person acts: a Task out of retries, the circuit breaker, a stop rule, or a setup problem."
+    },
+    "reason": {
+      "enum": [
+        "nothing_open",
+        "plan_ready",
+        "timebox",
+        "token_cap",
+        "cost_cap",
+        "stalled",
+        "lease_missing",
+        "lease_other"
+      ],
+      "description": "stop: why the run ends. `plan_ready`: the plan or proposal is ready, and only a person starting autopilot again agrees to it and goes on. `stalled`: the last steps moved nothing on, so a person looks first."
+    },
+    "lease": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_id",
+        "work",
+        "expires_at"
+      ],
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "The session that holds the lease."
+        },
+        "work": {
+          "type": "string",
+          "description": "The lease's work: a Spec, Epic, or Initiative id, a label, or `all`."
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the lease's timebox ends, in UTC."
+        }
+      },
+      "description": "The lease the decision read."
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timebox": {
+          "type": "string",
+          "description": "`autopilot.timebox`."
+        },
+        "max_tokens": {
+          "type": "integer",
+          "description": "`autopilot.max_tokens`."
+        },
+        "max_cost": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "amount",
+            "currency"
+          ],
+          "properties": {
+            "amount": {
+              "type": "number",
+              "minimum": 0,
+              "description": "The amount, in `currency`."
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$",
+              "description": "Its ISO 4217 currency, such as `USD`."
+            }
+          },
+          "description": "`autopilot.max_cost`."
+        },
+        "retro_every": {
+          "type": "integer",
+          "description": "`autopilot.retro_every`."
+        }
+      },
+      "description": "The `autopilot` limits in force, shown once when autopilot starts."
+    },
+    "paused": {
+      "type": "array",
+      "description": "What the run set aside, each for one reason: paused with `blocked_on`, a Task out of retries, a stop rule, or the circuit breaker. Other runnable work goes on.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "spec",
+          "why"
+        ],
+        "properties": {
+          "spec": {
+            "type": "string",
+            "description": "The item set aside."
+          },
+          "why": {
+            "type": "string",
+            "description": "Why, in a few words."
+          }
+        }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "description": "ask, or a stop a person ends (plan_ready, timebox, token_cap, cost_cap): every decision in the work that waits on a person, in `aidd list`'s order. Blocked work is not one: `behind` counts it.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "what"
+        ],
+        "properties": {
+          "spec": {
+            "type": "string",
+            "description": "The item it is about."
+          },
+          "who": {
+            "type": "string",
+            "description": "Whose decision it is."
+          },
+          "what": {
+            "type": "string",
+            "description": "The decision, in one line."
+          },
+          "how": {
+            "type": "string",
+            "description": "How to take it, with the command."
+          }
+        }
+      }
+    },
+    "behind": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "ask, or a stop a person ends: how many items in the work are blocked and start when what they wait on finishes."
+    },
+    "resume": {
+      "type": "string",
+      "description": "ask, or a stop a person ends: the command that goes on once a person has decided (or is ready), as this install names it, such as `/aidd-team:autopilot all`."
+    },
+    "message": {
+      "type": "string",
+      "description": "ask, or a stop a person ends: what the autopilot command shows the person, word for word: why the run stopped, each decision and how to take it, and the `resume` command."
+    },
+    "also": {
+      "type": "array",
+      "description": "With `run`: more steps to run at the same time as this one, at most `autopilot.parallel` minus one. Each is a team flow on another Spec whose Tasks' scopes overlap none of the others', run in its own worktree on its Spec's branch. Each is recorded with its own `aidd autopilot note`.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "command",
+          "spec",
+          "why"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The step code, as in `code`."
+          },
+          "flow": {
+            "type": "string",
+            "description": "The team flow that runs it."
+          },
+          "command": {
+            "type": "string",
+            "description": "The team command to run, as in `command`."
+          },
+          "args": {
+            "type": "string",
+            "description": "Its arguments."
+          },
+          "spec": {
+            "type": "string",
+            "description": "The Spec it works on."
+          },
+          "why": {
+            "type": "string",
+            "description": "Why this step, now."
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "run"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "code",
+          "flow",
+          "command",
+          "args",
+          "work"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "ask"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "code",
+          "who",
+          "what",
+          "page"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "stop"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reason"
+        ]
+      }
+    }
+  ]
+}

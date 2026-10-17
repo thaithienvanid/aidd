@@ -1,0 +1,22 @@
+{
+  "summary": "A stacked entry passes when the queue is confirmed to merge only all-green groups: each entry ahead had its own gate.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/merge_group/stacked",
+      "value": true
+    },
+    {
+      "op": "set",
+      "path": "/merge_group/all_green",
+      "value": true
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

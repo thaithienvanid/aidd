@@ -1,0 +1,14 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: ts-library
+description: "A TypeScript library or tool on Node.js LTS: pnpm for dependencies, Biome for lint and format, tsc strict for types, Vitest for tests."
+standards:
+  - typescript/pnpm-tooling
+  - typescript/biome-lint-format
+  - typescript/tsc-strict
+  - typescript/vitest-tests
+  - typescript/node-lts
+reviewed: "2026-10-16"
+project:
+  stack:
+    adopt: [TypeScript, Node.js, pnpm, Biome, Vitest]

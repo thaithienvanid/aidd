@@ -1,0 +1,26 @@
+{
+  "summary": "Only the security pool approves: the data pool is bound, so security does not stand in for it, and the change still waits.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/reviews",
+      "value": {
+        "user": "sec-alice",
+        "state": "approved",
+        "commit_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "submitted_at": "2026-09-23T09:40:00Z"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "specialist_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending specialist_approval.missing"
+    ]
+  }
+}

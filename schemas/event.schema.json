@@ -1,0 +1,422 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:event",
+  "title": "Gate event",
+  "description": "One JSON line per gate decision. Metrics are queries over these lines. An autopilot line (`kind` = `autopilot`) records an autopilot run's event instead; gate metrics skip it.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this line's shape. A new optional field keeps it; a renamed, removed, or retyped field bumps it. A line written before it existed has none and reads as version 1."
+    },
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version"
+    },
+    "loop_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "description": "The loop contract's version (`loop.version` in roles.json) the change ran under. A major bump means the steps, the approvals, or the lanes changed, so metrics across it compare two different loops."
+    },
+    "ts": {
+      "type": "string",
+      "description": "RFC 3339 UTC time of the decision."
+    },
+    "repo": {
+      "type": "string",
+      "description": "The repository as the adapter names it (`owner/name` on GitHub, the project path on GitLab)."
+    },
+    "tenant": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+      "description": "The tenant the repository's config names, or null. `aidd metrics --tenant` and `aidd record export --tenant` filter on it."
+    },
+    "change": {
+      "type": "string",
+      "description": "PR/MR number or local ref."
+    },
+    "head_sha": {
+      "anyOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/sha"
+        },
+        {
+          "const": ""
+        }
+      ],
+      "description": "The head commit the gate judged; empty when the run could not tell."
+    },
+    "spec": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The Spec's path in the repository, or null for a change without a Spec."
+    },
+    "spec_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The Spec's id, so a cost ledger or another system can join on it. Null for a change without a Spec."
+    },
+    "spec_hash": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The Spec hash this run evaluated. A new hash after Spec approval means the Spec was reworked after approval."
+    },
+    "trace_id": {
+      "anyOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/trace_id"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The trace id that joins this decision to the change's other events, or null."
+    },
+    "owner_team": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The Spec's owner_team, so metrics can group changes by team. Null for a change without a Spec."
+    },
+    "route": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The route the gate applied (minor, standard, normal, major, or emergency), or null when it could not tell."
+    },
+    "required_route": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The lowest route the changed paths and risk require, or null when it could not tell."
+    },
+    "declared_route": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The route the change declared when the gate raised it (a normal Spec raised to major); null otherwise."
+    },
+    "type": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The change type (feat, fix, docs, and so on), or null."
+    },
+    "profile": {
+      "anyOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/profile"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The profile in force; null when the gate could not read a config."
+    },
+    "decision": {
+      "$ref": "urn:aidd:1:common#/$defs/decision",
+      "description": "The verdict, or `error` when the run crashed and posted an error status instead of a decision."
+    },
+    "error": {
+      "type": "string",
+      "description": "For an error event: the exception type, never its message (which could carry data from the change)."
+    },
+    "failed_rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The rules that failed."
+    },
+    "pending_rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The rules still waiting, such as for an approval."
+    },
+    "changed_files": {
+      "type": "integer",
+      "description": "How many files the diff changes."
+    },
+    "changed_lines": {
+      "type": "integer",
+      "description": "Lines added and deleted that the change budget counts."
+    },
+    "approvals": {
+      "type": "integer",
+      "description": "How many approvals counted."
+    },
+    "untouched_tasks": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Tasks of the Spec that changed nothing in their scope: the plan and the diff disagree."
+    },
+    "assisted_by": {
+      "$ref": "urn:aidd:1:common#/$defs/assisted_by"
+    },
+    "platform": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "github, gitlab, local, or another adapter."
+    },
+    "author": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The change author."
+    },
+    "base_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The base branch."
+    },
+    "mode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "enforce or advisory."
+    },
+    "config_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "sha256 of the effective config text, to tell presets apart."
+    },
+    "run_url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The CI run that decided."
+    },
+    "opened_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "When the PR/MR was opened (RFC 3339), from the platform; null when unknown. The start of time to first feedback for the change's first head."
+    },
+    "head_pushed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "When the judged head reached the platform (RFC 3339); locally, its committer date; null when unknown. Time to first feedback is measured from it."
+    },
+    "tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The test command's name."
+          },
+          "red_green": {
+            "$ref": "urn:aidd:1:common#/$defs/red_green"
+          },
+          "status": {
+            "$ref": "urn:aidd:1:common#/$defs/test_status"
+          },
+          "duration_seconds": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "How long it ran, in seconds; null when unknown."
+          },
+          "flaky": {
+            "type": "boolean",
+            "description": "True when it passed only after a retry; `aidd metrics` counts it."
+          }
+        }
+      },
+      "description": "Green test results on the head."
+    },
+    "kind": {
+      "enum": [
+        "gate",
+        "autopilot",
+        "test"
+      ],
+      "description": "What the line records: `gate`, a gate decision (the reading when absent); `autopilot`, an autopilot run's event, held in `run`; or `test`, one `aidd test` run, held in `test`. aidd writes the last two into the git directory, never the working tree."
+    },
+    "test": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["head_sha", "base_sha", "result", "red", "partial", "commands", "duration_seconds"],
+      "description": "One `aidd test` run on this machine, for `aidd metrics`' suite runs per head. A record, never evidence: the gate reads the evidence file, never this line.",
+      "properties": {
+        "head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$", "description": "The head the run tested."},
+        "base_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$", "description": "The base it ran red on, or would have."},
+        "result": {"enum": ["pass", "fail"], "description": "`pass` when every result was good (`aidd test` exited 0)."},
+        "red": {"type": "boolean", "description": "Whether it ran the new-behavior commands on base (false with `--no-red`)."},
+        "partial": {"type": "boolean", "description": "Whether it ran only some commands (`--changed`, a file): the gate does not accept a partial run."},
+        "commands": {"type": "integer", "minimum": 0, "description": "The test commands it ran on head."},
+        "duration_seconds": {"type": "number", "minimum": 0, "description": "The time its commands took, red and green."}
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event",
+        "session_id",
+        "work"
+      ],
+      "description": "An autopilot run's event: the run started, a step was done, the run waits on a person, is blocked, reached a limit, or finished. A notifier sends only waiting_on_person, blocked, limit_reached, and finished. `aidd metrics --autopilot` reads them all.",
+      "properties": {
+        "event": {
+          "enum": [
+            "started",
+            "step_done",
+            "waiting_on_person",
+            "blocked",
+            "limit_reached",
+            "finished"
+          ],
+          "description": "What happened."
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "The session that holds the run's lease."
+        },
+        "work": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "The lease's work: a Spec, Epic, or Initiative id, a label, or `all`."
+        },
+        "spec_id": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "The Spec the step was about, when there is one."
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z_]+(\\.[a-z_]+)*$",
+          "description": "The step code."
+        },
+        "result": {
+          "enum": [
+            "ok",
+            "fail",
+            "waiting",
+            "blocked"
+          ],
+          "description": "For step_done: the result `aidd autopilot note` recorded."
+        },
+        "flow": {
+          "type": "string",
+          "pattern": "^[a-z][a-z-]*$",
+          "description": "The team command the step ran."
+        },
+        "who": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "For waiting_on_person and blocked: who decides."
+        },
+        "reason": {
+          "enum": [
+            "nothing_open",
+            "plan_ready",
+            "timebox",
+            "token_cap",
+            "cost_cap",
+            "stalled",
+            "stopped"
+          ],
+          "description": "For limit_reached and finished: why the run stopped; for blocked, `stalled` when the stall breaker stopped it."
+        },
+        "tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The tokens the step used, when the note records them."
+        },
+        "cost": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "amount",
+            "currency"
+          ],
+          "properties": {
+            "amount": {
+              "type": "number",
+              "minimum": 0,
+              "description": "The amount, in `currency`."
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$",
+              "description": "Its ISO 4217 currency, such as `USD`."
+            }
+          },
+          "description": "What the step cost, when the note records it."
+        }
+      }
+    }
+  },
+  "if": {
+    "required": [
+      "kind"
+    ],
+    "properties": {
+      "kind": {
+        "const": "autopilot"
+      }
+    }
+  },
+  "then": {
+    "required": [
+      "aidd_version",
+      "ts",
+      "kind",
+      "run"
+    ]
+  },
+  "else": {
+    "if": {
+      "required": ["kind"],
+      "properties": {"kind": {"const": "test"}}
+    },
+    "then": {
+      "required": ["aidd_version", "ts", "kind", "change", "test"]
+    },
+    "else": {
+      "required": [
+        "aidd_version",
+        "ts",
+        "change",
+        "head_sha",
+        "profile",
+        "decision"
+      ]
+    }
+  }
+}

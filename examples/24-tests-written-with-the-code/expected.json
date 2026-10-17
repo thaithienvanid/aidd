@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "Tests written with the code",
+  "summary": "New code with nothing to break (`tests.mode: with`): Spec approval binds the Spec and the commands that cover each Acceptance item, not the test file, which changed after it; the test still fails on the base and passes on the head."
+}

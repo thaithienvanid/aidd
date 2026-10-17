@@ -1,0 +1,38 @@
+{
+  "summary": "The .worktreeinclude twin: a Spec-backed normal change that also edits .worktreeinclude, which copies ignored files such as secrets into every new worktree, is raised to major even with the file exempt from scope, and needs the specialist approval and the observe block.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "scope_exempt_paths: [.worktreeinclude]\nowners:\n"
+    },
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": ".worktreeinclude",
+        "previous_path": null,
+        "additions": 1,
+        "deletions": 0
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "observe"
+    ],
+    "pending_rules": [
+      "specialist_approval"
+    ],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "fail observe.missing",
+      "pending specialist_approval.missing",
+      "warn route.raised_to_major"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "summary": "SPEC-222 has no Spec approval: the goal waits for it, and the finding names SPEC-222 alone.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/comments/1"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending spec_approval.missing"
+    ]
+  }
+}

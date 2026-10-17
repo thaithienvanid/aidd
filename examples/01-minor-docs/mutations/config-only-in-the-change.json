@@ -1,0 +1,26 @@
+{
+  "summary": "The base branch has no config; the change adds one. A change cannot bring the rules it is judged by, so it waits for an administrator to merge the config first.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/base_config",
+      "value": null
+    },
+    {
+      "op": "set",
+      "path": "/head_files/.aidd~1config.yaml",
+      "value": "aidd_version: \"1.0.0\"\nprofile: team\nbudget_exclude_paths: [\"**/package-lock.json\"]\nowners:\n  default_team: checkout\n  approvers: [\"@checkout-lead\", \"@platform-lead\", \"@oncall-lead\"]\n  specialists:\n    security: [\"@sec-alice\"]\ntests:\n  - name: unit\n    command: [make, test]\nstandard_changes:\n  - name: dependency-patch\n    paths: [package.json, package-lock.json]\n    authors: [\"dependabot[bot]\"]\n    max_changed_lines: 300\nidentities:\n  system_accounts: [web-flow]\n  bots: [\"claude[bot]\"]\n"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "config"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending config.bootstrap"
+    ]
+  }
+}

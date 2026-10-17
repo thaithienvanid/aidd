@@ -1,0 +1,27 @@
+{
+  "summary": "The change's author is also an approver, and requests changes on their own change. That does not block: an author cannot block their own change any more than approve it, and another approver has approved it.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/author",
+      "value": "platform-lead"
+    },
+    {
+      "op": "append",
+      "path": "/reviews",
+      "value": {
+        "user": "platform-lead",
+        "state": "changes_requested",
+        "commit_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "submitted_at": "2026-09-23T09:40:00Z"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

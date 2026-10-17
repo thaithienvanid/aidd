@@ -1,0 +1,39 @@
+{
+  "summary": "The config belongs to tenant acme, and the Spec approval and the Merge approval come from globex:checkout-lead, the same login in another tenant. Neither counts, and both are flagged.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "budget_exclude_paths: [\"**/package-lock.json\"]\n",
+      "new": "tenant: acme\nbudget_exclude_paths: [\"**/package-lock.json\"]\n"
+    },
+    {
+      "op": "set",
+      "path": "/reviews/0/user",
+      "value": "globex:checkout-lead"
+    },
+    {
+      "op": "set",
+      "path": "/comments/0/user",
+      "value": "globex:checkout-lead"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval",
+      "spec_approval"
+    ],
+    "warn_rules": [
+      "merge_approval",
+      "spec_approval"
+    ],
+    "findings": [
+      "pending merge_approval.missing",
+      "pending spec_approval.missing",
+      "warn merge_approval.other_tenant",
+      "warn spec_approval.other_tenant"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "summary": "A major change that also edits .worktreeinclude, which copies git-ignored files such as .env into every new worktree, passes: the protected path asks for major and the security pool, which this change already has.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "scope_exempt_paths: [.worktreeinclude]\nowners:\n"
+    },
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": ".worktreeinclude",
+        "previous_path": null,
+        "additions": 1,
+        "deletions": 0
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

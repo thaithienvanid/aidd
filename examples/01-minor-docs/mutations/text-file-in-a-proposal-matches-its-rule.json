@@ -1,0 +1,28 @@
+{
+  "summary": "A text file in a proposal, proposals/PROP-1/secrets/notes.txt, still matches baseline:secrets-crypto: text can hold a secret.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "proposals/PROP-1/secrets/notes.txt"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope: [docs/guide.md]\n",
+      "new": "scope: [\"proposals/PROP-1/**\"]\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low",
+      "fail route.undeclared_dimensions"
+    ]
+  }
+}

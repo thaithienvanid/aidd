@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:release-notes",
+  "title": "aidd release-notes --json",
+  "description": "The Specs shipped since a tag or a date, grouped as Keep a Changelog 1.1.0 (Added, Changed, Deprecated, Removed, Fixed, Security, in that order; only groups with entries), for users or for developers.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audience",
+    "window",
+    "groups"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "audience": {
+      "enum": [
+        "users",
+        "developers"
+      ],
+      "description": "`users`: feat, fix, perf, and security changes, and any labelled `audience:users`. `developers`: every change."
+    },
+    "window": {
+      "$ref": "urn:aidd:1:digest#/$defs/window"
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "entries"
+        ],
+        "properties": {
+          "name": {
+            "enum": [
+              "Added",
+              "Changed",
+              "Deprecated",
+              "Removed",
+              "Fixed",
+              "Security"
+            ],
+            "description": "The Keep a Changelog group."
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "title",
+                "type",
+                "intent",
+                "flags",
+                "removes_flags",
+                "merged_on"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The item's id, such as a Spec id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Its title."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "The Spec's change type."
+                },
+                "intent": {
+                  "type": "string",
+                  "description": "The first paragraph of the Spec's Intent, as plain text."
+                },
+                "flags": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "urn:aidd:1:digest#/$defs/flag"
+                  },
+                  "description": "The flags it ships behind, with their default."
+                },
+                "removes_flags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Flags it removes: the feature is on for everyone."
+                },
+                "merged_on": {
+                  "type": "string",
+                  "description": "The newest commit in the window that changed its scope."
+                },
+                "breaking": {
+                  "type": "boolean",
+                  "description": "True when the Spec carries the `breaking` label: a reader must act on upgrade, so the notes list it under Upgrade notes first too."
+                }
+              }
+            },
+            "description": "Its shipped Specs, oldest first."
+          }
+        }
+      },
+      "description": "A shipped Spec goes to the group its `changelog:<group>` label names, else Security for the security type or a fix with the security dimension, else Added for feat, Fixed for fix, and Changed for the rest."
+    }
+  }
+}

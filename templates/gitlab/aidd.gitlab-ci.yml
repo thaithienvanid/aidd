@@ -1,0 +1,99 @@
+# aidd for GitLab. Include it from .gitlab-ci.yml:
+#   include:
+#     - local: .gitlab/aidd.gitlab-ci.yml
+#
+# Trust: an MR can edit its own pipeline, so the gate is only as trustworthy as the
+# enforcement around it. All of these are required for an enforcing gate:
+#   - Inject these jobs with a pipeline execution policy, and set in that policy
+#       variables_override:
+#         allowed: false
+#     so no pipeline, schedule, trigger, or manual variable can change a variable the
+#     policy's jobs read (AIDD_GITLAB_TOKEN, GIT_DEPTH, the CI_* context aidd trusts).
+#   - Settings > CI/CD > Variables: "Minimum role to use pipeline variables" = No one allowed.
+#   - Turn on "Pipelines must succeed", and keep the MR approval settings on (prevent
+#     approval by author, prevent approvals by users who add commits, remove all
+#     approvals when commits are added).
+#   - Fork MR pipelines fail closed; run MR pipelines in the parent project.
+#
+# Token: give only the aidd-gate job a project access token with read_api
+# (Reporter), injected by the execution policy as AIDD_GITLAB_TOKEN. Do not define
+# it as a project variable: every job, including MR code in aidd-tests, could read it.
+#
+# What runs: aidd from a pinned commit of its repository, with the interpreter of an
+# image pinned by digest. Nothing is built or installed from an index at gate time.
+# The repository and ref are written into the script, not read from a variable, so a
+# pipeline variable cannot point the gate at other code. To mirror (air-gapped), change
+# aidd_host in the script, keep the ref, and keep the image digest (or mirror the image by digest).
+#
+# Requires GitLab 16.7 or later. Works with merged results pipelines: the tests run on
+# the MR's source commit, which is what the gate binds evidence and approvals to.
+
+# Mode: the gate enforces unless the base branch's .aidd/config.yaml says `mode: advisory`
+# (report without failing the pipeline; aidd init starts there). A CI variable cannot relax it.
+
+.aidd:
+  # python:3.14.7-trixie, pinned by the digest of its multi-arch index. Update the tag and the digest together.
+  image: python:3.14.7-trixie@sha256:0876e54cf728d89fd9d0fdaf5837b9ee879ea5fbbd6fd0cddbe5eb0cce3f5f9e
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+  variables:
+    GIT_DEPTH: 0
+  before_script:
+    - |
+      # aidd-pin: `aidd init` rewrites this ref to the release commit SHA; pin by SHA if you copy the file by hand.
+      aidd_pin="thaithienvanid/aidd@v1.0.0"
+      aidd_host="https://github.com"
+      aidd_ref="${aidd_pin#*@}"
+      AIDD_SRC="${TMPDIR:-/tmp}/aidd-src"
+      rm -rf "$AIDD_SRC"
+      git init --quiet "$AIDD_SRC"
+      git -C "$AIDD_SRC" fetch --quiet --depth 1 "$aidd_host/${aidd_pin%@*}" "$aidd_ref"
+      git -C "$AIDD_SRC" checkout --quiet --detach FETCH_HEAD
+      if printf '%s' "$aidd_ref" | grep -Eq '^[0-9a-f]{40}$'; then
+        test "$(git -C "$AIDD_SRC" rev-parse HEAD)" = "$aidd_ref" || { echo "aidd checkout is not $aidd_ref" >&2; exit 1; }
+      else
+        echo "aidd is pinned to $aidd_ref, not a commit SHA; run aidd init or pin it by SHA" >&2
+      fi
+      # -P: the MR checkout in the working directory can never shadow the aidd module.
+      aidd() { PYTHONPATH="$AIDD_SRC/src" python3 -P -m aidd "$@"; }
+      aidd --version
+    - git fetch --quiet origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+
+aidd-tests:
+  extends: .aidd
+  stage: test
+  script:
+    # Install your project's toolchain and dependencies here.
+    - |
+      if [ "$CI_MERGE_REQUEST_DESCRIPTION_IS_TRUNCATED" = "true" ]; then
+        echo "The MR description is longer than CI variables carry; put the Change Request block first or use spec = \"...\"" >&2
+        exit 1
+      fi
+    - |
+      # Merged results pipelines check out a merge commit; evidence must be for the MR's own head.
+      if [ -n "$CI_MERGE_REQUEST_SOURCE_BRANCH_SHA" ] && [ "$(git rev-parse HEAD)" != "$CI_MERGE_REQUEST_SOURCE_BRANCH_SHA" ]; then
+        git checkout --quiet "$CI_MERGE_REQUEST_SOURCE_BRANCH_SHA"
+      fi
+    - printf '%s' "$CI_MERGE_REQUEST_DESCRIPTION" > aidd-body.md
+    - aidd test --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --body-file aidd-body.md --red-in-place
+  artifacts:
+    when: always
+    paths: [.aidd/evidence/]
+    expire_in: 90 days
+
+aidd-gate:
+  extends: .aidd
+  stage: .post
+  needs:
+    - job: aidd-tests
+      artifacts: true
+  script:
+    # Pending approvals fail this job; re-run it after approving (or use --pending-ok
+    # when GitLab approval rules alone block merging).
+    # --html writes the Merge approval page, a view for people to read before approving; the gate never reads it.
+    - aidd gate gitlab --evidence .aidd/evidence/evidence.json --events aidd-events.jsonl --record aidd-record.json --html aidd-merge.html
+  artifacts:
+    when: always
+    paths: [aidd-events.jsonl, aidd-record.json, aidd-merge.html]
+    expire_in: 90 days

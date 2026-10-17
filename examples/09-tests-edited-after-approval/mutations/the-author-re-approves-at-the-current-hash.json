@@ -1,0 +1,25 @@
+{
+  "summary": "The current hash, posted by the author rather than an Approver, does not approve the Spec: it still waits.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/comments",
+      "value": {
+        "user": "alice",
+        "body": "/aidd approve-spec SPEC-220 4f7266fb3b8c1a805cd18eb9e3c2f508",
+        "created_at": "2026-09-23T09:00:00Z"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending spec_approval.missing"
+    ]
+  }
+}

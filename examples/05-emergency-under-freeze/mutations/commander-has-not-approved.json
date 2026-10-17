@@ -1,0 +1,27 @@
+{
+  "summary": "The incident commander has not approved the repair: an emergency change waits for the human who runs the incident.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/reviews/0"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "emergency",
+      "merge_approval"
+    ],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "pending emergency.commander_pending",
+      "pending merge_approval.missing",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

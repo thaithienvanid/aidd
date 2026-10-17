@@ -1,0 +1,35 @@
+{
+  "name": "aidd",
+  "version": "1.0.0",
+  "description": "AIDD, one loop from intent to production with change control at its core: route, specify, implement in scope, verify on SHA-bound evidence, ship on human approval.",
+  "author": {
+    "name": "Van Hoang"
+  },
+  "homepage": "https://github.com/thaithienvanid/aidd",
+  "repository": "https://github.com/thaithienvanid/aidd",
+  "license": "Apache-2.0",
+  "keywords": [
+    "spec-driven",
+    "change-control",
+    "ci",
+    "governance",
+    "agents"
+  ],
+  "skills": "./.agents/skills/",
+  "mcpServers": {
+    "aidd": {
+      "command": "/bin/sh",
+      "args": [
+        "-c",
+        "unset CDPATH; unset -f test cd pwd command 2>/dev/null; R=$PYTHONPATH; L='import sys; sys.version_info < (3, 11) and sys.exit(3); sys.path.insert(0, sys.argv.pop(1)); sys.argv[0] = sys.argv.pop(1); from aidd.cli import main; sys.exit(main())'; W=$(pwd -P); D=$CLAUDE_PROJECT_DIR; test -n \"$D\" || { D=$W; echo \"aidd mcp: CLAUDE_PROJECT_DIR is not set; serving the current folder $W\" >&2; }; D=$(cd -P -- \"$D\" 2>/dev/null && pwd -P) || { echo \"aidd mcp: CLAUDE_PROJECT_DIR is not a folder; not starting\" >&2; exit 1; }; ok() { case \"$1\" in /*) ;; *) return 1;; esac; p=$(cd -P -- \"${1%/*}/\" 2>/dev/null && pwd -P) || return 1; for d in \"$D\" \"$W\"; do test -n \"$d\" || return 1; x=$p; while :; do test \"$x\" -ef \"$d\" && return 1; case \"$x\" in \"\"|/) break;; esac; x=${x%/*}; test -n \"$x\" || x=/; done; done; }; ok \"$R/aidd\" || { echo \"aidd mcp: the plugin source is inside the project; not starting\" >&2; exit 1; }; cd -P -- \"$D\" || exit 1; P3=$(cd -P -- \"$R\" && command -v python3); if ok \"$P3\" && \"$P3\" -I -S -c 'import sys; sys.exit(sys.version_info < (3, 11))' 2>/dev/null; then exec \"$P3\" -I -S -c \"$L\" \"$R\" aidd mcp; fi; PY=; UV=$(cd -P -- \"$R\" && command -v uv); if ok \"$UV\"; then PY=$(cd -P -- \"$R\" && unset VIRTUAL_ENV && \"$UV\" python find --offline --no-project --no-config --no-python-downloads --system '>=3.11' 2>/dev/null) && ok \"$PY\" || PY=; fi; test -n \"$PY\" && exec \"$PY\" -I -S -c \"$L\" \"$R\" aidd mcp; echo \"aidd mcp: could not start (it needs Python 3.11 or later, or uv with a Python outside any virtual environment: uv python install 3.12)\" >&2; exit 1"
+      ],
+      "env": {
+        "PYTHONPATH": "${CLAUDE_PLUGIN_ROOT}/src"
+      }
+    }
+  },
+  "hooks": "./hooks/hooks.json",
+  "experimental": {
+    "evals": "evals/plugin"
+  }
+}

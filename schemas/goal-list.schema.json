@@ -1,0 +1,332 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:goal-list",
+  "title": "aidd goal list --json",
+  "description": "What `aidd goal list --json` prints: the shape of the work for a person. Each big goal (Initiative) and small goal (Epic, on the default branch) with where each of the person's decisions stands, each goal branch, and the trunk-based flow. The aidd pane draws it. A new optional key may be added in a minor release without a version bump; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "goals",
+    "flow",
+    "initiatives",
+    "small_goals"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "branch",
+          "head",
+          "age_days",
+          "behind",
+          "specs",
+          "integrated",
+          "release_ready",
+          "warnings"
+        ],
+        "properties": {
+          "branch": {
+            "type": "string",
+            "description": "The goal branch."
+          },
+          "head": {
+            "type": "string",
+            "description": "Its tip commit."
+          },
+          "age_days": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Days since its oldest commit the default branch lacks; 0 while it has none."
+          },
+          "behind": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Commits of the default branch it does not hold yet: `aidd sync` on it merges them in."
+          },
+          "specs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The Specs that ship into it (their `base`), and the ones it holds."
+          },
+          "integrated": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The Specs `aidd integrate` landed in it, read from the `Aidd-Integrate` trailers of its merge commits."
+          },
+          "release_ready": {
+            "type": "boolean",
+            "description": "At least one Spec is integrated, every other Spec that ships into it is finished, and it holds every commit of the default branch: the person's Merge approval releases it."
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Past gates.max_goal_days, or behind the default branch: what to do about each."
+          }
+        }
+      },
+      "description": "Each local goal branch (`goal/<name>`), the team's integration branch: what ships into it, what it holds, and whether it is ready to release. Absent with --branch, or when there is none."
+    },
+    "flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branches",
+        "warnings"
+      ],
+      "properties": {
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "branch",
+              "head",
+              "age_days",
+              "behind"
+            ],
+            "properties": {
+              "branch": {
+                "type": "string",
+                "description": "A local branch with work the default branch does not hold yet."
+              },
+              "head": {
+                "type": "string",
+                "description": "Its tip commit."
+              },
+              "age_days": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Days since its oldest own commit."
+              },
+              "behind": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Commits of the default branch it does not hold yet: `aidd sync` merges them in."
+              }
+            }
+          },
+          "description": "The branches with unmerged work, goal branches aside, oldest first."
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Past gates.max_open_branches or gates.max_branch_days: what to do about each."
+        }
+      },
+      "description": "Trunk-based flow (DORA: three or fewer active branches, each merged at least daily): the branches with unmerged work and the warnings their count and age give. Absent with --branch, or when no branch holds unmerged work."
+    },
+    "initiatives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "small_goals"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The Initiative's id."
+          },
+          "title": {
+            "type": "string",
+            "description": "Its title."
+          },
+          "small_goals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The ids of its small goals (Epics) that are open."
+          }
+        }
+      },
+      "description": "Each big goal on the default branch."
+    },
+    "small_goals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "parent",
+          "ships",
+          "branch",
+          "specs",
+          "plan",
+          "spec_approval",
+          "release",
+          "launch"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The Epic's id."
+          },
+          "title": {
+            "type": "string",
+            "description": "Its title."
+          },
+          "parent": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Its Initiative, or null."
+          },
+          "ships": {
+            "enum": [
+              "incremental",
+              "flagged",
+              "batched"
+            ],
+            "description": "How it reaches users (epic.schema.json)."
+          },
+          "branch": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Its goal branch when it ships batched, else null."
+          },
+          "specs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "status"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "A planned Spec."
+                },
+                "status": {
+                  "type": "string",
+                  "description": "Its derived status; `integrated` when its goal holds it, `planned` when nobody has started it."
+                }
+              }
+            },
+            "description": "Its planned Specs, in landing order."
+          },
+          "plan": {
+            "const": "agreed",
+            "description": "D1: the Epic is on the default branch, so a person agreed to the plan holding it."
+          },
+          "spec_approval": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "done",
+              "total",
+              "waits"
+            ],
+            "properties": {
+              "done": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "How many are past it."
+              },
+              "total": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "How many there are."
+              },
+              "waits": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The Spec ids (or the goal branch) waiting on a person for it now."
+              }
+            },
+            "description": "D2: the Specs past Spec approval."
+          },
+          "release": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "done",
+              "total",
+              "waits"
+            ],
+            "properties": {
+              "done": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "How many are past it."
+              },
+              "total": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "How many there are."
+              },
+              "waits": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The Spec ids (or the goal branch) waiting on a person for it now."
+              }
+            },
+            "description": "D3: the Specs on the default branch (alone, dark), or the goal released (together, total 1)."
+          },
+          "launch": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "spec",
+                  "state"
+                ],
+                "properties": {
+                  "spec": {
+                    "type": "string",
+                    "description": "The launch Spec."
+                  },
+                  "state": {
+                    "enum": [
+                      "todo",
+                      "waits",
+                      "done"
+                    ],
+                    "description": "Whether the launch is still ahead, waits on a person, or is done."
+                  }
+                }
+              }
+            ],
+            "description": "D4, for a small goal that ships flagged: its launch; null otherwise."
+          }
+        }
+      },
+      "description": "Each open small goal on the default branch."
+    }
+  }
+}

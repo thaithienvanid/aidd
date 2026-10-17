@@ -1,0 +1,13 @@
+{
+  "decision": "pending",
+  "failed_rules": [],
+  "pending_rules": [
+    "specialist_approval"
+  ],
+  "warn_rules": [],
+  "findings": [
+    "pending specialist_approval.missing"
+  ],
+  "title": "A specialist asked by what the change adds",
+  "summary": "A normal Spec, approved and green, whose diff adds a line that runs SQL built from an f-string. The repository's raw-sql rule reads the added lines of its Python files and names the data pool, so the change stays normal but waits for a data specialist's approval on head, as a team asks its DBA to look at raw SQL whatever the size of the change."
+}

@@ -1,0 +1,21 @@
+{
+  "summary": "Evidence from the merge-group commit must have run red against the commit the entry was built on.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/base_sha",
+      "value": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "tests"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending tests.evidence_other_base"
+    ]
+  }
+}

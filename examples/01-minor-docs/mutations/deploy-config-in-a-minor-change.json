@@ -1,0 +1,34 @@
+{
+  "summary": "A minor change to fly.toml fails: platform deploy config is baseline:iac, at least normal on the availability dimension.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "fly.toml"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope: [docs/guide.md]\n",
+      "new": "scope: [fly.toml]\n"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "type: docs\n",
+      "new": "type: chore\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low",
+      "fail route.undeclared_dimensions"
+    ]
+  }
+}

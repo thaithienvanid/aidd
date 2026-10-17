@@ -1,0 +1,22 @@
+{
+  "summary": "An approval line in an indented code block does not count.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/comments/0/body",
+      "old": "/aidd",
+      "new": "Do not post yet:\n\n    /aidd"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending spec_approval.missing"
+    ]
+  }
+}

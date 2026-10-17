@@ -1,0 +1,20 @@
+{
+  "summary": "Without the security pool's approval on head, the payments change waits: the stand-in pool is still required.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/reviews/1"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "specialist_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending specialist_approval.missing"
+    ]
+  }
+}
