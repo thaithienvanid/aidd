@@ -1,0 +1,25 @@
+{
+  "summary": "A feat Spec whose only test is not marked new_behavior proves no new behavior: red-then-green cannot be checked.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1SPEC-220.md",
+      "old": "      new_behavior: true\n",
+      "new": "      new_behavior: false\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "red_green"
+    ],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "fail red_green.no_new_behavior",
+      "pending spec_approval.missing"
+    ]
+  }
+}

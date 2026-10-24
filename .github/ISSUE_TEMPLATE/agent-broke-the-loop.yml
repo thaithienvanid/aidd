@@ -1,0 +1,65 @@
+name: An agent broke the loop
+description: An agent skipped a step, broke a rule, or did not stop where the skill says to stop.
+labels: [bug, agent]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Remove secrets, tokens, and personal data from the excerpt before you post it.
+        A way to get a wrong pass from `aidd/gate` is a security issue. Report it privately instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What did the agent do, and what should it have done?
+    validations:
+      required: true
+  - type: textarea
+    id: rule
+    attributes:
+      label: The rule it broke
+      description: Quote the rule and name its file, such as the aidd skill's hard rule 4, a stop, a loop contract item, or a step of a team command.
+    validations:
+      required: true
+  - type: input
+    id: harness
+    attributes:
+      label: Harness and its version
+      description: Such as Claude Code 2.3.1, Codex CLI, Cursor, or OpenCode. Say whether the aidd and aidd-team plugins were installed.
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: The exact model id, and the model of each subagent role when a team command ran.
+    validations:
+      required: true
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Reasoning effort
+      options: [low, medium, high, xhigh, max, not set, unknown]
+    validations:
+      required: false
+  - type: input
+    id: context
+    attributes:
+      label: Context fill
+      description: How full the context window was when the agent broke the rule, such as 40 percent, or after a compaction.
+    validations:
+      required: false
+  - type: textarea
+    id: excerpt
+    attributes:
+      label: Session excerpt
+      description: The prompt, and the turns from the last correct step to the broken rule. Include the tool calls and the handoff note, if any.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: aidd version
+      description: Output of `aidd --version`.
+    validations:
+      required: true

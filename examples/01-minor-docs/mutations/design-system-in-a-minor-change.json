@@ -1,0 +1,27 @@
+{
+  "summary": "A minor change that edits the repository's design system fails: DESIGN.md and its tokens are what every screen is built on, so a change to them is a normal change (baseline:design-system) that a person reviews.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "DESIGN.md"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope: [docs/guide.md]\n",
+      "new": "scope: [DESIGN.md]\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

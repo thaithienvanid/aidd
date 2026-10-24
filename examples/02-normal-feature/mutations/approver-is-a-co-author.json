@@ -1,0 +1,23 @@
+{
+  "summary": "The only approver co-authored the code (a GitHub no-reply address maps to their login), so their approval does not count: a co-author may not approve their own work.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/commits/0/message",
+      "value": "Implement the change\n\nAssisted-by: claude-code/claude-opus-5-5\nCo-authored-by: Checkout Lead <4242+checkout-lead@users.noreply.github.com>"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval",
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending merge_approval.missing",
+      "pending spec_approval.missing"
+    ]
+  }
+}

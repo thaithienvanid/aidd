@@ -1,0 +1,22 @@
+{
+  "summary": "An inline test named like a configured suite command is ambiguous evidence.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "```\n",
+      "new": "tests:\n  files: [tests/docs/test_guide.py]\n  commands:\n    - name: unit\n      command: [make, test]\n```\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail tests.duplicate_name"
+    ]
+  }
+}

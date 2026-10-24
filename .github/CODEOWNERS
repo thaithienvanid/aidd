@@ -1,0 +1,36 @@
+# Per-area ownership, so the intent is machine-readable. None of this binds unless "Require
+# review from Code Owners" is on in the branch ruleset; GOVERNANCE.md records that requirement.
+#
+# The last matching pattern wins, so the catch-all comes first and every per-area rule after it
+# overrides it for its paths.
+
+# Everything else, including the method and the docs.
+*                         @thaithienvanid
+
+# The gate itself: everything that decides a route or a verdict.
+/src/aidd/gate/__init__.py @thaithienvanid
+/src/aidd/gate/engine.py @thaithienvanid
+/src/aidd/gate/rules/     @thaithienvanid
+/src/aidd/gate/routing.py @thaithienvanid
+/src/aidd/gate/rulebook.py @thaithienvanid
+/src/aidd/kernel/json_schema.py @thaithienvanid
+/src/aidd/kernel/globs.py  @thaithienvanid
+/src/aidd/kernel/doors.py  @thaithienvanid
+/schemas/                 @thaithienvanid
+
+# What runs on an adopter's machine or in their CI, and how it is released.
+/.github/                 @thaithienvanid
+/templates/               @thaithienvanid
+/action.yml               @thaithienvanid
+/install.sh               @thaithienvanid
+/pyproject.toml           @thaithienvanid
+/hooks/                   @thaithienvanid
+/plugins/                 @thaithienvanid
+/RELEASING.md             @thaithienvanid
+/GOVERNANCE.md            @thaithienvanid
+/SECURITY.md              @thaithienvanid
+
+# What an agent reads.
+/.agents/                 @thaithienvanid
+/.claude/                 @thaithienvanid
+**/AGENTS.md              @thaithienvanid

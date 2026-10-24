@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; font-src data:; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="aidd-spec" content="{{spec}}">
+<title>{{title}}: prototype for {{spec}}</title>
+<!--
+  Prototype for Spec {{spec}}, written {{today}}. A design artifact: frozen at Spec approval with the Spec, compared with
+  the built UI screen by screen and state by state in Review, and never imported by product code. One self-contained
+  file per Spec or flow (`aidd new design-spec --prototype` writes specs/<ID>/design/prototype.html): no network, no build step,
+  open it in any browser. The Content-Security-Policy above blocks every remote load; keep it. The design spec
+  (`aidd new design-spec`) holds what a prototype cannot show. A prototype is interactive; a mockup is a static picture, and
+  wireframe is a mode of this file.
+
+  - Screens: one <section data-screen="<id>" data-title="..."> each, in flow order; the first is where the flow starts.
+    The three here (sign in, a list, a detail) are an example: replace them with the Spec's screens, by the names its
+    design spec's Screen inventory uses. data-parent names the screen the back affordance returns to; data-initial the
+    state a screen opens in. The screen menu is built from the sections, so it always lists every screen.
+  - Navigation: an element with data-go="<screen>" or data-go="<screen>/<state>" moves to it and adds a history entry,
+    so the browser's back button, and the back affordance, return. The same screens render on every frame: iOS and
+    Android frames show a platform tab bar (Human Interface Guidelines, Material 3) and a back affordance; web frames
+    show header navigation. Layout follows the frame's width (@container frame); per-platform differences follow the
+    design spec.
+  - Deep links: #<screen>/<state>?theme=dark&frame=ios&mode=wireframe&round=2 in the address opens that view, and every
+    switch updates it. Each key is optional: theme light or dark (else the system's), frame 320, 768, 1024 (the
+    default), 1440, ios, or android, mode wireframe (else full fidelity), round 2 or more. The same keys in the page's
+    own query (?mode=wireframe, ?theme=dark, ?round=2) still work; the fragment wins. Screenshots and tests open a
+    view by its link: <screen>-<state>-<target>-<theme>.png is prototype.html#<screen>/<state>?theme=<theme>&frame=<target>.
+  - Tokens: every custom property lives in the one style block with the id tokens, the output of design/build.mjs
+    (design/tokens.css, then design/themes/*.css): paste the repository's in its place, and never invent a value it
+    lacks. The layout styles below only read them with var(), by the build's names (--color-surface, --radius-control).
+  - Fixtures: every piece of data lives in the one JSON script block with the id fixtures; the screens read it, so a
+    longer name or an empty list is one edit away. Text goes in with textContent, never as markup.
+  - States: empty, loading, partial, error, offline, permission denied, success, first run: each screen has the ones it
+    can be in, as <div data-state> children (a child without data-state shows in every state), reachable with one
+    click, keys 1-8, or the deep link. A state a screen cannot have is left out, and the design spec says why.
+  - Frames: 320, 768, 1024, and 1440 CSS px, and iOS and Android phone chrome, to check each breakpoint and platform.
+  - Theme: light and dark (project.defaults.dark_mode). The prototype follows the system's prefers-color-scheme until
+    the Theme bar picks one (?theme=dark keeps it); check contrast, and take each screenshot, in both.
+  - Fidelity: ?mode=wireframe (or the Fidelity bar) draws greyscale boxes with no brand color or font, for the rough
+    directions before a person picks one; the picked direction is then built at full fidelity in this same file. The
+    wireframe style block holds no color, so it works on any tokens.
+  - Feedback: the Feedback bar (or ?round=2 for the round) turns on feedback mode: click an element in the prototype, or
+    pick its data-testid, type a note, and add it. Copy feedback gives the round as JSON,
+    {"round": N, "items": [{"id", "screen", "state", "testid", "note", "link", ...}]}, to save as feedback-round-N.json
+    in the design folder; Copy as a prompt gives the same for pasting to the agent. The notes live in this tab
+    (sessionStorage) and are never sent anywhere.
+  - data-testid on every interactive element: the hook the verifier's tests select on; keep the names when the UI is built
+    (iOS accessibilityIdentifier and Android testTag use the same names). proto-* ids are this file's own controls.
+  - Real copy and realistic data, never filler text. Keyboard-operable, labelled, WCAG 2.2 AA contrast, and targets of
+    at least 24 by 24 px.
+-->
+<style id="tokens">
+/* Generated from design/tokens.json by design/build.mjs: never edit by hand. */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --radius-control: 6px;
+  --radius-surface: 12px;
+  --size-target-min: 24px;
+  --font-family-sans: Inter, system-ui, sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+  --font-size-body: 1rem;
+  --font-size-heading: 1.5rem;
+  --font-tracking-normal: 0px;
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --typography-body: 400 1rem/1.5 Inter, system-ui, sans-serif;
+  --typography-heading: 700 1.5rem/1.25 Inter, system-ui, sans-serif;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+  }
+}
+/* Generated from design/tokens.json by design/build.mjs: never edit by hand. */
+:root,
+:root[data-theme="light"] {
+  --color-surface: #ffffff;
+  --color-surface-raised: #f3f4f5;
+  --color-text: #1c1e21;
+  --color-text-muted: #5b616b;
+  --color-accent: #1d4ed8;
+  --color-accent-subtle: #dbe4ff;
+  --color-danger: #b91c1c;
+  --color-success: #067647;
+  --color-warning: #8a4b00;
+  --color-warning-subtle: #fff4cc;
+  --color-focus: #1d4ed8;
+  color-scheme: light;
+}
+/* Generated from design/tokens.json by design/build.mjs: never edit by hand. */
+:root[data-theme="dark"] {
+  --color-surface: #111317;
+  --color-surface-raised: #1c1e21;
+  --color-text: #f3f4f5;
+  --color-text-muted: #9ea5b0;
+  --color-accent: #93c5fd;
+  --color-accent-subtle: #26345c;
+  --color-danger: #fca5a5;
+  --color-success: #47cd89;
+  --color-warning: #fdb022;
+  --color-warning-subtle: #3a3000;
+  --color-focus: #93c5fd;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-surface: #111317;
+    --color-surface-raised: #1c1e21;
+    --color-text: #f3f4f5;
+    --color-text-muted: #9ea5b0;
+    --color-accent: #93c5fd;
+    --color-accent-subtle: #26345c;
+    --color-danger: #fca5a5;
+    --color-success: #47cd89;
+    --color-warning: #fdb022;
+    --color-warning-subtle: #3a3000;
+    --color-focus: #93c5fd;
+    color-scheme: dark;
+  }
+}
+</style>
+<style id="wireframe">
+  /* Wireframe mode: the screens in greyscale, in monospace type, with square corners and no motion. It holds no color
+     and no token of its own, so it works on whatever the tokens block holds. */
+  :root[data-mode="wireframe"] .frame { filter: grayscale(1); }
+  :root[data-mode="wireframe"] :is(.frame, .frame *) { font-family: ui-monospace, Menlo, Consolas, monospace !important; border-radius: 0 !important; transition: none !important; }
+</style>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: var(--typography-body); background: var(--color-surface); color: var(--color-text); }
+  [hidden] { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .skip { position: absolute; left: -999px; }
+  .skip:focus { left: var(--space-3); top: var(--space-3); }
+  .banner { background: var(--color-warning-subtle); margin: 0; padding: var(--space-2) var(--space-3); text-align: center; }
+  :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+  button { font: inherit; color: inherit; }
+  /* The prototype's own controls. */
+  .controls { max-width: 1760px; margin: 0 auto; padding: var(--space-3); display: grid; gap: var(--space-2); }
+  .bar { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
+  .bar button, .tool { min-height: var(--size-target-min); padding: var(--space-1) var(--space-3); border-radius: var(--radius-control); border: 1px solid var(--color-text-muted); background: var(--color-surface-raised); color: var(--color-text); cursor: pointer; }
+  .bar button[aria-pressed="true"] { border-color: var(--color-accent); outline: 2px solid var(--color-accent); }
+  .bar button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .feedback { display: grid; gap: var(--space-2); border: 1px solid var(--color-text-muted); border-radius: var(--radius-surface); padding: var(--space-3); }
+  .feedback label, .bar label { display: grid; gap: var(--space-1); }
+  .controls :is(select, textarea, input) { font: inherit; min-height: var(--size-target-min); max-width: 100%; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-text-muted); border-radius: var(--radius-control); padding: var(--space-1); }
+  .feedback button { min-height: var(--size-target-min); padding: var(--space-1) var(--space-3); border-radius: var(--radius-control); border: 1px solid var(--color-text-muted); background: var(--color-surface-raised); color: var(--color-text); cursor: pointer; justify-self: start; }
+  .workspace { max-width: 1760px; margin: 0 auto; padding: 0 var(--space-3) var(--space-3); display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: var(--space-3); align-items: start; }
+  .workspace[data-menu="drawer"] { grid-template-columns: minmax(0, 1fr); }
+  .menu-toggle, .menu-close { display: none; }
+  .workspace[data-menu="drawer"] .menu-toggle { display: inline-block; justify-self: start; }
+  .workspace[data-menu="drawer"] .menu-close { display: inline-block; }
+  .screens { border: 1px solid var(--color-text-muted); border-radius: var(--radius-surface); padding: var(--space-3); background: var(--color-surface-raised); position: sticky; top: var(--space-3); }
+  .workspace[data-menu="drawer"] .screens { position: fixed; z-index: 10; inset: 0 auto 0 0; width: min(18rem, 85vw); overflow-y: auto; border-radius: 0; border-width: 0 1px 0 0; }
+  .screens-head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+  .screens h2 { font-size: 1rem; margin: 0; }
+  .screens ol { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
+  .screens li button { width: 100%; min-height: var(--size-target-min); text-align: left; padding: var(--space-1) var(--space-2); border-radius: var(--radius-control); border: 1px solid transparent; background: none; cursor: pointer; }
+  .screens li button[aria-current="page"] { border-color: var(--color-accent); background: var(--color-accent-subtle); font-weight: 600; }
+  .screens code { display: block; color: var(--color-text-muted); font-size: 0.875rem; font-weight: 400; }
+  /* The stage and the frame. A frame wider than the window scrolls inside the stage, never the page. */
+  .stage { overflow-x: auto; min-width: 0; padding-bottom: var(--space-3); }
+  .frame { container: frame / inline-size; width: 1024px; margin: 0 auto; border: 1px solid var(--color-text-muted); border-radius: var(--radius-surface); background: var(--color-surface); overflow: hidden; transition: width var(--duration-base); }
+  [data-feedback="on"] #frame [data-testid] { cursor: crosshair; }
+  [data-feedback="on"] #frame [data-testid]:hover { outline: 2px dashed var(--color-accent); outline-offset: 2px; }
+  /* Product chrome. Web: header navigation beside the product name. iOS and Android: a status bar, a top bar with the
+     back affordance, and a tab bar at the bottom. */
+  .device { display: grid; min-height: 560px; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto 1fr; grid-template-areas: "status status" "brand nav" "bar bar" "main main"; }
+  .statusbar { grid-area: status; display: none; justify-content: space-between; padding: var(--space-1) var(--space-4); font-size: 0.875rem; font-weight: 600; background: var(--color-surface-raised); }
+  .brand { grid-area: brand; margin: 0; padding: var(--space-2) var(--space-3); background: var(--color-surface-raised); font-weight: 700; display: flex; align-items: center; }
+  .tabs { grid-area: nav; display: flex; gap: var(--space-1); align-items: center; padding: var(--space-2) var(--space-3); background: var(--color-surface-raised); }
+  .tabs button { display: inline-flex; align-items: center; gap: var(--space-1); min-height: var(--size-target-min); padding: var(--space-1) var(--space-2); border: 0; border-radius: var(--radius-control); background: none; cursor: pointer; }
+  .tabs button[aria-current="page"] { background: var(--color-accent-subtle); font-weight: 600; }
+  .appbar { grid-area: bar; display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-3) 0; min-width: 0; }
+  .appbar h1 { margin: 0; font-size: 1.5rem; line-height: 1.25; overflow-wrap: anywhere; }
+  .back { display: inline-flex; align-items: center; gap: var(--space-1); min-height: var(--size-target-min); padding: var(--space-1) var(--space-2) var(--space-1) 0; border: 0; background: none; color: var(--color-accent); cursor: pointer; max-width: 50%; }
+  .back span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  svg.icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-android { display: none; }
+  .frame[data-platform="web"] .appbar { flex-wrap: wrap; }
+  .frame[data-platform="web"] .back { flex-basis: 100%; max-width: none; }
+  .frame:is([data-platform="ios"], [data-platform="android"]) .device { min-height: 780px; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; grid-template-areas: "status" "bar" "main" "nav"; }
+  .frame:is([data-platform="ios"], [data-platform="android"]) .statusbar { display: flex; }
+  .frame:is([data-platform="ios"], [data-platform="android"]) .brand { display: none; }
+  .frame:is([data-platform="ios"], [data-platform="android"]) .appbar { background: var(--color-surface-raised); padding: var(--space-2) var(--space-3); min-height: 44px; }
+  .frame:is([data-platform="ios"], [data-platform="android"]) .tabs { justify-content: space-around; padding: var(--space-1) 0 var(--space-4); border-top: 1px solid var(--color-text-muted); }
+  .frame:is([data-platform="ios"], [data-platform="android"]) .tabs button { flex-direction: column; gap: 2px; font-size: 0.75rem; min-width: 64px; }
+  .frame[data-platform="ios"] .appbar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .frame[data-platform="ios"] .appbar .back { grid-column: 1; justify-self: start; max-width: 100%; }
+  .frame[data-platform="ios"] .appbar h1 { grid-column: 2; font-size: 1.0625rem; text-align: center; }
+  .frame[data-platform="ios"] .tabs button[aria-current="page"] { background: none; color: var(--color-accent); }
+  .frame[data-platform="android"] .appbar { min-height: 64px; }
+  .frame[data-platform="android"] .appbar h1 { font-size: 1.375rem; font-weight: 400; }
+  .frame[data-platform="android"] .back { min-width: 48px; min-height: 48px; justify-content: center; padding: 0; color: var(--color-text); }
+  .frame[data-platform="android"] .back span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .frame[data-platform="android"] .icon-ios { display: none; }
+  .frame[data-platform="android"] .icon-android { display: block; }
+  .frame[data-platform="android"] .tabs button[aria-current="page"] { background: none; }
+  .frame[data-platform="android"] .tabs button[aria-current="page"] svg { background: var(--color-accent-subtle); border-radius: 16px; width: 56px; padding: 2px 16px; box-sizing: content-box; }
+  @container frame (max-width: 479px) {
+    .frame[data-platform="web"] .device { grid-template-columns: minmax(0, 1fr); grid-template-areas: "status" "brand" "nav" "bar" "main"; grid-template-rows: auto auto auto auto 1fr; }
+    .frame[data-platform="web"] .tabs { padding-top: 0; }
+  }
+  /* Screens and their states: one of each shows at a time. */
+  main { grid-area: main; padding: var(--space-3); min-width: 0; }
+  main:focus { outline: none; }
+  section[data-screen], section[data-screen] > [data-state] { display: none; }
+  section[data-screen].shown, section[data-screen] > [data-state].shown { display: block; }
+  main :is(h2, h3) { margin: var(--space-3) 0 var(--space-2); line-height: 1.3; }
+  main p { margin: 0 0 var(--space-3); max-width: 60ch; }
+  .muted { color: var(--color-text-muted); }
+  .error { color: var(--color-danger); }
+  .success { color: var(--color-success); }
+  .warning { color: var(--color-warning); }
+  .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  button.action, button.secondary { min-height: 44px; padding: var(--space-2) var(--space-4); border-radius: var(--radius-control); cursor: pointer; }
+  button.action { border: 0; background: var(--color-accent); color: var(--color-surface); font-weight: 600; }
+  button.secondary { border: 1px solid var(--color-accent); background: none; color: var(--color-accent); }
+  .form { display: grid; gap: var(--space-3); max-width: 24rem; }
+  .field { display: grid; gap: var(--space-1); }
+  .field label { font-weight: 600; }
+  .field input { font: inherit; min-height: 44px; padding: var(--space-2); color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-text-muted); border-radius: var(--radius-control); }
+  .list { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: grid; gap: var(--space-2); }
+  .card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-1) var(--space-3); align-items: center; width: 100%; text-align: left; padding: var(--space-3); border: 1px solid var(--color-text-muted); border-radius: var(--radius-surface); background: var(--color-surface-raised); cursor: pointer; }
+  .card span { display: block; min-width: 0; overflow-wrap: anywhere; }
+  .card .avatar { grid-row: span 3; display: grid; }
+  .card .name { font-weight: 600; }
+  .avatar { display: inline-grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--color-accent); color: var(--color-surface); font-weight: 700; }
+  .avatar.large { width: 72px; height: 72px; font-size: 1.5rem; }
+  .skeleton { height: 88px; border-radius: var(--radius-surface); background: var(--color-surface-raised); border: 1px solid var(--color-surface-raised); }
+  .profile { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: center; }
+  .profile h2 { margin: 0; overflow-wrap: anywhere; }
+  .profile p { margin: 0; }
+  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-1) var(--space-3); margin: 0 0 var(--space-4); }
+  .facts dt { font-weight: 600; }
+  .facts dd { margin: 0; }
+  @container frame (min-width: 700px) {
+    .list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .detail { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+  }
+  @container frame (min-width: 1200px) {
+    .list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  [data-mode="wireframe"] .frame { filter: grayscale(1); }
+  [data-mode="wireframe"] main :is(h2, h3, p, ul, dl, button, input) { box-shadow: inset 0 0 0 1px var(--color-text-muted); padding: var(--space-2); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main" data-testid="proto-skip-link">Skip to the prototype</a>
+<p class="banner" role="note">Design artifact for <a href="{{spec_link}}" data-testid="proto-spec-link">{{spec}}</a>: {{title}}. Frozen at Spec approval; not product code.</p>
+<div class="controls">
+  <div class="bar" role="group" aria-label="State shown">
+    <button type="button" data-show="empty" data-testid="proto-state-empty">1 Empty</button>
+    <button type="button" data-show="loading" data-testid="proto-state-loading">2 Loading</button>
+    <button type="button" data-show="partial" data-testid="proto-state-partial">3 Partial</button>
+    <button type="button" data-show="error" data-testid="proto-state-error">4 Error</button>
+    <button type="button" data-show="offline" data-testid="proto-state-offline">5 Offline</button>
+    <button type="button" data-show="permission-denied" data-testid="proto-state-permission-denied">6 Permission denied</button>
+    <button type="button" data-show="success" data-testid="proto-state-success">7 Success</button>
+    <button type="button" data-show="first-run" data-testid="proto-state-first-run">8 First run</button>
+  </div>
+  <div class="bar" role="group" aria-label="Frame">
+    <button type="button" data-frame="320" data-testid="proto-frame-320">320</button>
+    <button type="button" data-frame="768" data-testid="proto-frame-768">768</button>
+    <button type="button" data-frame="1024" data-testid="proto-frame-1024">1024</button>
+    <button type="button" data-frame="1440" data-testid="proto-frame-1440">1440</button>
+    <button type="button" data-frame="ios" data-testid="proto-frame-ios">iOS</button>
+    <button type="button" data-frame="android" data-testid="proto-frame-android">Android</button>
+  </div>
+  <div class="bar" role="group" aria-label="Theme">
+    <button type="button" data-theme-pick="system" data-testid="proto-theme-system">System</button>
+    <button type="button" data-theme-pick="light" data-testid="proto-theme-light">Light</button>
+    <button type="button" data-theme-pick="dark" data-testid="proto-theme-dark">Dark</button>
+  </div>
+  <div class="bar" role="group" aria-label="Fidelity">
+    <button type="button" data-mode="full" data-testid="proto-mode-full">Full fidelity</button>
+    <button type="button" data-mode="wireframe" data-testid="proto-mode-wireframe">Wireframe</button>
+  </div>
+  <div class="bar" role="group" aria-label="Feedback">
+    <button type="button" aria-pressed="false" data-feedback-toggle data-testid="proto-feedback-toggle">Feedback mode</button>
+    <label>Round <input type="number" min="1" value="1" id="feedback-round" data-testid="proto-feedback-round"></label>
+    <button type="button" data-feedback-copy="json" data-testid="proto-feedback-copy-json">Copy feedback</button>
+    <button type="button" data-feedback-copy="prompt" data-testid="proto-feedback-copy-prompt">Copy as a prompt</button>
+  </div>
+  <div class="feedback" id="feedback" hidden>
+    <p>Click an element in the prototype, or pick it here, type a note, and add it. Each note keeps the screen, state, frame, and theme it was given on. The notes stay in this tab; nothing is sent anywhere.</p>
+    <label>Element <select id="feedback-target" data-testid="proto-feedback-target"></select></label>
+    <label>Note <textarea id="feedback-note" rows="2" data-testid="proto-feedback-note"></textarea></label>
+    <button type="button" id="feedback-add" data-testid="proto-feedback-add">Add note</button>
+    <ol id="feedback-items" aria-live="polite"></ol>
+    <label>The copied text, to select by hand if the clipboard is blocked <textarea id="feedback-out" rows="4" readonly data-testid="proto-feedback-out"></textarea></label>
+  </div>
+</div>
+<div class="workspace" id="workspace" data-menu="sidebar">
+  <button type="button" class="tool menu-toggle" aria-controls="screen-menu" aria-expanded="false" data-testid="proto-screens-toggle">Screens</button>
+  <nav class="screens" id="screen-menu" aria-label="Screens">
+    <div class="screens-head">
+      <h2>Screens</h2>
+      <button type="button" class="tool menu-close" data-testid="proto-screens-close">Close</button>
+    </div>
+    <ol id="screen-list"></ol>
+  </nav>
+  <div class="stage">
+    <div class="frame" id="frame" data-platform="web">
+      <div class="device">
+        <div class="statusbar" aria-hidden="true"><span>9:41</span><span>100%</span></div>
+        <p class="brand" data-text="product"></p>
+        <nav class="tabs" aria-label="Main">
+          <button type="button" data-go="sitters" data-testid="app-tab-sitters"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span>Sitters</span></button>
+          <button type="button" data-go="sign-in" data-testid="app-tab-account"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>Account</span></button>
+        </nav>
+        <div class="appbar">
+          <button type="button" class="back" data-back data-testid="app-back" hidden><svg class="icon icon-ios" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg><svg class="icon icon-android" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 12H4m6-6-6 6 6 6"/></svg><span id="back-label">Back</span></button>
+          <h1 id="screen-title" tabindex="-1"></h1>
+        </div>
+        <main id="main" tabindex="-1">
+          <section data-screen="sign-in" data-title="Sign in" data-initial="empty">
+            <div data-state="empty" data-testid="signin-empty">
+              <p>Sign in to book a sitter, message them, and see your bookings.</p>
+            </div>
+            <div data-state="loading" data-testid="signin-loading" aria-busy="true">
+              <p role="status">Signing you in…</p>
+            </div>
+            <div data-state="error" data-testid="signin-error">
+              <p class="error" role="alert">That email and password don't match an account. Check them, or reset your password.</p>
+            </div>
+            <div data-state="offline" data-testid="signin-offline">
+              <p class="warning">You're offline. Signing in needs a connection; the sitters you saved are still on this device.</p>
+              <p><button type="button" class="secondary" data-go="sitters/offline" data-testid="signin-saved">See saved sitters</button></p>
+            </div>
+            <form class="form" novalidate>
+              <div class="field"><label for="signin-email">Email</label><input id="signin-email" type="email" autocomplete="email" data-testid="signin-email"></div>
+              <div class="field"><label for="signin-password">Password</label><input id="signin-password" type="password" autocomplete="current-password" data-testid="signin-password"></div>
+              <button type="submit" class="action" data-go="sitters/success" data-testid="signin-submit">Sign in</button>
+            </form>
+          </section>
+          <section data-screen="sitters" data-title="Sitters near you" data-initial="success">
+            <p class="muted">Near <span data-text="area"></span>, within 5 km</p>
+            <div data-state="empty" data-testid="sitters-empty">
+              <h2>No sitters within 5 km yet</h2>
+              <p>New sitters join every week. Widen the search, or we'll tell you when someone nearby joins.</p>
+              <button type="button" class="action" data-go="sitters/success" data-testid="sitters-widen">Search within 15 km</button>
+            </div>
+            <div data-state="loading" data-testid="sitters-loading" aria-busy="true">
+              <p role="status">Finding sitters near <span data-text="area"></span>…</p>
+              <ul class="list" aria-hidden="true"><li class="skeleton"></li><li class="skeleton"></li><li class="skeleton"></li></ul>
+            </div>
+            <div data-state="partial" data-testid="sitters-partial">
+              <p class="warning">Showing 2 of 4 sitters. The other 2 didn't load.</p>
+              <ul class="list" data-list="sitters" data-limit="2" data-item-go="sitter"></ul>
+              <button type="button" class="secondary" data-go="sitters/success" data-testid="sitters-load-rest">Load the other 2</button>
+            </div>
+            <div data-state="error" data-testid="sitters-error">
+              <p class="error" role="alert">We couldn't load sitters. Check your connection, then try again.</p>
+              <button type="button" class="action" data-go="sitters/loading" data-testid="sitters-retry">Try again</button>
+            </div>
+            <div data-state="offline" data-testid="sitters-offline">
+              <p class="warning">You're offline. These are the sitters you saved; their availability may be out of date.</p>
+              <ul class="list" data-list="sitters" data-limit="2" data-item-go="sitter"></ul>
+            </div>
+            <div data-state="permission-denied" data-testid="sitters-permission-denied">
+              <h2>Turn on location to see sitters near you</h2>
+              <p><span data-text="product"></span> uses your location only to sort sitters by distance, and never shares it. You can search by postcode instead.</p>
+              <div class="actions">
+                <button type="button" class="action" data-testid="sitters-open-settings">Open Settings</button>
+                <button type="button" class="secondary" data-go="sitters/success" data-testid="sitters-postcode">Search by postcode</button>
+              </div>
+            </div>
+            <div data-state="success" data-testid="sitters-success">
+              <ul class="list" data-list="sitters" data-item-go="sitter"></ul>
+            </div>
+            <div data-state="first-run" data-testid="sitters-first-run">
+              <h2>Welcome to <span data-text="product"></span></h2>
+              <p>Tell us about your pet, and we'll show sitters who have looked after one like them.</p>
+              <button type="button" class="action" data-go="sitters/success" data-testid="sitters-add-pet">Add your pet</button>
+            </div>
+          </section>
+          <section data-screen="sitter" data-title="Sitter profile" data-parent="sitters" data-initial="success" data-item="sitters">
+            <div data-state="loading" data-testid="sitter-loading" aria-busy="true">
+              <p role="status">Loading the profile…</p>
+              <div class="skeleton"></div>
+            </div>
+            <div data-state="error" data-testid="sitter-error">
+              <p class="error" role="alert">This profile didn't load. Try again, or go back to the list.</p>
+              <button type="button" class="action" data-go="sitter/success" data-testid="sitter-retry">Try again</button>
+            </div>
+            <div data-state="success" data-testid="sitter-success">
+              <div class="detail">
+                <div>
+                  <div class="profile">
+                    <span class="avatar large" data-field="initials" aria-hidden="true"></span>
+                    <div>
+                      <h2 data-field="name"></h2>
+                      <p class="muted"><span data-field="rate"></span>, <span data-field="distance"></span></p>
+                      <p data-field="rating"></p>
+                    </div>
+                  </div>
+                  <h3>About</h3>
+                  <p data-field="about"></p>
+                </div>
+                <div>
+                  <dl class="facts">
+                    <dt>Looks after</dt><dd data-field="pets"></dd>
+                    <dt>Available</dt><dd data-field="available"></dd>
+                  </dl>
+                  <div class="actions">
+                    <button type="button" class="action" data-testid="sitter-request">Request a booking</button>
+                    <button type="button" class="secondary" data-testid="sitter-message">Message <span data-field="first"></span></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="sr-only" role="status" id="announce"></p>
+<script type="application/json" id="fixtures">
+{
+  "product": "Sit & Stay",
+  "area": "Kreuzberg, Berlin",
+  "sitters": [
+    {"name": "Mai Nguyen", "first": "Mai", "initials": "MN", "rate": "€18 an hour", "distance": "1.2 km away", "rating": "Rated 4.9 from 132 reviews", "about": "I grew up with two border collies and have looked after neighbours' dogs and cats for six years. I work from home, so your pet is never alone for more than an hour.", "pets": "Dogs up to 30 kg, cats, rabbits", "available": "Weekdays after 17:00, and weekends"},
+    {"name": "Tomás Herrera", "first": "Tomás", "initials": "TH", "rate": "€15 an hour", "distance": "2.8 km away", "rating": "Rated 4.7 from 41 reviews", "about": "Vet nurse on weekdays, so I can give medication and spot when something is off. I have a fenced garden.", "pets": "Dogs, cats, older pets", "available": "Weekends only"},
+    {"name": "Amara Okafor-Lindqvist Castellanos", "first": "Amara", "initials": "AO", "rate": "€22 an hour", "distance": "3.4 km away", "rating": "Rated 5.0 from 9 reviews", "about": "Former dog-walking business owner. Long walks in Tempelhofer Feld twice a day, with photos after each one.", "pets": "Large dogs, puppies", "available": "Every day, 08:00 to 20:00"},
+    {"name": "Jonas Weber", "first": "Jonas", "initials": "JW", "rate": "€12 an hour", "distance": "4.9 km away", "rating": "New to Sit & Stay, no reviews yet", "about": "Student living close to Görlitzer Park. Happy to feed and play with cats while you travel.", "pets": "Cats", "available": "Mornings and evenings"}
+  ]
+}
+</script>
+<script>
+  // Screens, states, frames, themes, and fidelity, one of each at a time, all kept in the deep link:
+  // #<screen>/<state>?theme=dark&frame=ios&mode=wireframe&round=2. Data comes from the fixtures, as text.
+  const fixtures = JSON.parse(document.getElementById("fixtures").textContent);
+  const root = document.documentElement;
+  const frameEl = document.getElementById("frame");
+  const workspace = document.getElementById("workspace");
+  const menu = document.getElementById("screen-menu");
+  const toggle = document.querySelector(".menu-toggle");
+  const screens = [...document.querySelectorAll("section[data-screen]")];
+  const screenIds = screens.map((s) => s.dataset.screen);
+  const names = [...document.querySelectorAll("[data-show]")].map((b) => b.dataset.show);
+  const FRAMES = { 320: ["320px", "web"], 768: ["768px", "web"], 1024: ["1024px", "web"], 1440: ["1440px", "web"], ios: ["390px", "ios"], android: ["412px", "android"] };
+  const DEFAULT_FRAME = "1024";
+  const view = { screen: "", state: "", theme: "system", frame: DEFAULT_FRAME, mode: "full", round: 1 };
+  let picked = 0;
+  let menuOpen = false;
+
+  document.querySelectorAll("[data-text]").forEach((el) => { el.textContent = fixtures[el.dataset.text] ?? ""; });
+  document.querySelectorAll("[data-list]").forEach((ul) => {
+    const all = Array.isArray(fixtures[ul.dataset.list]) ? fixtures[ul.dataset.list] : [];
+    all.slice(0, Number(ul.dataset.limit) || all.length).forEach((item, i) => {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "card"; b.dataset.testid = "sitter-card"; b.dataset.pick = String(i);
+      if (ul.dataset.itemGo) b.dataset.go = ul.dataset.itemGo;
+      const parts = [["avatar", item.initials], ["name", item.name], ["meta muted", item.rate + ", " + item.distance], ["", item.rating]];
+      b.append(...parts.map(([cls, text]) => { const s = document.createElement("span"); s.className = cls; s.textContent = text ?? ""; return s; }));
+      b.firstChild.setAttribute("aria-hidden", "true");
+      li.append(b);
+      ul.append(li);
+    });
+  });
+  function buildMenu() {
+    document.getElementById("screen-list").replaceChildren(...screens.map((s, i) => {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.type = "button"; b.dataset.go = s.dataset.screen; b.dataset.testid = "proto-screen-" + s.dataset.screen;
+      const title = document.createElement("span");
+      title.textContent = (i + 1) + ". " + s.dataset.title;
+      const id = document.createElement("code");
+      id.textContent = "#" + s.dataset.screen;
+      b.append(title, id);
+      li.append(b);
+      return li;
+    }));
+    toggle.textContent = "Screens (" + screens.length + ")";
+  }
+  function screenEl(id) { return screens.find((s) => s.dataset.screen === id); }
+  function statesOf(id) { const s = screenEl(id); return s ? [...s.children].filter((c) => c.dataset.state).map((c) => c.dataset.state) : []; }
+  function initialOf(id) { const all = statesOf(id); return all.includes(screenEl(id).dataset.initial) ? screenEl(id).dataset.initial : all[0]; }
+  function depth() { return (history.state && Number(history.state.depth)) || 0; }
+
+  // The deep link, in and out. Pure: each reads only its arguments. A key the fragment lacks falls back to the page's
+  // own query, so ?mode=wireframe, ?theme=dark, and ?round=2 still work; the fragment wins.
+  function parseLink(hash, search) {
+    const raw = String(hash || "").replace(/^#/, "");
+    const cut = raw.indexOf("?");
+    const params = new URLSearchParams(search || "");
+    new URLSearchParams(cut < 0 ? "" : raw.slice(cut + 1)).forEach((value, key) => params.set(key, value));
+    const [screen = "", state = ""] = (cut < 0 ? raw : raw.slice(0, cut)).split("/").map((part) => { try { return decodeURIComponent(part); } catch (e) { return ""; } });
+    return { screen: screen, state: state, theme: params.get("theme") || "", frame: params.get("frame") || "", mode: params.get("mode") || "", round: params.get("round") || "" };
+  }
+  function linkFor(v) {
+    const params = new URLSearchParams();
+    if (v.theme === "light" || v.theme === "dark") params.set("theme", v.theme);
+    if (v.frame && v.frame !== "1024") params.set("frame", v.frame);
+    if (v.mode === "wireframe") params.set("mode", "wireframe");
+    if (Number(v.round) > 1) params.set("round", String(v.round));
+    const query = params.toString();
+    return "#" + encodeURIComponent(v.screen) + "/" + encodeURIComponent(v.state) + (query ? "?" + query : "");
+  }
+  // A link's values, checked against this file: an unknown screen opens the first, an unknown state the screen's own.
+  function resolve(link) {
+    const screen = screenIds.includes(link.screen) ? link.screen : screenIds[0];
+    return {
+      screen: screen,
+      state: statesOf(screen).includes(link.state) ? link.state : initialOf(screen),
+      theme: link.theme === "light" || link.theme === "dark" ? link.theme : "system",
+      frame: Object.hasOwn(FRAMES, link.frame) ? link.frame : DEFAULT_FRAME,
+      mode: link.mode === "wireframe" ? "wireframe" : "full",
+      round: Math.max(1, parseInt(link.round, 10) || 1),
+    };
+  }
+  // The address follows the view: a move to another screen adds a history entry, every other switch replaces it.
+  function write(push) {
+    try {
+      const url = new URL(location.href);
+      ["theme", "frame", "mode", "round"].forEach((key) => url.searchParams.delete(key));
+      url.hash = linkFor(view);
+      if (push) history.pushState({ depth: depth() + 1 }, "", url);
+      else if (url.href !== location.href) history.replaceState(history.state, "", url);
+    } catch (e) { /* a file:// page may refuse; the view still applies */ }
+  }
+
+  function apply() {
+    const current = screenEl(view.screen);
+    screens.forEach((s) => s.classList.toggle("shown", s === current));
+    [...current.children].filter((c) => c.dataset.state).forEach((c) => c.classList.toggle("shown", c.dataset.state === view.state));
+    const have = statesOf(view.screen);
+    document.querySelectorAll("[data-show]").forEach((b) => {
+      b.disabled = !have.includes(b.dataset.show);
+      b.title = b.disabled ? "Not a state of this screen" : "";
+      b.setAttribute("aria-pressed", String(b.dataset.show === view.state));
+    });
+    if (current.dataset.item) {
+      const list = Array.isArray(fixtures[current.dataset.item]) ? fixtures[current.dataset.item] : [];
+      const item = list[picked] || list[0] || {};
+      current.querySelectorAll("[data-field]").forEach((el) => { el.textContent = item[el.dataset.field] ?? ""; });
+    }
+    const [width, platform] = FRAMES[view.frame];
+    frameEl.style.width = width;
+    frameEl.dataset.platform = platform;
+    document.querySelectorAll("[data-frame]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.frame === view.frame)));
+    if (view.theme === "system") delete root.dataset.theme; else root.dataset.theme = view.theme;
+    document.querySelectorAll("[data-theme-pick]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themePick === view.theme)));
+    root.dataset.mode = view.mode;
+    document.querySelectorAll("button[data-mode]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === view.mode)));
+    fbRound.value = String(view.round);
+    // The chrome: the title, the back affordance to the parent screen, and the tab or menu entry that is current.
+    document.getElementById("screen-title").textContent = current.dataset.title;
+    const parent = screenEl(current.dataset.parent || "");
+    const back = document.querySelector("[data-back]");
+    back.hidden = !parent;
+    if (parent) {
+      document.getElementById("back-label").textContent = parent.dataset.title;
+      back.setAttribute("aria-label", "Back to " + parent.dataset.title);
+    }
+    document.querySelectorAll(".tabs [data-go]").forEach((b) => {
+      const on = b.dataset.go === view.screen || (parent && b.dataset.go === parent.dataset.screen);
+      if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    document.querySelectorAll("#screen-list [data-go]").forEach((b) => {
+      if (b.dataset.go === view.screen) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    document.getElementById("announce").textContent = current.dataset.title + ", " + view.state.replace("-", " ");
+    menuMode();
+    if (fb.on) fbTargets();
+  }
+
+  function go(target, push, focus) {
+    const [screen, state] = String(target).split("/");
+    if (!screenIds.includes(screen)) return;
+    view.screen = screen;
+    view.state = statesOf(screen).includes(state) ? state : initialOf(screen);
+    apply();
+    write(push);
+    if (focus) document.getElementById("screen-title").focus();
+  }
+  function set(key, value) { Object.assign(view, resolve({ ...view, [key]: value })); apply(); write(false); }
+
+  // The screen menu: a sidebar beside a wide frame, a drawer on a phone frame or a narrow window.
+  const narrow = window.matchMedia("(max-width: 767px)");
+  function menuMode() {
+    const drawer = narrow.matches || view.frame === "320" || FRAMES[view.frame][1] !== "web";
+    workspace.dataset.menu = drawer ? "drawer" : "sidebar";
+    if (!drawer) menuOpen = false;
+    menu.hidden = drawer && !menuOpen;
+    toggle.setAttribute("aria-expanded", String(drawer && menuOpen));
+  }
+  function openMenu(open) {
+    menuOpen = open;
+    menuMode();
+    if (open) (menu.querySelector("[aria-current=\"page\"]") || menu.querySelector("button")).focus();
+    else toggle.focus();
+  }
+  narrow.addEventListener("change", menuMode);
+  toggle.addEventListener("click", () => openMenu(!menuOpen));
+  document.querySelector(".menu-close").addEventListener("click", () => openMenu(false));
+  // Focus that leaves the open drawer closes it, so a keyboard user never tabs on behind it.
+  menu.addEventListener("focusout", (e) => {
+    if (menuOpen && workspace.dataset.menu === "drawer" && e.relatedTarget && !menu.contains(e.relatedTarget) && e.relatedTarget !== toggle) { menuOpen = false; menuMode(); }
+  });
+
+  // One listener moves between screens: data-go anywhere, the back affordance, and the skip link.
+  document.addEventListener("click", (e) => {
+    if (menuOpen && !menu.contains(e.target) && !toggle.contains(e.target)) { menuOpen = false; menuMode(); }
+    if (e.target.closest(".skip")) { e.preventDefault(); document.getElementById("main").focus(); return; }
+    if (e.target.closest("[data-back]")) {
+      const parent = screenEl(view.screen).dataset.parent;
+      if (depth() > 0) history.back(); else if (parent) go(parent, true, true);
+      return;
+    }
+    const el = e.target.closest("[data-go]");
+    if (!el) return;
+    e.preventDefault();
+    if (el.dataset.pick) picked = Number(el.dataset.pick) || 0;
+    const fromMenu = menu.contains(el);
+    go(el.dataset.go, true, !fromMenu);
+    if (fromMenu && workspace.dataset.menu === "drawer") openMenu(false);
+  });
+  document.addEventListener("submit", (e) => e.preventDefault());
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && menuOpen) { openMenu(false); return; }
+    if (e.altKey || e.ctrlKey || e.metaKey || e.target.closest("input, textarea, select")) return;
+    const name = names[Number(e.key) - 1];
+    if (name && statesOf(view.screen).includes(name)) set("state", name);
+  });
+  document.querySelectorAll("[data-show]").forEach((b) => b.addEventListener("click", () => set("state", b.dataset.show)));
+  document.querySelectorAll("[data-frame]").forEach((b) => b.addEventListener("click", () => set("frame", b.dataset.frame)));
+  document.querySelectorAll("[data-theme-pick]").forEach((b) => b.addEventListener("click", () => set("theme", b.dataset.themePick)));
+  document.querySelectorAll("button[data-mode]").forEach((b) => b.addEventListener("click", () => set("mode", b.dataset.mode)));
+  // Back and forward, and a link typed into the address, restore the view it names. A fragment that names no screen
+  // (such as #main) leaves the view as it is.
+  function restore() {
+    const link = parseLink(location.hash, location.search);
+    if (!screenIds.includes(link.screen)) { write(false); return; }
+    Object.assign(view, resolve(link));
+    apply();
+    write(false);
+  }
+  window.addEventListener("popstate", restore);
+  window.addEventListener("hashchange", restore);
+
+  // Feedback mode: click an element in the prototype (by its data-testid), type a note, and copy the round as JSON or
+  // as a prompt. The notes live in this tab only (sessionStorage, when the browser allows it); nothing is sent anywhere.
+  const fb = { on: false, items: [] };
+  const fbKey = "aidd-feedback:" + location.pathname;
+  const fbRound = document.getElementById("feedback-round");
+  const fbTarget = document.getElementById("feedback-target");
+  const fbNote = document.getElementById("feedback-note");
+  const fbOut = document.getElementById("feedback-out");
+  try { fb.items = JSON.parse(sessionStorage.getItem(fbKey) || "[]"); } catch (e) { fb.items = []; }
+  if (!Array.isArray(fb.items)) fb.items = [];
+  function fbSave() { try { sessionStorage.setItem(fbKey, JSON.stringify(fb.items)); } catch (e) { /* the notes stay in memory */ } }
+  function fbCurrent() { return Math.max(1, Number(fbRound.value) || 1); }
+  // The elements on the screen shown now: the chrome and the current state.
+  function fbTargets() {
+    const shown = [...document.querySelectorAll("#frame [data-testid]")].filter((el) => el.getClientRects().length > 0);
+    const ids = [...new Set(shown.map((el) => el.dataset.testid))];
+    fbTarget.replaceChildren(...ids.map((id) => { const o = document.createElement("option"); o.value = id; o.textContent = id; return o; }));
+  }
+  function fbLine(it) { return "[" + it.id + "] " + (it.screen ? it.screen + "/" : "") + it.state + " " + it.testid + " (" + it.frame + ", " + it.theme + "): " + it.note; }
+  function fbRender() {
+    document.getElementById("feedback-items").replaceChildren(...fb.items.filter((it) => it.round === fbCurrent()).map((it) => {
+      const li = document.createElement("li");
+      li.textContent = fbLine(it) + " ";
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = "Remove"; b.dataset.testid = "proto-feedback-remove-" + it.id;
+      b.addEventListener("click", () => { fb.items = fb.items.filter((x) => x !== it); fbSave(); fbRender(); });
+      li.append(b);
+      return li;
+    }));
+  }
+  function fbToggle(on) {
+    fb.on = on;
+    root.dataset.feedback = on ? "on" : "off";
+    document.getElementById("feedback").hidden = !on;
+    document.querySelector("[data-feedback-toggle]").setAttribute("aria-pressed", String(on));
+    if (on) { fbTargets(); fbRender(); }
+  }
+  // In feedback mode a click in the prototype picks the element instead of pressing it.
+  frameEl.addEventListener("click", (e) => {
+    if (!fb.on) return;
+    const el = e.target.closest("[data-testid]");
+    if (!el) return;
+    e.preventDefault(); e.stopPropagation();
+    fbTarget.value = el.dataset.testid;
+    fbNote.focus();
+  }, true);
+  document.getElementById("feedback-add").addEventListener("click", () => {
+    const note = fbNote.value.trim();
+    if (!note || !fbTarget.value) return;
+    const round = fbCurrent();
+    const n = 1 + Math.max(0, ...fb.items.filter((x) => x.round === round).map((x) => Number(x.id.split("-")[1]) || 0));
+    fb.items.push({ round: round, id: "r" + round + "-" + n, screen: view.screen, state: view.state, testid: fbTarget.value, note: note,
+      frame: view.frame, theme: view.theme, link: linkFor(view) });
+    fbNote.value = "";
+    fbSave(); fbRender();
+  });
+  function fbText(kind) {
+    const round = fbCurrent();
+    const items = fb.items.filter((it) => it.round === round).map((it) => ({ id: it.id, screen: it.screen, state: it.state, testid: it.testid, note: it.note, frame: it.frame, theme: it.theme, link: it.link }));
+    const json = JSON.stringify({ round: round, items: items }, null, 2);
+    if (kind === "json") return json;
+    return "Feedback round " + round + " on the prototype \"" + document.title + "\". Save the JSON below as feedback-round-" + round +
+      ".json in the design folder. In round " + (round + 1) + ", change what each item asks, take the screenshots in rounds/" + (round + 1) +
+      "/, and write rounds/" + (round + 1) + "/changes.json naming the item ids each change answers. Each item's link opens the view it was given on.\n" +
+      items.map(fbLine).join("\n") + "\n\n" + json;
+  }
+  document.querySelectorAll("[data-feedback-copy]").forEach((b) => b.addEventListener("click", () => {
+    const text = fbText(b.dataset.feedbackCopy);
+    fbOut.value = text;
+    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => { fbOut.select(); });
+  }));
+  document.querySelector("[data-feedback-toggle]").addEventListener("click", () => fbToggle(!fb.on));
+  fbRound.addEventListener("change", () => { view.round = fbCurrent(); write(false); fbRender(); });
+
+  buildMenu();
+  Object.assign(view, resolve(parseLink(location.hash, location.search)));
+  apply();
+  write(false);
+</script>
+</body>
+</html>

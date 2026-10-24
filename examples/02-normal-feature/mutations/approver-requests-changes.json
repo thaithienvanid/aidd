@@ -1,0 +1,26 @@
+{
+  "summary": "An eligible Approver who requested changes blocks the merge even when another approved.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/reviews",
+      "value": {
+        "user": "platform-lead",
+        "state": "changes_requested",
+        "commit_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "submitted_at": "2026-09-23T09:40:00Z"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending merge_approval.changes_requested"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "summary": "The config belongs to tenant acme, and the approvals come from acme:checkout-lead: an identity qualified with the repository's own tenant is the same Approver as the bare login.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "changed_lines_exclude_paths: [\"**/package-lock.json\"]\n",
+      "new": "tenant: acme\nchanged_lines_exclude_paths: [\"**/package-lock.json\"]\n"
+    },
+    {
+      "op": "set",
+      "path": "/reviews/0/user",
+      "value": "acme:checkout-lead"
+    },
+    {
+      "op": "set",
+      "path": "/comments/0/user",
+      "value": "acme:checkout-lead"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "summary": "The block names a Spec the head commit does not hold.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/head_files/specs~1SPEC-220.md"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec.not_at_head"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "Merge-train entry",
+  "summary": "The approved feature in a GitLab merge train, behind another entry: approvals stay on the merge request head, the tests re-ran green and red on the entry's commit against the entry ahead, and its tree is exactly that head merged onto the entry ahead."
+}

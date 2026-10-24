@@ -1,0 +1,23 @@
+{
+  "summary": "The same change once its Spec declares the observe block (a window, a rollback trigger, and a command), approved as it reads now: it passes under audited.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1SPEC-220.md",
+      "old": "rollback: Revert the PR; the limiter keeps no persistent state.\n",
+      "new": "rollback: Revert the PR; the limiter keeps no persistent state.\nobserve:\n  window: \"24h\"\n  rollback_trigger: \"429 rate above 2% for 10 minutes\"\n  command: [\"make\", \"observe\"]\n"
+    },
+    {
+      "op": "set",
+      "path": "/approval_commits/5bec000000000000000000000000000000000001/spec_hash",
+      "value": "4a773460424bbf7601cb36b996469fd1"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

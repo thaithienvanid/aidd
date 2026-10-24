@@ -1,0 +1,32 @@
+{
+  "summary": "The organization's Policy allows the change but reports its own finding (no change ticket): the finding joins the decision as policy:ticket.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/policy",
+      "value": {
+        "result": "allow",
+        "detail": "",
+        "findings": [
+          {
+            "rule": "ticket",
+            "level": "fail",
+            "message": "no change ticket linked",
+            "fix": "link the ticket in the description"
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "policy:ticket"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail policy:ticket"
+    ]
+  }
+}

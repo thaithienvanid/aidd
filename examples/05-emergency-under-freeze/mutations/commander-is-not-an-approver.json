@@ -1,0 +1,27 @@
+{
+  "summary": "The incident commander must be an eligible Approver.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "  commander: \"@oncall-lead\"\n",
+      "new": "  commander: \"@carol\"\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "emergency"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "fail emergency.commander_not_approver",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "decision": "fail",
+  "failed_rules": [
+    "red_green"
+  ],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [
+    "fail red_green.passes_on_base"
+  ],
+  "title": "Bug fix without a red run",
+  "summary": "The regression test also passes on the unfixed code, so it does not prove the fix."
+}

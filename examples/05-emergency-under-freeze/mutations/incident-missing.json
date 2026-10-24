@@ -1,0 +1,27 @@
+{
+  "summary": "The emergency block names no incident: a production repair must answer a real incident, which the post-incident review links.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "  incident: INC-481\n  review_due: \"2026-09-24\"\n",
+      "new": "  review_due: \"2026-09-24\"\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "emergency"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "fail emergency.incident_missing",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

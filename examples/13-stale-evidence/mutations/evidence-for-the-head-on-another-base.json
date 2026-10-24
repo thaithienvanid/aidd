@@ -1,0 +1,26 @@
+{
+  "summary": "The evidence names the new head, but it ran against another base commit. Its red run tested code this change does not start from, so the gate waits.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/head_sha",
+      "value": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+    },
+    {
+      "op": "set",
+      "path": "/evidence/base_sha",
+      "value": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "tests"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending tests.evidence_other_base"
+    ]
+  }
+}

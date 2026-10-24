@@ -1,0 +1,21 @@
+{
+  "summary": "A folder that only starts with the scope's name (src/checkout/rate_limit_v2/) is outside it: scope matches whole path segments, not a text prefix.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/3/path",
+      "value": "src/checkout/rate_limit_v2/refund.ts"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "scope"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail scope.outside"
+    ]
+  }
+}

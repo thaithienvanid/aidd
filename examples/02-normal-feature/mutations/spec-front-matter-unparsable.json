@@ -1,0 +1,22 @@
+{
+  "summary": "A Spec whose front matter is not YAML in aidd's subset fails instead of being read as empty.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1SPEC-220.md",
+      "old": "kind: spec\n",
+      "new": "kind: [spec\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec.unparsable"
+    ]
+  }
+}

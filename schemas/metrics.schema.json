@@ -1,0 +1,1189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:metrics",
+  "title": "aidd metrics --json",
+  "description": "What `aidd metrics --json` prints: an object carrying `schema_version` for each view. The summary, `--by` (the summaries by group), `--dora` and `--autonomy` (their rows), `--guard`, `--flaky`, `--autonomy --suggest-standard-changes`, `--autopilot`, and `--roles`.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/summary"
+    },
+    {
+      "$ref": "#/$defs/grouped"
+    },
+    {
+      "$ref": "#/$defs/guard"
+    },
+    {
+      "$ref": "#/$defs/flaky"
+    },
+    {
+      "$ref": "#/$defs/proposals"
+    },
+    {
+      "$ref": "#/$defs/dora"
+    },
+    {
+      "$ref": "#/$defs/autonomy"
+    },
+    {
+      "$ref": "#/$defs/runs"
+    },
+    {
+      "$ref": "#/$defs/roles"
+    }
+  ],
+  "$defs": {
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "events",
+        "changes",
+        "final_decisions",
+        "routes",
+        "first_pass_tests_rate",
+        "route_corrections",
+        "top_failed_rules",
+        "median_changed_lines",
+        "ai_assisted_share",
+        "raised_to_major",
+        "median_wait_minutes",
+        "wait_above_target",
+        "median_hours_to_pass",
+        "median_hours_to_first_approval",
+        "first_pass_share",
+        "spec_reworked_after_spec_approval",
+        "plan_adherence_share",
+        "open_waiting",
+        "open_waiting_by_rule",
+        "throughput_per_week",
+        "advisory_would_block_share",
+        "first_feedback_minutes",
+        "approval_wait_minutes",
+        "flow_efficiency",
+        "spec_rework_rate",
+        "loop_speed"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+        },
+        "events": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The gate events read, after `--since`."
+        },
+        "changes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The distinct changes (pull or merge requests) the events are about."
+        },
+        "final_decisions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Changes by the decision of their last event."
+        },
+        "routes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Changes by the route of their last event."
+        },
+        "first_pass_tests_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Share of heads whose tests passed on the first evaluation that saw them."
+        },
+        "route_corrections": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Changes the gate failed at least once because the declared route was below the computed one."
+        },
+        "top_failed_rules": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            }
+          },
+          "description": "Up to eight [rule, count] pairs, most frequent first."
+        },
+        "median_changed_lines": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "The median changed lines of each change's last event; null with no change."
+        },
+        "ai_assisted_share": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "The share of changes whose last event names an agent in `assisted_by`, from 0 to 1; null with no change."
+        },
+        "raised_to_major": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Changes the gate raised to major from the route the author declared (their last event carries `declared_route`)."
+        },
+        "emergency_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "The share of changes whose last decision was on the emergency route; null with no changes."
+        },
+        "flaky_runs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Green test results that passed only on a retry (``tests` retries`): the gate counted them green."
+        },
+        "median_wait_minutes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Median minutes each pending rule (approval or check) held a change, by rule id."
+        },
+        "wait_above_target": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "The rules whose median wait is above --target-wait."
+        },
+        "median_hours_to_pass": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "The median hours from a change's first event to its first passing one; null when none passed."
+        },
+        "median_hours_to_first_approval": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "The median hours from a change's first event to the first one that counts an approval; null with none."
+        },
+        "first_pass_share": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Share of passed changes that passed on the first head the tests ran on."
+        },
+        "spec_reworked_after_spec_approval": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Changes whose Spec hash changed after Spec approval held."
+        },
+        "plan_adherence_share": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Of the changes whose last event names a Spec, the share with no Task that changed nothing in its scope; null with none."
+        },
+        "open_waiting": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Changes whose last decision is pending: the human queue."
+        },
+        "open_waiting_by_rule": {
+          "type": "object",
+          "description": "Those waiting changes, counted by each rule they wait on.",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "throughput_per_week": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Passing changes per week over the span of the events (at least one day); null with no event time."
+        },
+        "advisory_would_block_share": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Of the changes whose last event ran in advisory mode, the share the gate would have failed; null with none."
+        },
+        "first_feedback_minutes": {
+          "$ref": "#/$defs/spread",
+          "description": "Minutes from a head's push to the first gate decision holding its test results."
+        },
+        "approval_wait_minutes": {
+          "$ref": "#/$defs/approval_wait"
+        },
+        "flow_efficiency": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Active minutes over lead minutes, over the changes that passed."
+        },
+        "spec_rework_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Share of approved Specs reworked after Spec approval."
+        },
+        "fast_major_merge_approvals": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "within_minutes",
+            "count",
+            "of",
+            "changes"
+          ],
+          "description": "The rubber-stamp indicator: of the major changes whose Merge approval wait ended, how many ended within `within_minutes` of the gate first asking for it, and which (at most 20). A signal for a retrospective, never a gate rule; null when no major change's wait ended in the events.",
+          "properties": {
+            "within_minutes": {
+              "type": "number",
+              "minimum": 0,
+              "description": "The threshold: a Merge approval wait shorter than this many minutes counts as fast."
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Major changes whose last Merge approval wait was shorter than the threshold."
+            },
+            "of": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Major changes with a measured Merge approval wait."
+            },
+            "changes": {
+              "type": "array",
+              "description": "The fast ones' change ids, sorted, at most 20.",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20
+            }
+          }
+        },
+        "loop_speed": {
+          "type": "array",
+          "description": "Each loop-speed metric, judged against its `targets` key and paired with a quality measure.",
+          "items": {
+            "$ref": "#/$defs/loop_row"
+          }
+        },
+        "suite_runs": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["heads", "runs", "full_runs", "per_head"],
+          "description": "Duplicate work: the `aidd test` runs this machine recorded (`test` lines in .git/aidd/events.jsonl), per head. A full run is one that ran red on base and was not partial; one per head and independent reader is the aim. Null when no test line is read.",
+          "properties": {
+            "heads": {"type": "integer", "minimum": 0, "description": "The heads with at least one recorded run."},
+            "runs": {"type": "integer", "minimum": 0, "description": "Every recorded run."},
+            "full_runs": {"type": "integer", "minimum": 0, "description": "Runs that ran red on base and were not partial."},
+            "per_head": {"$ref": "#/$defs/spread", "description": "Full runs per head: the median, the 90th percentile, and the heads counted."}
+          }
+        },
+        "handoffs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["notes", "broken"],
+          "description": "Broken handoffs, with --specs: the handoff notes in the Specs, and those a reader cannot use (not YAML, a missing key, a `next` that is no role, or an unknown status; `aidd validate` names each).",
+          "properties": {
+            "notes": {"type": "integer", "minimum": 0, "description": "Every handoff note in the Specs."},
+            "broken": {"type": "integer", "minimum": 0, "description": "Notes a reader cannot use."}
+          }
+        },
+        "released_specs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "With --specs."
+        },
+        "change_fail_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "With --specs."
+        },
+        "recovery_days": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "With --specs."
+        },
+        "cost": {
+          "$ref": "#/$defs/cost"
+        }
+      }
+    },
+    "grouped": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "by",
+        "groups"
+      ],
+      "description": "`aidd metrics --by --json`: one summary per group.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape."
+        },
+        "by": {
+          "enum": [
+            "repo",
+            "org",
+            "team",
+            "profile",
+            "route",
+            "author"
+          ],
+          "description": "What the groups are by."
+        },
+        "groups": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/summary"
+          },
+          "description": "Each group's summary, by the group's name."
+        }
+      }
+    },
+    "guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "denials",
+        "by_reason",
+        "by_role",
+        "by_tool"
+      ],
+      "description": "`aidd metrics --guard --json`: the guard's denials.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+        },
+        "denials": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Denials in the guard log."
+        },
+        "by_reason": {
+          "type": "object",
+          "description": "Denials by reason code, most first.",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "by_role": {
+          "type": "object",
+          "description": "Denials by aidd-team role, most first; `session` when no role was active.",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "by_tool": {
+          "type": "object",
+          "description": "Denials by the tool the agent called, most first.",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "flaky": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "limit",
+        "tests"
+      ],
+      "description": "`aidd metrics --flaky --json`: per test command, how often it passed on a re-run after failing on the same head, worst first.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+        },
+        "limit": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "The share of heads above which a test is over the limit: fix it or quarantine it."
+        },
+        "tests": {
+          "type": "array",
+          "description": "One row per test command, worst first: by rate, then by count, then by name.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "heads",
+              "passed_on_rerun",
+              "rate",
+              "over_limit"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The test command's name."
+              },
+              "heads": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "The heads it ran on. A head counts once, however many gate events judged it."
+              },
+              "passed_on_rerun": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "The heads where it passed on a re-run after failing: the runner's retry, or a later gate event on the same head."
+              },
+              "rate": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "`passed_on_rerun` over `heads`, rounded to three places."
+              },
+              "over_limit": {
+                "type": "boolean",
+                "description": "True when the rate is over `limit`."
+              }
+            }
+          }
+        }
+      }
+    },
+    "proposals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "proposals"
+      ],
+      "description": "`aidd metrics --autonomy --suggest-standard-changes --json`.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+        },
+        "proposals": {
+          "type": "array",
+          "description": "One `standard_changes` entry to start from per agent and change type at the candidate-standard-change stage. A person completes and merges it; it is never applied.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "agent",
+              "type",
+              "evidence",
+              "yaml"
+            ],
+            "properties": {
+              "agent": {
+                "type": "string",
+                "description": "The agent, as `assisted_by` names it."
+              },
+              "type": {
+                "type": "string",
+                "description": "The change type, such as `deps` or `docs`."
+              },
+              "evidence": {
+                "type": "object",
+                "description": "The counts that put the agent at that stage for this type.",
+                "additionalProperties": false,
+                "required": [
+                  "changes",
+                  "passed",
+                  "first_pass_share",
+                  "failed",
+                  "reworked"
+                ],
+                "properties": {
+                  "changes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Changes the agent made of this type."
+                  },
+                  "passed": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Of those, the ones that passed."
+                  },
+                  "first_pass_share": {
+                    "type": "number",
+                    "description": "Of the passed ones, the share that passed on the first head the tests ran on."
+                  },
+                  "failed": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Changes whose last decision was fail."
+                  },
+                  "reworked": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Changes whose Spec changed after Spec approval."
+                  }
+                }
+              },
+              "yaml": {
+                "type": "string",
+                "description": "A `standard_changes` entry, as YAML, for a person to fill and merge into the config."
+              }
+            }
+          }
+        }
+      }
+    },
+    "dora_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "name",
+        "value",
+        "target",
+        "met",
+        "better",
+        "measures"
+      ],
+      "properties": {
+        "metric": {
+          "type": "string",
+          "description": "The metric's key, and its `targets` key.",
+          "enum": [
+            "deployments_per_week",
+            "lead_time_hours",
+            "change_fail_rate",
+            "recovery_days",
+            "rework_rate"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "The metric's name for people."
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "The measured value; null when the events cannot measure it."
+        },
+        "target": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "The `targets` value for this metric; null when none is set."
+        },
+        "met": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Null when there is no value or no target."
+        },
+        "better": {
+          "enum": [
+            "higher",
+            "lower"
+          ],
+          "description": "Which direction is better, which decides whether the target is met."
+        },
+        "measures": {
+          "type": "string",
+          "description": "What aidd actually measures, said plainly."
+        }
+      }
+    },
+    "autonomy_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent",
+        "type",
+        "changes",
+        "passed",
+        "first_pass",
+        "failed",
+        "reworked",
+        "first_pass_share",
+        "stage"
+      ],
+      "properties": {
+        "agent": {
+          "type": "string",
+          "description": "The agent, as `assisted_by` names it."
+        },
+        "type": {
+          "type": "string",
+          "description": "The change type; `unknown` when the event has none."
+        },
+        "changes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Changes the agent made of this type."
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Of those, the ones that passed."
+        },
+        "first_pass": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Of the passed ones, those that passed on the first head the tests ran on."
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Changes whose last decision was fail."
+        },
+        "reworked": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Changes whose Spec changed after Spec approval."
+        },
+        "first_pass_share": {
+          "type": "number",
+          "description": "`first_pass` over `passed`, or 0 with none passed."
+        },
+        "stage": {
+          "enum": [
+            "review every change",
+            "review the trade-offs",
+            "candidate standard change"
+          ],
+          "description": "The autonomy stage the evidence supports, for a person to act on: a suggestion, never a setting."
+        }
+      }
+    },
+    "loop_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "name",
+        "value",
+        "target",
+        "met",
+        "better",
+        "measures",
+        "paired_with"
+      ],
+      "properties": {
+        "metric": {
+          "type": "string",
+          "description": "The metric's key, and its `targets` key.",
+          "enum": [
+            "first_feedback_minutes",
+            "approval_wait_p90_minutes",
+            "flow_efficiency"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "The metric's name for people."
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "The measured value; null when the events cannot measure it."
+        },
+        "target": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "The `targets` value for this metric; null when none is set."
+        },
+        "met": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Null when there is no value or no target."
+        },
+        "better": {
+          "enum": [
+            "higher",
+            "lower"
+          ],
+          "description": "Which direction is better, which decides whether the target is met."
+        },
+        "measures": {
+          "type": "string",
+          "description": "What aidd actually measures, said plainly."
+        },
+        "paired_with": {
+          "$ref": "#/$defs/paired"
+        }
+      }
+    },
+    "paired": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "name",
+        "value"
+      ],
+      "properties": {
+        "metric": {
+          "type": "string",
+          "description": "The quality metric's key in the summary."
+        },
+        "name": {
+          "type": "string",
+          "description": "Its name for people."
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Its value; null when the events cannot measure it."
+        }
+      },
+      "description": "The quality metric shown beside a speed or cost metric, so neither improves by degrading the other."
+    },
+    "spread": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "p50",
+        "p90",
+        "samples"
+      ],
+      "properties": {
+        "p50": {
+          "type": "number",
+          "description": "The median."
+        },
+        "p90": {
+          "type": "number",
+          "description": "The nearest-rank 90th percentile."
+        },
+        "samples": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How many values were measured."
+        }
+      },
+      "description": "The median, the nearest-rank 90th percentile, and the number of samples; null with no sample."
+    },
+    "approval_wait": {
+      "type": "object",
+      "description": "Per approval (Spec approval, Merge approval, specialist approval), by rule id: minutes it stayed pending.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "p50",
+          "p90",
+          "samples"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The approval's name for people, such as Merge approval."
+          },
+          "p50": {
+            "type": "number",
+            "description": "The median wait, in minutes."
+          },
+          "p90": {
+            "type": "number",
+            "description": "The nearest-rank 90th percentile wait, in minutes."
+          },
+          "samples": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "How many waits were measured."
+          }
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entries",
+        "joined_by",
+        "currencies",
+        "unattributed",
+        "by_agent",
+        "met",
+        "cap",
+        "over_cap",
+        "paired_with",
+        "display_only"
+      ],
+      "description": "Cost per change from a host-exported cost log (`--cost`). Display only: never a gate rule, never pauses work, never sets the exit code.",
+      "properties": {
+        "entries": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Lines read from the cost log."
+        },
+        "joined_by": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Cost log entries by how they joined a change: spec, sha, branch, or none."
+        },
+        "currencies": {
+          "type": "object",
+          "description": "Per currency: aidd converts nothing.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "total",
+              "changes",
+              "per_change",
+              "median_per_change"
+            ],
+            "properties": {
+              "total": {
+                "type": "number",
+                "description": "The total cost attributed to changes, in this currency."
+              },
+              "changes": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Changes with a cost in this currency."
+              },
+              "per_change": {
+                "type": "number",
+                "description": "The mean cost per change, in this currency."
+              },
+              "median_per_change": {
+                "type": "number",
+                "description": "The median cost per change, in this currency."
+              }
+            }
+          }
+        },
+        "unattributed": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Cost of entries that joined no change, per currency."
+        },
+        "by_agent": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "description": "Cost per agent (the cost log's `agent`), per currency."
+        },
+        "met": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Whether no change costs more than `targets.max_cost_per_change` in its currency; null when none is set."
+        },
+        "cap": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "amount",
+            "currency"
+          ],
+          "properties": {
+            "amount": {
+              "type": "number",
+              "description": "The most one change should cost."
+            },
+            "currency": {
+              "type": "string",
+              "description": "The cap's currency; only entries in it count toward the cap."
+            }
+          },
+          "description": "`targets.max_cost_per_change` from the config; null when none is set."
+        },
+        "over_cap": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "change",
+              "amount",
+              "currency"
+            ],
+            "properties": {
+              "change": {
+                "type": "string",
+                "description": "The change id."
+              },
+              "amount": {
+                "type": "number",
+                "description": "Its cost in the cap's currency."
+              },
+              "currency": {
+                "type": "string",
+                "description": "The cap's currency."
+              }
+            }
+          },
+          "description": "Each change whose cost in the cap's currency is over the cap: a warning, never the exit code."
+        },
+        "paired_with": {
+          "$ref": "#/$defs/paired"
+        },
+        "display_only": {
+          "const": true,
+          "description": "Always true: cost never affects aidd/gate, never pauses work, and never sets the exit code."
+        }
+      }
+    },
+    "runs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "runs",
+        "changes",
+        "human_decisions",
+        "human_decisions_per_change",
+        "decision_wait_minutes",
+        "agent_steps",
+        "agent_steps_per_decision",
+        "rework",
+        "cost_per_change",
+        "guard_denials_during_runs",
+        "stops"
+      ],
+      "description": "`aidd metrics --autopilot`: the autopilot runs' measures, from the run events and the guard's log.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+        },
+        "runs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The runs (sessions) the events record."
+        },
+        "changes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The changes the runs worked on: the Spec a line names, else the run's work."
+        },
+        "human_decisions": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The times a run waited on a person, or was blocked until one acted."
+        },
+        "human_decisions_per_change": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Human decisions divided by changes; null with no change."
+        },
+        "decision_wait_minutes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/spread"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "From each decision to the next event of its change: how long humans kept the run waiting."
+        },
+        "agent_steps": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The steps the runs noted."
+        },
+        "agent_steps_per_decision": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Agent steps divided by human decisions; null with no decision."
+        },
+        "rework": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Steps that returned a change to Implement (`spec.rework`)."
+        },
+        "cost_per_change": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0
+          },
+          "description": "The mean recorded cost per change that has one, by currency; empty when no note records a cost."
+        },
+        "guard_denials_during_runs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The guard's denials whose time falls inside a run's first and last event."
+        },
+        "stops": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "How the runs ended, by reason."
+        }
+      }
+    },
+    "dora": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "rows"
+      ],
+      "description": "`aidd metrics --dora --json`: the five DORA software delivery metrics against the `targets`.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape."
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dora_row"
+          },
+          "description": "One row per metric."
+        }
+      }
+    },
+    "autonomy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "rows"
+      ],
+      "description": "`aidd metrics --autonomy --json`: per agent and change type, how its changes fared and the stage of autonomy the evidence supports.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape."
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/autonomy_row"
+          },
+          "description": "One row per agent and change type."
+        }
+      }
+    },
+    "roles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "min_changes", "rows", "reverts", "unjoined_reverts", "display_only"],
+      "description": "`aidd metrics --roles --json`: one row per aidd-team role, from the gate events, the Specs, the guard's log, the trunk's reverts, and a role eval record file; never the autopilot journal or a handoff note. Display only: never put a role's number into its prompt.",
+      "properties": {
+        "schema_version": {"const": "1", "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."},
+        "min_changes": {"type": "integer", "minimum": 1, "description": "Under this many changes, a row is too few to judge."},
+        "rows": {"type": "array", "items": {"$ref": "#/$defs/role_row"}, "description": "One row per role, in schemas/roles.json order."},
+        "reverts": {"type": "integer", "minimum": 0, "description": "The revert commits on the trunk (\"This reverts commit <sha>\")."},
+        "unjoined_reverts": {"type": "integer", "minimum": 0, "description": "Of those, the ones that joined no Spec."},
+        "display_only": {"const": true, "description": "Always true: the rows decide no gate and never set the exit code."}
+      }
+    },
+    "role_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "changes",
+        "specs",
+        "first_pass_share",
+        "failing_heads_per_change",
+        "tasks_out_of_retries",
+        "revisions",
+        "rolled_back",
+        "reverts",
+        "guard_denials",
+        "eval",
+        "too_few_to_judge"
+      ],
+      "properties": {
+        "role": {"type": "string", "description": "The aidd-team role, as schemas/roles.json names it."},
+        "changes": {"type": "integer", "minimum": 0, "description": "n: the changes whose Spec has a Task with `assignee: agent:<role>`. Each such role counts the change in full."},
+        "specs": {"type": "integer", "minimum": 0, "description": "The Specs with a Task for the role."},
+        "first_pass_share": {"type": ["number", "null"], "description": "Of the role's changes that passed, the share that passed on the first head the tests ran on; null with none passed."},
+        "failing_heads_per_change": {"type": ["number", "null"], "description": "The heads whose tests failed, per change of the role; null with no change."},
+        "tasks_out_of_retries": {"type": "integer", "minimum": 0, "description": "The role's own Tasks that used their retries (`retry_count` 3)."},
+        "revisions": {"type": "integer", "minimum": 0, "description": "The reopenings (`revisions`) of the role's Specs after Spec approval."},
+        "rolled_back": {"type": "integer", "minimum": 0, "description": "The role's Specs whose outcome was a rollback or a failed observe window."},
+        "reverts": {"type": "integer", "minimum": 0, "description": "The trunk's revert commits joined to the role's Specs."},
+        "guard_denials": {"type": "integer", "minimum": 0, "description": "The guard's denials of the role, from guard.jsonl."},
+        "eval": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["pass_at_1", "lift", "date", "model", "scenarios"],
+          "description": "The role's latest fresh role eval (`aidd eval roles --record`), or null with none: a stale run never counts.",
+          "properties": {
+            "pass_at_1": {"type": "number", "minimum": 0, "maximum": 1, "description": "The mean pass@1 of the role's scenarios in that run."},
+            "lift": {"type": ["number", "null"], "description": "The mean pass@1 over the control run's, for the role's scenarios; null when `--without-aidd` was not given."},
+            "date": {"type": "string", "description": "When the run was recorded."},
+            "model": {"type": ["string", "null"], "description": "The model the run recorded (--model-label), or null."},
+            "scenarios": {"type": "integer", "minimum": 1, "description": "The role's scenarios in that run."}
+          }
+        },
+        "too_few_to_judge": {"type": "boolean", "description": "True under `min_changes` changes: read the row as too few to judge."}
+      }
+    }
+  }
+}

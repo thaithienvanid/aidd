@@ -1,0 +1,25 @@
+# aidd: relays review events to aidd-gate through workflow_run. It has no
+# permissions and runs nothing from the PR; aidd-gate re-evaluates with the
+# trusted default-branch workflow.
+name: aidd-relay
+
+on:
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+
+permissions: {}
+
+# Reviews on one pull request relay one at a time; only the newest queued relay runs, and the gate reads every
+# review when it runs.
+concurrency:
+  group: aidd-relay-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          PR: ${{ github.event.pull_request.number }}
+        run: echo "review changed on PR $PR; aidd-gate re-evaluates"

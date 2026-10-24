@@ -1,0 +1,26 @@
+{
+  "summary": "The goal also changes search code that no Spec of the goal scopes.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "src/search/index.py",
+        "previous_path": null,
+        "additions": 5,
+        "deletions": 0
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "scope"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail scope.outside"
+    ]
+  }
+}

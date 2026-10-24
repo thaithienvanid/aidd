@@ -1,0 +1,3 @@
+# The release SBOM generator (CycloneDX). Regenerate sbom.txt with:
+#   cd .github/requirements && uv pip compile --universal --generate-hashes --python-version 3.11 sbom.in -o sbom.txt
+cyclonedx-bom==7.5.0

@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "Major permission change",
+  "summary": "An IAM change: major by rule and by type, so it needs the security pool's approval and an observe block."
+}

@@ -1,0 +1,21 @@
+{
+  "summary": "Neither the base branch nor the change has a config, so the gate fails closed.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/base_config",
+      "value": null
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "config"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail config.missing"
+    ]
+  }
+}

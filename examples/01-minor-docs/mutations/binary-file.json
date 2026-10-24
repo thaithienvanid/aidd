@@ -1,0 +1,21 @@
+{
+  "summary": "A binary file is never minor: a line budget cannot measure it.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/binary",
+      "value": true
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

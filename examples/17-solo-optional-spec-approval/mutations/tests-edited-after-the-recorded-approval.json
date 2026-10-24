@@ -1,0 +1,21 @@
+{
+  "summary": "The recorded Spec approval was of the Spec and its tests as they read before an edit: the approval that was optional still binds them, so the change fails instead of waiting.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/approval_commits/5bec000000000000000000000000000000000001/spec_hash",
+      "value": "0123456789abcdef0123456789abcdef"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec_approval"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec_approval.voided"
+    ]
+  }
+}

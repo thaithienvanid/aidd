@@ -1,0 +1,27 @@
+{
+  "summary": "A solo config with no owners.approvers fails: without a pool, any account could approve.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "  approvers: [van]\ntests:\n",
+      "new": "tests:\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "config"
+    ],
+    "pending_rules": [
+      "merge_approval",
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "fail config.no_approvers",
+      "pending merge_approval.missing",
+      "pending spec_approval.missing"
+    ]
+  }
+}

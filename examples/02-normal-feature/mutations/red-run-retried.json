@@ -1,0 +1,32 @@
+{
+  "summary": "The red run on the base commit was retried until it failed: red runs once, so a flaky test cannot stand in for proof of new behavior.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/results/2/attempts",
+      "value": [
+        {
+          "exit": 0,
+          "status": "passed",
+          "log": "logs/red-rate-limit.log"
+        },
+        {
+          "exit": 1,
+          "status": "failed",
+          "log": "logs/red-rate-limit.attempt-2.log"
+        }
+      ]
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "red_green"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail red_green.red_retried"
+    ]
+  }
+}

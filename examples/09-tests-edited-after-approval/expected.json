@@ -1,0 +1,13 @@
+{
+  "decision": "pending",
+  "failed_rules": [],
+  "pending_rules": [
+    "spec_approval"
+  ],
+  "warn_rules": [],
+  "findings": [
+    "pending spec_approval.missing"
+  ],
+  "title": "Tests edited after approval",
+  "summary": "The test file changed after the commit the Approver approved, so the approval no longer counts."
+}

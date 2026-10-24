@@ -1,0 +1,39 @@
+{
+  "summary": "The evidence shows a retry the config never allowed (retries defaults to 0): a runner that retries until green proves nothing.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/results/0/attempts",
+      "value": [
+        {
+          "exit": 1,
+          "status": "failed",
+          "duration_seconds": 3.2,
+          "log": "logs/green-unit.log"
+        },
+        {
+          "exit": 0,
+          "status": "passed",
+          "duration_seconds": 3.1,
+          "log": "logs/green-unit.attempt-2.log"
+        }
+      ]
+    },
+    {
+      "op": "set",
+      "path": "/evidence/results/0/flaky",
+      "value": true
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail tests.retries_exceeded"
+    ]
+  }
+}

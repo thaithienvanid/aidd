@@ -1,0 +1,28 @@
+{
+  "summary": "Green results from `aidd test` in a tree with uncommitted changes are no evidence for the head commit, so the gate waits for a run in a clean tree.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/dirty_tree",
+      "value": true
+    },
+    {
+      "op": "set",
+      "path": "/evidence/dirty_paths",
+      "value": [
+        "app/discount.py"
+      ]
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "tests"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending tests.dirty_tree"
+    ]
+  }
+}

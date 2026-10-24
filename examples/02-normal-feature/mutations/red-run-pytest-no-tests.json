@@ -1,0 +1,21 @@
+{
+  "summary": "The red run exited 5: pytest collected no tests, so no test failed and nothing proves new behavior. pytest's 3 and 4 (internal error, usage error) are no proof either; its 2, a collection error such as a missing module, is the usual first red and counts.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/results/2/exit",
+      "value": 5
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "red_green"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail red_green.red_not_assertion"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "summary": "Evidence from another base does not count.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/base_sha",
+      "value": "cccccccccccccccccccccccccccccccccccccccc"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "tests"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending tests.evidence_other_base"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "summary": "A change from an explore branch never merges as it is: the guard held no edit there.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/head_ref",
+      "value": "explore/setup-guide"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "explore"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail explore.branch"
+    ]
+  }
+}

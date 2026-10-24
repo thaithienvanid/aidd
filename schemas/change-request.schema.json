@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:change-request",
+  "title": "Change Request block",
+  "description": "The declared part of a Change Request: at most one ```yaml aidd fenced block in the PR/MR description. A change needs one only to raise its route, declare a risk dimension or a scope, claim a standard change, carry an emergency, or name its Specs when the diff carries several. With none, the gate derives the declaration from the diff and its commits. The gate derives everything else from the platform and never trusts this block for evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "spec": {
+      "$ref": "urn:aidd:1:common#/$defs/repo_path",
+      "description": "Repo path of the Spec. Required on normal and major. When set, the Spec supplies every other field."
+    },
+    "specs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/repo_path"
+      },
+      "description": "A goal's change, which carries one or more Specs (a goal branch landing on the default branch): the repo path of each. The gate judges each Spec as it judges one, against the whole diff, and one Merge approval of the head covers them all. Instead of `spec`."
+    },
+    "trace_id": {
+      "$ref": "urn:aidd:1:common#/$defs/trace_id",
+      "description": "Copy of the Spec trace_id. Child changes in other repos use the same value."
+    },
+    "route": {
+      "allOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/route"
+        },
+        {
+          "enum": [
+            "minor",
+            "standard",
+            "emergency"
+          ]
+        }
+      ],
+      "description": "Inline only: minor, standard, or emergency. Normal and major need a Spec."
+    },
+    "type": {
+      "$ref": "urn:aidd:1:common#/$defs/type",
+      "description": "Default chore."
+    },
+    "confidence": {
+      "$ref": "urn:aidd:1:common#/$defs/confidence",
+      "description": "Default high."
+    },
+    "risk": {
+      "$ref": "urn:aidd:1:common#/$defs/risk",
+      "description": "Inline blast radius. Default: no dimensions, reversible. The gate fails when the paths imply a dimension the block omits."
+    },
+    "scope": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/glob"
+      },
+      "minItems": 1,
+      "description": "Inline scope: globs the diff may change. Required on emergency. On minor it defaults to the changed paths and is recorded as undeclared."
+    },
+    "rollback": {
+      "type": "string",
+      "minLength": 1,
+      "description": "How to undo. Default: revert the change."
+    },
+    "residual_risk": {
+      "type": "string",
+      "description": "What stays true after release."
+    },
+    "assisted_by": {
+      "$ref": "urn:aidd:1:common#/$defs/assisted_by",
+      "description": "`harness/model` for each AI agent that wrote code or tests; empty when only humans did. Default: the agents the commits' `Assisted-by:` trailers name, else their agent co-authors."
+    },
+    "tests": {
+      "$ref": "urn:aidd:1:common#/$defs/tests",
+      "description": "Inline tests, such as smoke tests on an emergency. They add to the repository suite, never replace it."
+    },
+    "emergency": {
+      "$ref": "urn:aidd:1:common#/$defs/emergency",
+      "description": "Required when route is emergency."
+    },
+    "backfill": {
+      "$ref": "urn:aidd:1:common#/$defs/repo_path",
+      "description": "Emergency only: the repo path of the backfill Spec, committed as a stub with the repair (`aidd new spec <ID> --title \"<incident>\" --route emergency`). `aidd validate` fails once its review_due passes without outcome.learn_ref."
+    },
+    "standard_change": {
+      "type": "string",
+      "description": "Name of the config standard_changes entry this change claims."
+    }
+  },
+  "not": {
+    "required": [
+      "spec",
+      "specs"
+    ]
+  },
+  "allOf": [
+    {
+      "if": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "spec"
+              ]
+            },
+            {
+              "required": [
+                "specs"
+              ]
+            }
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "route"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "route"
+        ],
+        "properties": {
+          "route": {
+            "const": "emergency"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "spec"
+              ]
+            },
+            {
+              "required": [
+                "specs"
+              ]
+            }
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "emergency",
+          "backfill",
+          "scope"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "route"
+        ],
+        "properties": {
+          "route": {
+            "const": "standard"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "spec"
+              ]
+            },
+            {
+              "required": [
+                "specs"
+              ]
+            }
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "standard_change"
+        ]
+      }
+    }
+  ]
+}

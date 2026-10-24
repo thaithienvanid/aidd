@@ -1,0 +1,21 @@
+{
+  "summary": "An entry built on another queue entry fails unless the queue merges a group only when every entry passed.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/merge_queue/stacked",
+      "value": true
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "merge_queue"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail merge_queue.stacked_unverified"
+    ]
+  }
+}

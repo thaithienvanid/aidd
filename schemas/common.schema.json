@@ -1,0 +1,644 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:common",
+  "title": "AIDD common definitions",
+  "description": "Shared vocabulary for every AIDD object. Tokens are snake_case and English.",
+  "$defs": {
+    "aidd_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$",
+      "description": "The aidd release this record conforms to; the method and the toolkit share one version."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$",
+      "description": "Stable key."
+    },
+    "identity": {
+      "type": "string",
+      "pattern": "^\\S+$",
+      "description": "`@user`, `@org/team`, `agent:<name>`, `email:<address>`, or a platform login; any of them may be qualified with a tenant as `<tenant>:<identity>`."
+    },
+    "tenant": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+      "description": "A tenant id: the company, or an agency's client, that a repository and its approvers belong to. Lowercase letters, digits, and hyphens, 2 to 63 characters."
+    },
+    "glob": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$",
+      "description": "Repo-relative path glob. `*` stays inside one segment, `**` spans segments, a trailing `/` matches a directory."
+    },
+    "command": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Command vector, one argument per item. Never a shell string."
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12][0-9]|3[01])|(?:0[469]|11)-(?:0[1-9]|[12][0-9]|30)|02-(?:0[1-9]|1[0-9]|2[0-9]))$",
+      "format": "date",
+      "description": "Calendar date, YYYY-MM-DD. The pattern rejects an impossible month or day (2026-13-01, 2026-04-31, 2026-02-30) with any validator; February 29 of a year that is not a leap year passes the pattern and fails only `format: date`, which aidd asserts but a stock validator may treat as an annotation."
+    },
+    "route": {
+      "enum": [
+        "standard",
+        "minor",
+        "normal",
+        "major",
+        "emergency"
+      ],
+      "description": "How much control a change gets. ITIL 4 has three change types (standard, normal, emergency); minor and major split normal by impact.",
+      "x-meanings": {
+        "standard": "A pre-approved change class from config standard_changes, such as a bot's dependency patch. Merges on green tests with no human approval. Never touches protected paths.",
+        "minor": "Small, reversible, one Task, no risk dimension, within the minor route's changed-line limit. No Spec file needed; one Merge approval.",
+        "normal": "Everything that is not minor, standard, major, or emergency. Spec, Spec approval, SHA-bound tests with red-then-green, one Merge approval.",
+        "major": "Touches a protected path, data, security, privacy, money, or compliance, or cannot be reverted. Normal plus stricter profile gates, an observe block unless only a protected path made it major, and, from the team profile up, a specialist approval. Computed by the gate, never guessed.",
+        "emergency": "Production is broken now and this change is the repair. Allowed under a freeze. Smoke tests still run; the Spec and the review follow by review_due."
+      }
+    },
+    "lane": {
+      "enum": [
+        "fast",
+        "spec",
+        "emergency"
+      ],
+      "description": "The steps a route runs. Derived from the route: fast for standard and minor, spec for normal and major, emergency for emergency.",
+      "x-meanings": {
+        "fast": "The default: Implement ⟲ Verify -> Review -> Merge approval -> Publish -> Roll out for standard (no human approval) and minor (one Merge approval).",
+        "spec": "Specify -> Spec approval -> Implement ⟲ Verify -> Review -> Merge approval -> Publish -> Roll out for normal and major changes, after an optional Plan.",
+        "emergency": "Production repair: smoke tests and commander approval to land and publish, review and Spec follow."
+      }
+    },
+    "type": {
+      "enum": [
+        "feat",
+        "fix",
+        "refactor",
+        "perf",
+        "docs",
+        "test",
+        "build",
+        "ci",
+        "chore",
+        "deps",
+        "infra",
+        "data",
+        "security",
+        "compliance"
+      ],
+      "description": "What kind of change this is, in Conventional Commits vocabulary. `data`, `security`, and `compliance` are always major.",
+      "x-meanings": {
+        "feat": "New or changed behavior someone can see. Needs a new-behavior test on normal and major.",
+        "fix": "Restores intended behavior. Needs a test that fails before the fix (red) and passes after (green).",
+        "refactor": "Structure changes, behavior does not. Existing tests must stay green.",
+        "perf": "Same behavior, different cost. Acceptance is a threshold.",
+        "docs": "Documentation, content, or generated reference only.",
+        "test": "Tests only; no behavior changes.",
+        "build": "Build system, packaging, or developer tooling.",
+        "ci": "Continuous integration or delivery pipelines and agent configuration.",
+        "chore": "Housekeeping that changes no behavior: formatting, renames, cleanup.",
+        "deps": "Adds, removes, or upgrades a third-party package.",
+        "infra": "Runtime, network, or deployment infrastructure, including infrastructure as code.",
+        "data": "Schema, migration, backfill, or production data. Always major.",
+        "security": "Identity, access, roles, secrets, or cryptography. Always major.",
+        "compliance": "Driven by a legal or regulatory control. Always major."
+      }
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "ready",
+        "in_progress",
+        "in_review",
+        "landed",
+        "done",
+        "rolled_back",
+        "cancelled"
+      ],
+      "description": "Spec lifecycle status. aidd derives it from what git and the platform prove (a counted Spec approval, commits in a Task's scope, evidence, the merge); only rolled_back and cancelled record something nobody can observe. The stored `status` is an optional cache: `aidd validate` warns when it disagrees with the derived one. Blocked is a flag, never a status.",
+      "x-meanings": {
+        "draft": "Derived: no counted Spec approval of the Spec as it reads now yet, on a route that needs one; on a route that needs none, no commit in a Task's scope yet.",
+        "ready": "Derived: a counted Spec approval of the Spec as it reads now (a person's `aidd approve spec`, or a gate record that counted one), and no commit in a Task's scope yet. Implementation may start.",
+        "in_progress": "Derived: commits on the branch change a Task's scope.",
+        "in_review": "Derived: the evidence shows every test command green on head, and the gate record, when there is one, passes or waits only on approvals. It waits for Merge approval.",
+        "landed": "Derived: the approved Spec is on the base branch, merged. The observe window runs now.",
+        "done": "Derived: landed, with no observe block, or with outcome.observe_result pass. Terminal.",
+        "rolled_back": "Stored: outcome.rolled_back is true, or outcome.observe_result is fail. Terminal; Learn follows.",
+        "cancelled": "Stored: a person set `status: cancelled`, or triage declined the work. Terminal."
+      },
+      "x-groups": {
+        "draft": "backlog",
+        "ready": "unstarted",
+        "in_progress": "started",
+        "in_review": "started",
+        "landed": "started",
+        "done": "completed",
+        "rolled_back": "completed",
+        "cancelled": "cancelled"
+      }
+    },
+    "container_status": {
+      "enum": [
+        "draft",
+        "active",
+        "done",
+        "cancelled"
+      ],
+      "description": "Initiative and Epic status. draft and active are derived from the children; done and cancelled are a person's decision, stored. Blocked is a flag, never a status.",
+      "x-meanings": {
+        "draft": "Derived: no child Spec or Epic has started.",
+        "active": "Derived: a child has started (in progress or later).",
+        "done": "Stored: a person closed it; `aidd list` suggests it once every child is finished.",
+        "cancelled": "Stored: a person stopped it."
+      },
+      "x-groups": {
+        "draft": "backlog",
+        "active": "started",
+        "done": "completed",
+        "cancelled": "cancelled"
+      }
+    },
+    "status_group": {
+      "enum": [
+        "backlog",
+        "unstarted",
+        "started",
+        "completed",
+        "cancelled"
+      ],
+      "description": "The group every status falls into, the same five for Specs, Epics, Initiatives, and proposals, so a board or a tracker can mirror any object by its group. `aidd list --json` and `aidd gate --paths --json` give each step's group. The gate never reads it.",
+      "x-meanings": {
+        "backlog": "Written down, not yet planned or approved: a draft, or a proposal still being qualified.",
+        "unstarted": "Approved and ready; nobody has started it.",
+        "started": "Open work: being built, waiting for a person, or watched after release.",
+        "completed": "Finished: done, rolled back (the work ended and Learn follows), or a proposal the addressee accepted.",
+        "cancelled": "Stopped without delivery: cancelled, rejected, withdrawn, or a no-go."
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "blocks",
+            "blocked_by",
+            "duplicates",
+            "relates_to",
+            "implements"
+          ],
+          "description": "blocks: the other item waits for this one. blocked_by: this one waits for the other. duplicates: this one repeats the other, which carries the work, so `aidd list` treats this one as finished. relates_to: see also. implements: this one delivers the other."
+        },
+        "id": {
+          "$ref": "#/$defs/id",
+          "description": "The other Spec, Epic, or Initiative, by id, in the Specs folder."
+        }
+      },
+      "description": "A typed link to another work item. `aidd validate` checks that the target exists and that `blocks` and `blocked_by` form no cycle; `aidd list` shows an item blocked_by work whose derived status is not finished as blocked. Bookkeeping: the gate never reads it and the Spec hash ignores it. A Task's `depends_on`, which orders Tasks inside one Spec, is unrelated."
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relation"
+      },
+      "uniqueItems": true,
+      "description": "Typed links to other Specs, Epics, or Initiatives: blocks, blocked_by, duplicates, relates_to, implements. Bookkeeping: the gate never reads them and the Spec hash ignores them."
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9:-]+$",
+        "maxLength": 40
+      },
+      "maxItems": 8,
+      "uniqueItems": true,
+      "description": "Up to 8 labels, lowercase letters, digits, `:` and `-`, such as `area:billing` or `customer-ask`, for filtering (`aidd list --label`). They never change the route or the gate, and the Spec hash ignores them."
+    },
+    "priority": {
+      "enum": [
+        "urgent",
+        "high",
+        "medium",
+        "low"
+      ],
+      "description": "How soon the work matters, for sorting `aidd list` and filtering it (`--priority LEVEL`: this level or higher). Unset, it is inherited from the parent Epic or Initiative, else medium; an emergency is always urgent. Bookkeeping: the Spec hash ignores it and the gate never reads it.",
+      "x-meanings": {
+        "urgent": "Drop other work for it. Every emergency is urgent.",
+        "high": "Next, before medium work.",
+        "medium": "The default.",
+        "low": "When nothing else waits."
+      }
+    },
+    "owner": {
+      "$ref": "#/$defs/identity",
+      "description": "The person driving the work: `aidd list --mine` finds it, and `aidd list` names them as who acts. A person, never an agent or an agent account (`aidd validate` fails one). Bookkeeping: the Spec hash ignores it, and it approves nothing."
+    },
+    "confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "description": "Confidence in the assessment. `low` stops the run.",
+      "x-meanings": {
+        "high": "Every fact that could change the route is known. open_questions is empty.",
+        "medium": "Some facts are missing, and none of them could change the route. List them; the gate does not act on medium.",
+        "low": "A missing fact could change the route. Stop and ask."
+      }
+    },
+    "dimension": {
+      "enum": [
+        "data",
+        "security",
+        "privacy",
+        "financial",
+        "compliance",
+        "availability",
+        "third_party",
+        "cost"
+      ],
+      "description": "Blast-radius dimension, in words any role uses. `data`, `security`, `privacy`, `financial`, and `compliance` force major and name the specialist pool that reviews; every dimension rules out minor. Irreversibility is `risk.reversible: false`, which also forces major.",
+      "x-meanings": {
+        "data": "Reads, writes, migrates, or deletes persistent or production data. Forces major; the `data` pool reviews.",
+        "security": "Who can do what, and what can leak: authentication, authorization, roles, tokens, secrets, cryptography, attack surface. Forces major; the `security` pool reviews.",
+        "privacy": "Personal data: collection, retention, sharing, deletion, consent. Forces major; the `privacy` pool reviews.",
+        "financial": "Money moves or prices change: billing, payouts, pricing, ledgers, tax. Forces major; the `finance` pool reviews.",
+        "compliance": "A legal, contractual, or regulatory control. Forces major; the `compliance` pool reviews.",
+        "availability": "Can take a service down or degrade it: infrastructure, capacity, timeouts, limits. Rules out minor.",
+        "third_party": "Adds or changes third-party code, services, images, or build inputs. Rules out minor.",
+        "cost": "Can change spend materially: compute, storage, paid APIs, model tokens. Rules out minor."
+      }
+    },
+    "pool": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,31}$",
+      "description": "A specialist Approver pool name in `owners.specialists`, such as security, privacy, finance, compliance, or data."
+    },
+    "profile": {
+      "enum": [
+        "solo",
+        "team",
+        "org",
+        "audited"
+      ],
+      "description": "Conformance profile. Each one is stricter than the one before."
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Facts still unknown at assessment. Empty when confidence is high."
+    },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "dimensions",
+        "reversible"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Blast radius in one or two sentences: who or what changes behavior."
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dimension"
+          },
+          "uniqueItems": true,
+          "description": "Every dimension the change touches. Empty means none."
+        },
+        "reversible": {
+          "type": "boolean",
+          "description": "False when a revert does not restore the prior state, such as a destructive migration or an external side effect. False forces major."
+        }
+      },
+      "description": "Blast radius: what changes, which dimensions it touches, and whether a revert restores the prior state."
+    },
+    "test_command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "command"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$",
+          "description": "Stable name used in evidence."
+        },
+        "command": {
+          "$ref": "#/$defs/command"
+        },
+        "new_behavior": {
+          "type": "boolean",
+          "description": "True when this command proves new or fixed behavior. It must fail on the base commit (red) and pass on head (green)."
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400,
+          "description": "Wall-clock limit. A timeout is a fail. Default 1800."
+        },
+        "smoke": {
+          "type": "boolean",
+          "description": "In the config's `tests`: part of the smoke set, the only repository commands an emergency change runs (with its own). When no command is marked, an emergency runs the whole suite."
+        },
+        "retries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "description": "How many more times a failing run on head is tried (default 0). Every attempt is kept in the evidence; a pass after a failure passes, marked flaky, and metrics count it. A red run on the base commit is never retried."
+        },
+        "when_changed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/glob"
+          },
+          "minItems": 1,
+          "description": "Run and require this command only when a changed path matches. Omit to run it on every change."
+        },
+        "covers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^A[1-9][0-9]{0,3}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "In a Spec: the Acceptance items this command proves, by id (`A1`, `A2`, ...). Optional; once any command declares it, `aidd validate` warns about an Acceptance item no command covers, and about an id the Acceptance section does not have. Under `tests.mode: with_code` every item must be covered, or the Spec is invalid; otherwise the gate never reads it."
+        }
+      },
+      "description": "One test command. Exit 0 is the only pass."
+    },
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "files",
+        "commands"
+      ],
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/glob"
+          },
+          "description": "The test files, and the configuration they run through. Frozen by Spec approval (unless `mode` is `with_code`) and never inside a Task's scope."
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/test_command"
+          },
+          "minItems": 1,
+          "description": "Commands the runner executes. Exit 0 is the only pass."
+        },
+        "mode": {
+          "enum": [
+            "first",
+            "with_code"
+          ],
+          "description": "A Spec's only. `first` (the default): the tests are written before the code and frozen by Spec approval. `with_code`: for new code with nothing to break (type feat, no risk dimension, never major), the tests are written with the code in the same Task. Spec approval then binds the Spec, its commands, and their `covers`, but not the test files, which Merge approval reviews; every Acceptance item needs a command that `covers` it, and red-on-base still holds."
+        }
+      },
+      "description": "How the change is proven: the test files and the commands that run them."
+    },
+    "emergency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "kind",
+        "commander",
+        "review_due"
+      ],
+      "properties": {
+        "severity": {
+          "enum": [
+            "sev1",
+            "sev2",
+            "sev3"
+          ],
+          "description": "Incident severity."
+        },
+        "kind": {
+          "enum": [
+            "outage",
+            "degradation",
+            "security",
+            "data"
+          ],
+          "description": "What is broken in production."
+        },
+        "commander": {
+          "$ref": "#/$defs/identity",
+          "description": "The incident commander, a human. Named before the repair starts."
+        },
+        "incident": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The incident's ticket or page id, such as INC-481: what the repair answers, and what the post-incident review and the backfill Spec link. The gate requires it on an emergency change."
+        },
+        "review_due": {
+          "$ref": "#/$defs/date",
+          "description": "Date the postmortem and the Spec backfill are due. The config sets the SLA."
+        }
+      },
+      "description": "The incident an emergency change repairs. Required on the emergency route."
+    },
+    "observe": {
+      "type": "object",
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "window",
+            "rollback_trigger"
+          ],
+          "not": {
+            "required": [
+              "not_applicable"
+            ]
+          }
+        },
+        {
+          "required": [
+            "not_applicable"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "window"
+                ]
+              },
+              {
+                "required": [
+                  "rollback_trigger"
+                ]
+              },
+              {
+                "required": [
+                  "command"
+                ]
+              },
+              {
+                "required": [
+                  "signals"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "not_applicable": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Why nothing runs to watch after release, such as \"a CLI and its docs: no running service\". It takes the place of the other fields; the gate warns, so the Approver sees the reason."
+        },
+        "command": {
+          "$ref": "#/$defs/command",
+          "description": "Post-release check. Exit 0 means healthy."
+        },
+        "signals": {
+          "type": "string",
+          "description": "Dashboards, SLOs, or queries a human watches."
+        },
+        "window": {
+          "type": "string",
+          "pattern": "^[0-9]+[mhd]$",
+          "description": "How long to watch, such as 30m, 24h, or 7d."
+        },
+        "rollback_trigger": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The condition that starts the rollback."
+        }
+      },
+      "description": "What to watch after release, for how long, and when to roll back."
+    },
+    "repo_path": {
+      "type": "string",
+      "pattern": "^(?!/)(?!\\./)(?!.*\\\\)(?!.*[*?])(?!.*(^|/)\\.\\.(/|$)).+$",
+      "description": "A plain repo-relative file path: no leading `./` or `/`, no backslashes, no wildcards."
+    },
+    "trace_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$",
+      "description": "Cross-system correlation id."
+    },
+    "assisted_by": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\S+$"
+      },
+      "description": "`harness/model` for each AI agent that wrote code or tests. Empty when only humans did."
+    },
+    "sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40,64}$",
+      "description": "A 40- or 64-character lowercase hex git object ID."
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "at",
+        "commit"
+      ],
+      "properties": {
+        "identity": {
+          "$ref": "urn:aidd:1:common#/$defs/identity",
+          "description": "Who approved, as the repository's config names them."
+        },
+        "at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "When the approval was given (RFC 3339), from the platform; null when it did not say."
+        },
+        "commit": {
+          "anyOf": [
+            {
+              "$ref": "urn:aidd:1:common#/$defs/sha"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The commit the approval is bound to: the head for a Merge approval, the commit a Spec approval named (null when it named none)."
+        },
+        "approved_sha": {
+          "anyOf": [
+            {
+              "$ref": "urn:aidd:1:common#/$defs/sha"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A carried Merge approval: the earlier head the person approved (a Merge approval without it approved `commit` itself)."
+        },
+        "carried_to": {
+          "$ref": "urn:aidd:1:common#/$defs/sha",
+          "description": "A carried Merge approval: the head it was carried to (`gates.approval_carry`)."
+        },
+        "carry_reason": {
+          "type": "string",
+          "description": "A carried Merge approval: why it carries, such as the identical diff onto a base that descends from the approved one."
+        }
+      },
+      "description": "One counted human approval."
+    },
+    "decision": {
+      "enum": [
+        "pass",
+        "pending",
+        "fail",
+        "error"
+      ],
+      "description": "The verdict posted by the gate: pass may merge, pending waits, fail blocks, error on gate crash."
+    },
+    "test_status": {
+      "enum": [
+        "passed",
+        "failed",
+        "timeout",
+        "not_started"
+      ],
+      "description": "Outcome of one test command."
+    },
+    "red_green": {
+      "enum": [
+        "green",
+        "red"
+      ],
+      "description": "green runs on head; red runs the head's tests against the base code."
+    },
+    "goal": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The measurable goal of an Epic or Initiative."
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "summary": "A Policy command that does not answer counts as deny.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/policy/result",
+      "value": "unreachable"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "policy"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail policy.unreachable"
+    ]
+  }
+}

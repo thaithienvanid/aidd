@@ -1,0 +1,3 @@
+# Library standards whose id changed: the old id and the new one. `aidd doctor` names the new id for a project that
+# copied the old one, and `aidd upgrade` moves the copy. An entry is never removed, so no old copy is left without a pointer.
+renames: {}

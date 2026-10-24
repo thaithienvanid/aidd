@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:postmortem",
+  "title": "Postmortem",
+  "description": "A blameless review of one incident: what happened, why, and the action items that keep it from happening again. It lives in docs/postmortems/<id>.md and names the backfill Spec of the emergency change that repaired it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aidd_version",
+    "kind",
+    "id",
+    "title",
+    "incident_on",
+    "severity",
+    "status"
+  ],
+  "properties": {
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version"
+    },
+    "kind": {
+      "const": "postmortem",
+      "description": "Object kind. Always `postmortem`."
+    },
+    "id": {
+      "$ref": "urn:aidd:1:common#/$defs/id"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "One line naming what users saw, such as \"Checkout returned 500 for 40 minutes\"."
+    },
+    "incident_on": {
+      "$ref": "urn:aidd:1:common#/$defs/date",
+      "description": "The day the incident began."
+    },
+    "severity": {
+      "enum": [
+        "sev1",
+        "sev2",
+        "sev3"
+      ],
+      "description": "Incident severity, as the emergency block records it."
+    },
+    "spec": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "description": "The backfill Spec id of the emergency change that repaired the incident, when there was one. `aidd validate` warns when no Spec in the repository has that id."
+    },
+    "owner_team": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The team that owns the review and its action items."
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "in_review",
+        "published"
+      ],
+      "description": "draft: being written. in_review: the people involved are checking the timeline and the causes. published: agreed; its action items are tracked as work."
+    },
+    "actions": {
+      "type": "array",
+      "description": "The action items, each with one owner and a due date: problem management. Once the postmortem is in review or published, `aidd validate` warns on each one past its `due` date that is not `done`.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["what", "owner", "due"],
+        "properties": {
+          "what": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "The action, as a change someone can make; never \"be more careful\"."
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The one person or team that answers for it."
+          },
+          "due": {
+            "$ref": "urn:aidd:1:common#/$defs/date",
+            "description": "The day it is due."
+          },
+          "done": {
+            "type": "boolean",
+            "default": false,
+            "description": "True once the action landed; `tracked_in` says where."
+          },
+          "type": {
+            "enum": [
+              "prevent",
+              "mitigate",
+              "detect",
+              "process"
+            ],
+            "description": "What the action does about the next incident: prevent it, mitigate it (smaller or shorter), detect it sooner, or change how the team works. A postmortem whose actions only mitigate has not yet asked why it happened."
+          },
+          "tracked_in": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The Spec id, ticket, or pull request that carries it."
+          },
+          "target": {
+            "type": "string",
+            "pattern": "^(pack|skill):[a-z][a-z0-9-]*$",
+            "description": "The team knowledge the action changes, when the lesson belongs in it: `pack:<slug>` for a domain pack or `skill:<name>` for a practice skill of aidd-team. `aidd validate` fails on an id the registry does not know; `aidd list` shows the action until it is done, and the Learn commands raise a suggested Spec for it."
+          }
+        }
+      }
+    }
+  }
+}

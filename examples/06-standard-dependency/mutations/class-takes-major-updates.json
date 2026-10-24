@@ -1,0 +1,28 @@
+{
+  "summary": "A class that lists major in update_types takes a major bump.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "identities:\n",
+      "new": "    update_types: [patch, minor, major]\nidentities:\n"
+    },
+    {
+      "op": "set",
+      "path": "/dependency_updates/0/to",
+      "value": "2.0.0"
+    },
+    {
+      "op": "set",
+      "path": "/dependency_updates/0/update_type",
+      "value": "major"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}
