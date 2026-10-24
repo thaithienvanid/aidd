@@ -1,0 +1,27 @@
+{
+  "summary": "The committed backfill must be an emergency Spec with the same review date.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1INC-481.md",
+      "old": "type: fix                         # feat, fix, refactor, perf, docs, test, build, ci, chore, deps, infra, data, security, compliance\nroute: emergency                  # normal or major (emergency: backfill after the repair); never below the route `aidd gate --paths` computes\nconfidence: high                  # high, medium, low (low: stop)\nopen_questions: []                # facts still unknown; empty when confidence is high\ntrace_id: inc-481\nassisted_by: []                   # \"harness/model\" for every agent that writes code or tests; fill before Spec approval\nrollback: Revert the PR/MR.       # name the steps on major and emergency\nresidual_risk: none\n\nrisk:\n  summary: \"TODO: who or what behaves differently after this change.\"\n  dimensions: []                  # data, security, privacy, financial, compliance, availability, third_party, cost\n  reversible: true\n\ntasks:\n  - id: INC-481-T1\n    title: \"TODO: first slice\"\n    scope: [\"src/TODO/\"]          # never a test or design file\n    depends_on: []\n    assignee: agent:TODO\n\ntests:\n  files: [\"tests/TODO\"]           # frozen by the Spec hash\n  commands:\n    - name: acceptance\n      command: [\"TODO\"]\n      new_behavior: true          # feat and fix: must fail on base. Set false for refactor, docs, build\n\nobserve:                          # required on major (and on normal under audited)\n  window: \"24h\"\n  signals: \"TODO: dashboard or SLO\"\n  rollback_trigger: \"TODO: condition that starts the rollback\"\n\nemergency:\n  severity: sev2\n  kind: outage\n  commander: \"@oncall-lead\"\n  incident: INC-481\n  review_due: \"2026-09-24\"\n",
+      "new": "type: fix\nroute: emergency\nconfidence: high\nopen_questions: []\ntrace_id: inc-481\nassisted_by: []\nrollback: Revert the PR/MR.\nresidual_risk: none\nrisk:\n  summary: \"TODO: who or what behaves differently after this change.\"\n  dimensions: []\n  reversible: true\ntasks:\n  - id: INC-481-T1\n    title: \"TODO: first slice\"\n    scope: [src/TODO/]\n    depends_on: []\n    assignee: agent:TODO\ntests:\n  files: [tests/TODO]\n  commands:\n    - name: acceptance\n      command: [TODO]\n      new_behavior: true\nobserve:\n  window: \"24h\"\n  signals: \"TODO: dashboard or SLO\"\n  rollback_trigger: \"TODO: condition that starts the rollback\"\nemergency:\n  severity: sev2\n  kind: outage\n  commander: \"@oncall-lead\"\n  incident: INC-481\n  review_due: \"2026-09-25\"\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "emergency"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "fail emergency.backfill_mismatch",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

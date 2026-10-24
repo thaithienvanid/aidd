@@ -1,0 +1,22 @@
+{
+  "summary": "An approval line after an unclosed fence is code and does not count.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/comments/0/body",
+      "old": "/aidd",
+      "new": "```\n/aidd"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending spec_approval.missing"
+    ]
+  }
+}

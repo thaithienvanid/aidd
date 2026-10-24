@@ -1,0 +1,12 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: esp-idf-firmware
+description: "ESP32 firmware on ESP-IDF, tested on the host with Ceedling and in Espressif's QEMU with pytest-embedded."
+standards:
+  - embedded/esp-idf
+  - cpp/clang-format
+  - cpp/unity-ceedling
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt: [ESP-IDF, FreeRTOS, pytest-embedded, Espressif QEMU, clang-format, Unity, Ceedling]

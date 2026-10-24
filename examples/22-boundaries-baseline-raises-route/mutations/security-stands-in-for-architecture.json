@@ -1,0 +1,26 @@
+{
+  "summary": "The security pool approves the head: the config binds no architecture pool, so security stands in for it and the raised change passes.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/reviews",
+      "value": {
+        "user": "sec-alice",
+        "state": "approved",
+        "commit_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "submitted_at": "2026-09-23T09:40:00Z"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "warn route.raised_to_major"
+    ]
+  }
+}

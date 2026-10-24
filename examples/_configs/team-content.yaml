@@ -1,0 +1,20 @@
+aidd_version: "1.0.0"
+profile: team
+changed_lines_exclude_paths: ["**/package-lock.json"]
+owners:
+  default_owner_team: checkout
+  approvers: ["@checkout-lead", "@platform-lead", "@oncall-lead"]
+  specialists:
+    security: ["@sec-alice"]
+    data: ["@dba-dana"]
+tests:
+  - name: unit
+    command: [make, test]
+risk_rules:
+  - name: raw-sql
+    paths: ["src/**/*.py"]
+    content: ['\.execute\(\s*f["'']']
+    specialists: [data]
+identities:
+  system_accounts: [web-flow]
+  bots: ["claude[bot]"]

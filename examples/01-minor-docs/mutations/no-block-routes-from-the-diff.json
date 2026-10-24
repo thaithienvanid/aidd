@@ -1,0 +1,17 @@
+{
+  "summary": "No Change Request block and no Spec in the diff: the gate takes the route from the diff (minor), the type from the commit subjects, and assisted_by from the commit trailers, so the typo fix passes as it is.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Fix a typo in the setup guide."
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "description": "The words `aidd validate` flags on a Spec's Acceptance line, or a line of its `## Non-functional requirements` section, when the line states no target. A line with a number (list numbering, an Acceptance id such as `A1` or `AC-1`, and a work-item id such as `SPEC-4` do not count), inline code (a test name, a command, or an exact value), a link, or a file path states a target or names the test that proves it, so it never warns. Whole words only, any case: a hyphen joins a word, so `fast-forward` is not `fast`. A warning, never an error, and the gate never reads it. Keep the list short and plain: each entry is a false alarm somewhere.",
+  "words": [
+    "adequate",
+    "adequately",
+    "appropriate",
+    "as appropriate",
+    "as needed",
+    "easily",
+    "easy",
+    "efficient",
+    "fast",
+    "flexible",
+    "gracefully",
+    "intuitive",
+    "modern",
+    "performant",
+    "quick",
+    "quickly",
+    "reasonable",
+    "reliable",
+    "robust",
+    "scalable",
+    "seamless",
+    "seamlessly",
+    "securely",
+    "user friendly",
+    "user-friendly"
+  ]
+}

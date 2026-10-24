@@ -1,0 +1,20 @@
+{
+  "summary": "The test written with the code never ran red on the base: it does not prove the new behavior.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/evidence/results/2"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "red_green"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail red_green.no_red_run"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "summary": "A red run from a different command than the Spec declares proves nothing about new behavior.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/results/2/command",
+      "value": [
+        "pytest",
+        "-q",
+        "tests/"
+      ]
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "red_green"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail red_green.red_command_mismatch"
+    ]
+  }
+}

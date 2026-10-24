@@ -1,0 +1,13 @@
+{
+  "decision": "pending",
+  "failed_rules": [],
+  "pending_rules": [
+    "tests"
+  ],
+  "warn_rules": [],
+  "findings": [
+    "pending tests.evidence_other_head"
+  ],
+  "title": "Stale evidence",
+  "summary": "Green tests from an earlier commit do not count for the new head."
+}

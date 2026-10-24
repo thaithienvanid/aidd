@@ -1,0 +1,18 @@
+{
+  "summary": "The base branch's config sets mode = \"advisory\". The decision is unchanged, and the record carries config_mode so the adapter reports without blocking; a CI variable could not do this on GitLab.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "changed_lines_exclude_paths: [\"**/package-lock.json\"]\n",
+      "new": "mode: advisory\nchanged_lines_exclude_paths: [\"**/package-lock.json\"]\n"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "platform": "github",
+  "trusted": true,
+  "repo": "acme/shop",
+  "now": "2026-09-23T10:00:00Z",
+  "change": {
+    "id": "42",
+    "author": "alice",
+    "body": "Implements the Spec.\n\n```yaml aidd\nspec: specs/SPEC-221.md\n```\n",
+    "draft": false
+  },
+  "base_sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+  "head_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+  "head_pushed_at": null,
+  "files": [
+    {
+      "path": "specs/SPEC-221.md",
+      "previous_path": null,
+      "additions": 45,
+      "deletions": 0
+    },
+    {
+      "path": "tests/auth/org-create.test.ts",
+      "previous_path": null,
+      "additions": 50,
+      "deletions": 0
+    },
+    {
+      "path": "src/auth/organization.ts",
+      "previous_path": null,
+      "additions": 12,
+      "deletions": 2
+    }
+  ],
+  "commits": [
+    {
+      "sha": "1111111111111111111111111111111111111111",
+      "author": "alice",
+      "committer": "alice",
+      "message": "Implement the change\n\nAssisted-by: claude-code/claude-opus-5-5",
+      "merge": false,
+      "verified": true
+    }
+  ],
+  "reviews": [
+    {
+      "user": "checkout-lead",
+      "state": "approved",
+      "commit_sha": "{{head}}",
+      "submitted_at": "2026-09-23T09:30:00Z"
+    },
+    {
+      "user": "sec-alice",
+      "state": "approved",
+      "commit_sha": "{{head}}",
+      "submitted_at": "2026-09-23T09:30:00Z"
+    }
+  ],
+  "comments": [
+    {
+      "user": "checkout-lead",
+      "body": "/aidd approve-spec SPEC-221 5bec000000000000000000000000000000000001",
+      "created_at": "2026-09-23T08:00:00Z"
+    }
+  ],
+  "head_tree": {
+    "specs/SPEC-220.md": "1111111111111111111111111111111111111111",
+    "tests/checkout/test_rate_limit.py": "2222222222222222222222222222222222222222",
+    "src/checkout/rate_limit/limiter.py": "3333333333333333333333333333333333333333",
+    "specs/SPEC-221.md": "4444444444444444444444444444444444444444",
+    "tests/auth/org-create.test.ts": "5555555555555555555555555555555555555555",
+    "src/auth/organization.ts": "6666666666666666666666666666666666666666",
+    "specs/SPEC-222.md": "7777777777777777777777777777777777777777",
+    "tests/checkout/test_totals.py": "8888888888888888888888888888888888888888",
+    "src/checkout/totals.py": "9999999999999999999999999999999999999999",
+    "specs/SPEC-223.md": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "tests/test_user_timezone.py": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "db/migrations/0042_user_timezone.sql": "cccccccccccccccccccccccccccccccccccccccc",
+    "src/models/user.py": "dddddddddddddddddddddddddddddddddddddddd",
+    "docs/guide.md": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "package.json": "ffffffffffffffffffffffffffffffffffffffff",
+    "package-lock.json": "0000000000000000000000000000000000000001",
+    "src/auth/session.ts": "0000000000000000000000000000000000000002",
+    "tests/smoke/session.test.ts": "0000000000000000000000000000000000000003",
+    "src/payments/refund.ts": "0000000000000000000000000000000000000004"
+  },
+  "head_files": {},
+  "team_members": {},
+  "policy": {
+    "result": "unbound"
+  },
+  "evidence": {
+    "aidd_version": "1.0.0",
+    "head_sha": "{{head}}",
+    "base_sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "runner": {
+      "ci": "github",
+      "run_id": "1"
+    },
+    "results": [
+      {
+        "name": "unit",
+        "command": [
+          "make",
+          "test"
+        ],
+        "red_green": "green",
+        "status": "passed",
+        "exit": 0,
+        "source": "config"
+      },
+      {
+        "name": "org-create",
+        "command": [
+          "npx",
+          "vitest",
+          "run",
+          "tests/auth/org-create.test.ts"
+        ],
+        "red_green": "green",
+        "status": "passed",
+        "exit": 0,
+        "source": "spec"
+      },
+      {
+        "name": "org-create",
+        "command": [
+          "npx",
+          "vitest",
+          "run",
+          "tests/auth/org-create.test.ts"
+        ],
+        "red_green": "red",
+        "status": "failed",
+        "exit": 1,
+        "source": "spec"
+      }
+    ]
+  },
+  "base_config_from": "../_configs/team.yaml",
+  "head_files_from": {
+    "specs/SPEC-221.md": "../_specs/SPEC-221.md"
+  },
+  "spec_hash_of": "specs/SPEC-221.md",
+  "approval_commits": {
+    "5bec000000000000000000000000000000000001": {
+      "ancestor": true,
+      "paths": [
+        "specs/SPEC-221.md"
+      ],
+      "spec_hash": "{{spec_hash}}"
+    }
+  }
+}

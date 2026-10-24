@@ -1,0 +1,15 @@
+{
+  "decision": "pending",
+  "failed_rules": [],
+  "pending_rules": [
+    "spec_approval",
+    "tests"
+  ],
+  "warn_rules": [],
+  "findings": [
+    "pending spec_approval.missing",
+    "pending tests.spec_phase"
+  ],
+  "title": "Spec phase",
+  "summary": "The draft PR holds only the Spec and its test, which fails on head as it should before Implement: the gate waits for Spec approval, keeps the red and green results as early proof, and asks for no Merge approval yet."
+}

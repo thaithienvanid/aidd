@@ -1,0 +1,17 @@
+{
+  "summary": "The change adds left-pad instead: no rule names it, so the Spec stays normal on the third_party dimension it declares, and the change passes.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/dependencies_added/0/name",
+      "value": "left-pad"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

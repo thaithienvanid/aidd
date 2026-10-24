@@ -1,0 +1,22 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: java-spring
+description: "An HTTP service in Java on Spring Boot, for a JVM team."
+standards:
+  - java/gradle-kotlin-dsl
+  - java/spotless-format
+  - java/error-prone
+  - java/junit
+  - java/java-lts
+  - java/spring-boot
+  - java/flyway-migrations
+  - java/testcontainers
+  - java/gradle-multi-project
+  - java/spring-modulith
+  - java/jmh
+  - tooling/hurl
+  - tooling/gatling
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt: [Java, Gradle, Spring Boot, Spotless, Error Prone, JUnit, Flyway, Testcontainers, Spring Modulith, JMH, Hurl, Gatling]

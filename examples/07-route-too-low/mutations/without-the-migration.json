@@ -1,0 +1,16 @@
+{
+  "summary": "The near miss: the same minor change without the migration touches only the guide, so minor is enough and the gate passes.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/files/1"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

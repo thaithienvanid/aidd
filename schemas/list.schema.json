@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:list",
+  "title": "aidd list --json",
+  "description": "What `aidd list --json` prints: `{schema_version, steps}` for one repository, or, given several repositories, `{schema_version, repos}` with the steps by path. `aidd gate --paths --json` uses the same steps (forecast.schema.json). A new optional key may be added in a minor release without a version bump, and a consumer ignores keys it does not know; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version"],
+  "oneOf": [{ "required": ["steps"] }, { "required": ["repos"] }],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "steps": {
+      "$ref": "#/$defs/steps",
+      "description": "One repository's open work, most urgent first."
+    },
+    "standing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "since", "by"],
+      "properties": {
+        "scope": { "enum": ["all", "all-but-major"], "description": "all: every Spec approval and Merge approval; all-but-major: all but major and emergency changes." },
+        "since": { "type": "string", "description": "When the person started it." },
+        "by": { "type": "string", "description": "Who started it, as `email:<address>`." },
+        "until": { "type": "string", "description": "The last day it holds, when the person named one." }
+      },
+      "description": "The person's standing approval in force (`approve all`): the agent records each approval it covers, until they stop it. Absent when none is."
+    },
+    "explore_branch": {
+      "type": "string",
+      "description": "The explore branch this worktree is on: free edits, with no Spec or scope check, and nothing merges from it as it is. Absent on any other branch."
+    },
+    "loop_off": {
+      "type": "string",
+      "description": "Set while `components.spec_steps: false` switches the Spec steps off: what to tell the person, with the day they went off. Absent while they are on."
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["branch", "head", "age_days", "behind", "specs", "integrated", "release_ready", "warnings"],
+        "properties": {
+          "branch": { "type": "string", "description": "The goal branch." },
+          "head": { "type": "string", "description": "Its tip commit." },
+          "age_days": { "type": "integer", "minimum": 0, "description": "Days since its oldest commit the default branch lacks; 0 while it has none." },
+          "behind": { "type": "integer", "minimum": 0, "description": "Commits of the default branch it does not hold yet: `aidd sync` on it merges them in." },
+          "specs": { "type": "array", "items": { "type": "string" }, "description": "The Specs that land in it (their `base`), and the ones it holds." },
+          "integrated": { "type": "array", "items": { "type": "string" }, "description": "The Specs `aidd integrate` landed in it, read from the `Aidd-Integrate` trailers of its merge commits." },
+          "release_ready": { "type": "boolean", "description": "At least one Spec is integrated, every other Spec that lands in it is finished, and it holds every commit of the default branch: the person's Merge approval releases it." },
+          "warnings": { "type": "array", "items": { "type": "string" }, "description": "Past limits.max_goal_age_days, or behind the default branch: what to do about each." }
+        }
+      },
+      "description": "Each local goal branch (`goal/<name>`), the team's integration branch: what lands in it, what it holds, and whether it is ready to release. Absent with --branch, or when there is none."
+    },
+    "flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branches", "warnings"],
+      "properties": {
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["branch", "head", "age_days", "behind"],
+            "properties": {
+              "branch": { "type": "string", "description": "A local branch with work the default branch does not hold yet." },
+              "head": { "type": "string", "description": "Its tip commit." },
+              "age_days": { "type": "integer", "minimum": 0, "description": "Days since its oldest own commit." },
+              "behind": { "type": "integer", "minimum": 0, "description": "Commits of the default branch it does not hold yet: `aidd sync` merges them in." }
+            }
+          },
+          "description": "The branches with unmerged work, goal branches aside, oldest first."
+        },
+        "unpublished": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["branch", "remote", "commits", "age_days"],
+          "properties": {
+            "branch": { "type": "string", "description": "The local trunk: the default branch on this machine." },
+            "remote": { "type": "string", "description": "The remote whose copy of it is compared." },
+            "commits": { "type": "integer", "minimum": 1, "description": "Commits the local trunk holds and the remote lacks." },
+            "age_days": { "type": "integer", "minimum": 0, "description": "Days since the oldest of them." }
+          },
+          "description": "The local trunk's work the remote lacks, which only a person publishes (they type `publish`); null when the remote holds it all."
+        },
+        "warnings": { "type": "array", "items": { "type": "string" }, "description": "Past limits.max_open_branches or limits.max_branch_age_days, for a branch or the unpublished trunk: what to do about each." }
+      },
+      "description": "Trunk-based flow (DORA: three or fewer active branches, each merged at least daily): the branches with unmerged work, the local trunk's unpublished work, and the warnings their count and age give. Absent with --branch, or when neither holds any."
+    },
+    "repos": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/steps"
+      },
+      "description": "Given several repositories: each one's steps, by the path given."
+    }
+  },
+  "$defs": {
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "step": {
+      "type": "object",
+      "required": [
+        "code",
+        "where",
+        "what",
+        "who",
+        "how"
+      ],
+      "description": "One step. Further keys (such as a Spec's `tasks`) may be added in a minor release; a consumer ignores keys it does not know.",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The kind of step, stable across wording changes, such as `spec.merge_approval`."
+        },
+        "where": {
+          "type": "string",
+          "description": "The file or place the step is about, such as a Spec's path; empty when none."
+        },
+        "unready": {
+          "type": "string",
+          "description": "A committed draft Spec that is not finished: the first reason (placeholders in what the gate runs, or a schema error). It goes back to Specify, never to Spec approval or Implement."
+        },
+        "what": {
+          "type": "string",
+          "description": "What is open, in a sentence."
+        },
+        "who": {
+          "type": "string",
+          "description": "Who acts next, as a role noun: agent (or agent (ROLE), when a handoff note names the role), author, Approver, triager, or decision maker; in the list, a named owner, or the owner's agent, for work someone else drives."
+        },
+        "how": {
+          "type": "string",
+          "description": "How to do it: the command or action."
+        },
+        "id": {
+          "type": "string",
+          "description": "The Spec's, Epic's, Initiative's, or proposal's id, when the step is about one."
+        },
+        "status": {
+          "type": "string",
+          "description": "The item's derived status (a Spec's, a container's, or a proposal's), never the stored cache."
+        },
+        "blocked": {
+          "type": "boolean",
+          "description": "Whether the item is blocked: a flag, not a status (blockers, unfinished blocked_by work, or a Task out of retries)."
+        },
+        "priority": {
+          "enum": [
+            "urgent",
+            "high",
+            "medium",
+            "low"
+          ],
+          "description": "Its priority, its own or inherited from its Epic or Initiative; urgent for an emergency."
+        },
+        "owner": {
+          "type": "string",
+          "description": "The person who owns the item, when it names one. `aidd list` also puts them in `who`."
+        },
+        "files": {
+          "type": "array",
+          "description": "What the work item's folder (`specs/<ID>/`, beside its file) holds, when it has one: each linked document by its kind, the `design` folder, each `exploration` with its question and status, and any other `folder`; at most 20, then one `more` entry with the count.",
+          "items": {
+            "type": "object",
+            "required": ["kind"],
+            "properties": {
+              "path": {"type": "string", "description": "The file or folder, from the repository root."},
+              "kind": {"type": "string", "description": "A linked document's kind (such as `tech-spec`, or `doc`), `design`, `exploration`, `folder`, or `more`."},
+              "question": {"type": "string", "description": "An exploration's question."},
+              "status": {"enum": ["open", "decided"], "description": "An exploration's status."},
+              "owner": {"type": "string", "description": "The role that owns an exploration."},
+              "count": {"type": "integer", "description": "For `more`: how many entries are not listed."}
+            }
+          }
+        },
+        "age_days": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Work item age, on each step of a Spec in progress: whole days since it entered in progress. On a branch, that is the earliest author date of the commits since the fork that changed a Task's scope. Where the stored status answered, it is the committer date of the commit that set it, as `aidd log` reads it. Absent when neither says, and in a shallow clone."
+        },
+        "aged": {
+          "type": "boolean",
+          "description": "Whether `age_days` is past `limits.max_in_progress_days` (10 while unset): true past it, and present as false within it. Absent when that limit is 0 (off), or with no `age_days`."
+        },
+        "waiting_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "On an Approver's wait while `limits.escalate_after_minutes` is set: the minutes since the wait began. For Merge approval, that is the head commit the evidence is green on; for Spec approval, the last commit that touched the Spec. Absent when the wait has no commit yet."
+        },
+        "escalated": {
+          "type": "boolean",
+          "description": "True once `waiting_minutes` is past `limits.escalate_after_minutes`; absent otherwise. It changes what the list says, never who may approve."
+        },
+        "backup_approvers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "With `escalated` (past `limits.escalate_after_minutes`): the humans in `owners.backup_approvers` to ask instead; empty when none are named."
+        },
+        "branch": {
+          "type": "string",
+          "description": "In the backlog, the branch the item was read from (the base branch, or the open branch whose copy won)."
+        },
+        "goal": {
+          "type": "string",
+          "description": "The goal branch the Spec lands in (its `base`, such as goal/booking), so a goal's Specs can be read together."
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "status"
+            ],
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The Task's id, or null when it has none."
+              },
+              "status": {
+                "enum": [
+                  "todo",
+                  "in_progress",
+                  "done",
+                  "blocked",
+                  "stopped"
+                ],
+                "description": "Derived: todo (an agent may start it), in_progress (commits change its scope), done (its scope changed and the evidence is green on head, the Spec is past implementation, or a person recorded done), blocked (the Spec is not approved or is blocked, or a Task in waiting_on is not done), or stopped (out of retries, or the handoff note stopped while it was in progress)."
+              }
+            }
+          },
+          "description": "A Spec's Tasks with their state, for a coordinator that starts one agent per todo Task."
+        }
+      }
+    }
+  }
+}

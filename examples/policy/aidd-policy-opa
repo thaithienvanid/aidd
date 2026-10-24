@@ -1,0 +1,6 @@
+#!/bin/sh
+# aidd Policy command backed by OPA. Needs `opa` on the gate runner (install it in the
+# gate workflow from a pinned release). Runs from a clean worktree of the base branch.
+set -eu
+here=$(cd "$(dirname "$0")" && pwd)
+exec opa eval --format raw --data "$here/aidd.rego" --input "$AIDD_INPUT_FILE" 'json.marshal(data.aidd.answer)'

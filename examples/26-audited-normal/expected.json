@@ -1,0 +1,13 @@
+{
+  "decision": "fail",
+  "failed_rules": [
+    "observe"
+  ],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [
+    "fail observe.missing"
+  ],
+  "title": "Audited normal feature",
+  "summary": "The audited profile on a normal feature: its Policy is bound and allows, and Spec approval names a commit that holds only the Spec and its tests. The Spec declares no observe block, which audited requires on every normal change, so the gate fails."
+}

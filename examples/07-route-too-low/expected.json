@@ -1,0 +1,14 @@
+{
+  "decision": "fail",
+  "failed_rules": [
+    "route"
+  ],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [
+    "fail route.too_low",
+    "fail route.undeclared_dimensions"
+  ],
+  "title": "Route too low",
+  "summary": "Declared minor, but a migration is in the diff: the gate requires major and the data dimension."
+}

@@ -1,0 +1,21 @@
+{
+  "summary": "Under a release freeze only the emergency route merges.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/policy/result",
+      "value": "freeze"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "policy"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail policy.freeze"
+    ]
+  }
+}

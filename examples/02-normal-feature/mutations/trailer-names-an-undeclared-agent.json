@@ -1,0 +1,22 @@
+{
+  "summary": "A commit trailer naming an agent the Spec's assisted_by leaves out fails provenance.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/commits/0/message",
+      "old": "Assisted-by: claude-code/claude-opus-5-5",
+      "new": "Assisted-by: claude-code/claude-opus-5-5\nAssisted-by: codex/gpt-5"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "provenance"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail provenance.undeclared_trailer"
+    ]
+  }
+}

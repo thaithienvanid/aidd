@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:stack-list",
+  "title": "aidd stack list --json",
+  "description": "aidd's library of stacks: opinionated standards that go together, plus the `project.stack` entries they bring. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "stacks"],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "stacks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/stack" },
+      "description": "Every stack, by name."
+    }
+  },
+  "$defs": {
+    "stack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "description", "extends", "standards", "allowed"],
+      "properties": {
+        "name": { "type": "string", "description": "The stack's name, such as `python-cli`." },
+        "description": { "type": "string", "description": "What the stack is for, in one sentence." },
+        "extends": { "type": ["string", "null"], "description": "The stack it builds on, or null." },
+        "standards": { "type": "array", "items": { "type": "string" }, "description": "Its standards, by id, the base stack's included." },
+        "allowed": { "type": "boolean", "description": "False when the company's `standards_policy.allow_stacks` leaves it out." }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "summary": "A scope pattern that matches every path declares no scope.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope: [docs/guide.md]\n",
+      "new": "scope: [\"**\"]\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "scope"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail scope.catch_all"
+    ]
+  }
+}

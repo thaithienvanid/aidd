@@ -1,0 +1,21 @@
+{
+  "summary": "The approved head does not merge cleanly into the commit the entry was built on, so no tree can match it.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/merge_queue/merged_tree",
+      "value": null
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "merge_queue"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail merge_queue.conflict"
+    ]
+  }
+}

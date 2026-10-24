@@ -1,0 +1,33 @@
+{
+  "summary": "A minor change that edits .importlinter fails: Import Linter's contracts and ignored imports are the violations baseline, so baseline:module-boundaries asks for the major route and the architecture pool.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": ".importlinter"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope: [docs/guide.md]\n",
+      "new": "scope: [.importlinter]\n"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "type: docs\n",
+      "new": "type: chore\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

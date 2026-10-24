@@ -1,0 +1,27 @@
+{
+  "summary": "With no command marked smoke, an emergency runs the whole repository suite: the end-to-end command has no result, so the gate fails.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "policy:\n  command: [\"./scripts/aidd-policy\"]\n",
+      "new": "  - name: e2e\n    command: [make, e2e]\npolicy:\n  command: [./scripts/aidd-policy]\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "fail tests.no_result",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

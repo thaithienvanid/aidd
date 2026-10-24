@@ -1,0 +1,23 @@
+{
+  "summary": "Evidence the adapter could not read fails the gate rather than counting as absent.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence",
+      "value": {
+        "invalid": "evidence.json is not valid JSON"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail tests.evidence_invalid"
+    ]
+  }
+}

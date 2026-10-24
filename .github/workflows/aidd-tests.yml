@@ -1,0 +1,116 @@
+# Dogfood: this repository's test runner of record (see templates/github/aidd-tests.yml).
+# The runner runs from the PR's base commit's source, extracted to its own folder, so the PR's
+# copy of aidd is not the code that starts the tests. That is all it does: the tests are the
+# PR's code, they run as the same user in the same job, and they can rewrite that folder and
+# the evidence folder before the upload. Evidence from this job is only as honest as the PR's
+# tests; the Spec approval and Merge approval reviews cover that, and templates/github/aidd-tests-central.yml
+# (a required workflow in another repository, with an attestation the gate checks) is the
+# pattern that also keeps the workflow definition out of the PR's reach.
+name: aidd-tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  # A merge queue re-runs the tests on the merge-group commit; the gate then judges it through workflow_run.
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+  pull-requests: read  # in a merge queue: the queued pull request's description
+
+# One run per pull request head: a repeated event for the same head waits for the one in progress. A description edit
+# gets a group of its own, so it never displaces a queued run for a new head; the tests job below still cancels the
+# run for an older head.
+concurrency:
+  group: aidd-tests-run-${{ github.event.action == 'edited' && github.run_id || format('{0}-{1}', github.event.pull_request.number || 'queue', github.event.pull_request.head.sha || github.event.merge_group.head_sha) }}
+  cancel-in-progress: false
+
+jobs:
+  # A description edit re-runs the tests only when it changes the Change Request block they read (the Spec, or the inline
+  # tests); a title-only edit, or one elsewhere in the description, leaves the earlier run's evidence for this head standing.
+  block:
+    if: github.event.action == 'edited'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      changed: ${{ steps.compare.outputs.changed }}
+    steps:
+      - id: compare
+        shell: python
+        run: |
+          import json, os, re
+          event = json.load(open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8"))
+          fence = re.compile(r"^ {0,3}(`{3,}|~{3,})[ \t]*yaml[ \t]+aidd[ \t]*\r?$(.*?)^ {0,3}\1[ \t]*\r?$", re.M | re.S)
+          blocks = lambda text: [m.group(2).replace("\r\n", "\n") for m in fence.finditer(text or "")]
+          old = ((event.get("changes") or {}).get("body") or {}).get("from")
+          changed = old is not None and blocks(old) != blocks((event.get("pull_request") or {}).get("body"))
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"changed={str(changed).lower()}\n")
+
+  tests:
+    needs: block
+    # !cancelled(): the tests run when the block job was skipped (every event but an edit), and after an edit that changed the block.
+    if: ${{ !cancelled() && (github.event.action != 'edited' || needs.block.outputs.changed == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # At job level, so a skipped title-only edit never cancels a real run. Each queue entry has its own group.
+    concurrency:
+      group: aidd-tests-${{ github.event.pull_request.number || github.event.merge_group.head_sha }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      # The runner runs from the base commit's source, as the gate runs aidd: no package build, so no
+      # unpinned build backend, and nothing from the PR's copy of aidd starts the tests.
+      - name: Extract the runner from the base commit
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+        run: |
+          mkdir "$RUNNER_TEMP/aidd-base"
+          git archive --format=tar "$BASE_SHA" src schemas | tar -x -C "$RUNNER_TEMP/aidd-base"
+      - name: Save the PR description
+        if: github.event_name == 'pull_request'
+        run: python3 -c 'import json, os, sys; e = json.load(open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8")); sys.stdout.write(e["pull_request"].get("body") or "")' > "$RUNNER_TEMP/aidd-body.md"
+      # A step of its own, so the token never reaches the step that runs the tests.
+      - name: Save the queued pull request's description
+        if: github.event_name == 'merge_group'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
+        run: |
+          number="$(printf '%s' "$QUEUE_REF" | sed -n 's#^refs/heads/gh-readonly-queue/.*/pr-\([1-9][0-9]*\)-[0-9a-f]\{40\}$#\1#p')"
+          if [ -z "$number" ]; then echo "unexpected merge queue branch: $QUEUE_REF" >&2; exit 1; fi
+          gh api "repos/$REPO/pulls/$number" --jq '.body // ""' > "$RUNNER_TEMP/aidd-body.md"
+      - name: Run the tests (green on head, red on base)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          PYTHONPATH: ${{ runner.temp }}/aidd-base/src
+        run: python3 -P -m aidd test --base "origin/$BASE_REF" --body-file "$RUNNER_TEMP/aidd-body.md" --red-in-place --out "$RUNNER_TEMP/aidd-evidence"
+      - name: Run the tests (green on the merge-group commit, red on the commit it was built on)
+        if: github.event_name == 'merge_group'
+        env:
+          BASE_REF: ${{ github.event.merge_group.base_ref }}
+          PYTHONPATH: ${{ runner.temp }}/aidd-base/src
+        run: python3 -P -m aidd test --merge-queue --base "origin/${BASE_REF#refs/heads/}" --body-file "$RUNNER_TEMP/aidd-body.md" --red-in-place --out "$RUNNER_TEMP/aidd-evidence"
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: aidd-evidence
+          path: ${{ runner.temp }}/aidd-evidence/evidence.json
+          retention-days: 90
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: aidd-evidence-logs
+          path: ${{ runner.temp }}/aidd-evidence/logs/
+          retention-days: 90
+          if-no-files-found: ignore

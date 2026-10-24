@@ -1,0 +1,21 @@
+{
+  "summary": "The file the block names is a valid Epic, not a Spec: a normal change needs a Spec, whose tasks and tests a human approves.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/head_files/specs~1SPEC-220.md",
+      "value": "---\naidd_version: \"1.0.0\"\nkind: epic\nid: SPEC-220\ntitle: Rate-limit checkout\ngoal: Checkout stays up under load.\nstatus: draft\n---\n\n## Context\n\nAn Epic, not a Spec.\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec.invalid"
+    ]
+  }
+}

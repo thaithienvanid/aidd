@@ -1,0 +1,37 @@
+{
+  "summary": "The commit the Spec approval names already held code beyond the Spec and its tests: a warning that approval came late.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/comments/0/body",
+      "old": "5bec000000000000000000000000000000000001",
+      "new": "1111111111111111111111111111111111111111"
+    },
+    {
+      "op": "set",
+      "path": "/approval_commits",
+      "value": {
+        "1111111111111111111111111111111111111111": {
+          "ancestor": true,
+          "paths": [
+            "specs/SPEC-220.md",
+            "tests/checkout/test_rate_limit.py",
+            "src/checkout/rate_limit/limiter.py"
+          ],
+          "spec_hash": "4f7266fb3b8c1a805cd18eb9e3c2f508"
+        }
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "spec_approval"
+    ],
+    "findings": [
+      "warn spec_approval.after_implementation"
+    ]
+  }
+}

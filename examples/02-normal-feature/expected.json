@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "Normal feature with a Spec",
+  "summary": "The worked example: Spec approved by hash, red-then-green proof, Approver is not an author."
+}

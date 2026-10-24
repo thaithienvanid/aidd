@@ -1,0 +1,30 @@
+{
+  "summary": "The same weak test with no Spec approval recorded: solo's red-then-green stays a warning, and the optional approval stays optional.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/comments/0"
+    },
+    {
+      "op": "set",
+      "path": "/evidence/results/2/status",
+      "value": "passed"
+    },
+    {
+      "op": "set",
+      "path": "/evidence/results/2/exit",
+      "value": 0
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "red_green"
+    ],
+    "findings": [
+      "warn red_green.passes_on_base"
+    ]
+  }
+}

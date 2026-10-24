@@ -1,0 +1,15 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: zephyr-firmware
+description: "Microcontroller firmware on Zephyr, tested on the host and in Renode, with MISRA checks and signed MCUboot updates."
+standards:
+  - embedded/zephyr
+  - cpp/clang-format
+  - cpp/unity-ceedling
+  - embedded/misra-cppcheck
+  - embedded/renode-emulation
+  - embedded/mcuboot-signed-updates
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt: [Zephyr, west, Zephyr SDK, twister, clang-format, Unity, Ceedling, Cppcheck, Renode, MCUboot]

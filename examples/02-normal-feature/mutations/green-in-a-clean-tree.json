@@ -1,0 +1,22 @@
+{
+  "summary": "The near miss: evidence that records a clean tree counts as it always did, so the change passes.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/dirty_tree",
+      "value": false
+    },
+    {
+      "op": "set",
+      "path": "/evidence/dirty_paths",
+      "value": []
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

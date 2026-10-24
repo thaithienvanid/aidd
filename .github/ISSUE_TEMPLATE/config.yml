@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/thaithienvanid/aidd/security/advisories/new
+    about: Report a way to merge without the gate's evidence or approvals privately, never in a public issue.
+  - name: Adoption and configuration help
+    url: https://github.com/thaithienvanid/aidd/blob/main/docs/FAQ.md
+    about: Read the FAQ and the adoption playbook before opening an issue.

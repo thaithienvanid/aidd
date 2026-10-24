@@ -1,0 +1,18 @@
+{
+  "summary": "An inline block that leaves out assisted_by: the gate takes the agents the commit trailers name, so the provenance check still holds and the change passes.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "assisted_by: [claude-code/claude-opus-5-5]\n",
+      "new": ""
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

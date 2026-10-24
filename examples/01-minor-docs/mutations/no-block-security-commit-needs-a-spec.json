@@ -1,0 +1,27 @@
+{
+  "summary": "No block, and a commit subject names the security type: the gate takes the riskiest type the commits name, so the change needs major and a Spec it does not have.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Fix a typo in the setup guide."
+    },
+    {
+      "op": "replace_text",
+      "path": "/commits/0/message",
+      "old": "Implement the change\n",
+      "new": "security: tighten the session check\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec.missing"
+    ]
+  }
+}

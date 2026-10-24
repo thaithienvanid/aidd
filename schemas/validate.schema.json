@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:validate",
+  "title": "aidd validate --json",
+  "description": "What `aidd validate --json` prints: whether the files validate, each error and warning, and the next step.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "passed",
+    "errors",
+    "warnings",
+    "next_step"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "passed": {
+      "type": "boolean",
+      "description": "True when there is no error: the exit code is 0."
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Each error, naming the file it is in (all but a missing config)."
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Each warning, without its `warning: ` prefix: worth fixing, never failing."
+    },
+    "next_step": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "What to do next when there is an error; null when there is none."
+    }
+  }
+}

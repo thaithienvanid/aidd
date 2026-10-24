@@ -1,0 +1,22 @@
+{
+  "summary": "The block's trace_id differs from the Spec's: the change and its Spec must name the same work.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "```\n",
+      "new": "trace_id: spec-999\n```\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "change_request"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail change_request.trace_id_mismatch"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+aidd_version: "1.0.0"
+profile: audited
+changed_lines_exclude_paths: ["**/package-lock.json"]
+owners:
+  default_owner_team: checkout
+  approvers: ["@checkout-lead", "@platform-lead", "@oncall-lead"]
+  specialists:
+    security: ["@sec-alice"]
+policy:
+  command: ["./scripts/aidd-policy"]
+tests:
+  - name: unit
+    command: [make, test]
+standard_changes:
+  - name: dependency-patch
+    paths: [package.json, package-lock.json]
+    authors: ["dependabot[bot]"]
+    max_changed_lines: 300
+identities:
+  system_accounts: [web-flow]
+  bots: ["claude[bot]"]

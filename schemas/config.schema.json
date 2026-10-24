@@ -1,0 +1,1413 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:config",
+  "title": "Config",
+  "description": "Repo binding in .aidd/config.yaml. The gate always reads it from the base branch, never from the change under review.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aidd_version",
+    "profile"
+  ],
+  "properties": {
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version"
+    },
+    "profile": {
+      "$ref": "urn:aidd:1:common#/$defs/profile"
+    },
+    "mode": {
+      "enum": [
+        "enforce",
+        "advisory"
+      ],
+      "description": "Whether the guard and the gate block what the rules forbid (`enforce`) or only report it (`advisory`: an agent's edit outside the rules goes through with a note, and the gate never fails the merge). In both, no agent approves, merges, lands, or publishes for a person, changes their decision records, or rewrites the default branch. Unset, the profile's default: solo and team advise, org and audited enforce. The base branch's config wins over the CI setting. On GitLab, where anyone who may run a pipeline can set variables, only this key can make the gate advisory. A child config cannot relax a parent's `enforce`."
+    },
+    "components": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The parts of aidd that run in this repository. Each is on unless set to false, and each turns off alone: a part that is off says nothing, and the others keep working. The gate is set by `mode`, the session hooks by `hooks.level`, and the team by installing the aidd-team plugin. A child config cannot turn off a part its parent turns on.",
+      "properties": {
+        "spec_steps": {
+          "type": "boolean",
+          "description": "The loop's Spec-first steps in the session: the route and next steps, the stop check, and autopilot. false: roles and skills work on the request directly, with no Spec or approval stops, and the guard allows every edit. It keeps only its rules on approving, merging, landing, publishing, the default branch, held commands, and loosening the config. The gate still judges each change unless `mode` is advisory."
+        },
+        "autopilot": {
+          "type": "boolean",
+          "description": "Autopilot. false: `aidd autopilot start` and `next` refuse, and nothing suggests it. It is off too while the Spec steps are off."
+        }
+      }
+    },
+    "tenant": {
+      "$ref": "urn:aidd:1:common#/$defs/tenant",
+      "description": "The tenant this repository belongs to: the company, or an agency's client, that approves its changes. An org preset sets it; a child config cannot change a parent's tenant (a warning, and the parent's stands). The gate stamps it into every gate record, gate event, and change record, and approvals are scoped to it: an identity written `<tenant>:<login>` or `<tenant>:email:<address>` belongs to that tenant, an unqualified one to this tenant, and an approval by an identity of another tenant never counts."
+    },
+    "extends": {
+      "type": "array",
+      "description": "Parent configs merged first. A child may only tighten gates and cannot lower the profile.",
+      "items": {
+        "$ref": "#/$defs/extends"
+      }
+    },
+    "locks": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "disabled_rules",
+          "rule_exclusions",
+          "scope_exclude_paths",
+          "changed_lines_exclude_paths",
+          "standard_changes",
+          "tenant",
+          "project"
+        ]
+      },
+      "uniqueItems": true,
+      "description": "Set by a parent config (an org preset): keys its children may not add to or set. Each list key widens what passes; `tenant` binds the repository to its tenant; `project` binds the parent's `project`, which a child may then add to and tighten, never loosen. Children may add locks, never remove them."
+    },
+    "locale": {
+      "type": "string",
+      "pattern": "^[a-zA-Z]{2,3}(-[A-Za-z0-9]{2,8})*$",
+      "description": "Agent-facing only: the BCP 47 tag an agent writes ticket titles and PR summaries in. aidd itself reads it nowhere, and the gate never does. Tokens stay English."
+    },
+    "specs_dir": {
+      "$ref": "#/$defs/folder",
+      "description": "Where Spec files live. Default `specs`. A folder inside the repository, never its top: the Specs folder is a role's write area."
+    },
+    "proposals_dir": {
+      "$ref": "#/$defs/folder",
+      "description": "Where proposals live, one folder each. Default `proposals`. A folder inside the repository, never its top: a change only to it needs no Spec. Keep a client's proposals in a repository only people cleared for that client can read."
+    },
+    "docs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dir": {
+          "$ref": "#/$defs/folder",
+          "description": "Where `aidd new <kind> <topic> --spec <ID>` writes a linked document: `<dir>/adr/NNNN-<topic>.md` for an ADR, `<dir>/specs/<area or Spec id>/<kind>-<topic>.<ext>` otherwise. Default `docs`."
+        },
+        "required": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tech-spec": { "$ref": "#/$defs/doc_level" },
+            "runbook": { "$ref": "#/$defs/doc_level" },
+            "threat-model": { "$ref": "#/$defs/doc_level" },
+            "authz": { "$ref": "#/$defs/doc_level" },
+            "design-spec": { "$ref": "#/$defs/doc_level" },
+            "test-plan": { "$ref": "#/$defs/doc_level" },
+            "migration": { "$ref": "#/$defs/doc_level" },
+            "analytics": { "$ref": "#/$defs/doc_level" },
+            "compliance": { "$ref": "#/$defs/doc_level" },
+            "data-map": { "$ref": "#/$defs/doc_level" }
+          },
+          "description": "Which kinds of linked document `aidd validate` asks a Spec for: each kind `warn`, the default, or `off`. `warn` follows aidd's own rule for the kind, the same in every repository, and `aidd validate` only warns: it never errors, and the gate never reads it. A major Spec needs a tech-spec and a runbook (its own Alternatives considered and Pre-mortem, or Rollout, count) unless a protected path alone made it major, a threat-model when a risk dimension is security, privacy, or data, or, when compliance is on (`project.compliance` targets, or the audited profile), when a Task touches an authentication, authorization, secrets, or cryptography path (on normal too), an authz doc (the authorization matrix) when a Task touches an authentication or authorization path (the `baseline:auth` paths) and the risk names security or compliance is on (on normal too), a design spec (`design-spec`, or `design.files`) on a feat whose Tasks touch a user-facing path, a test-plan only on a trigger (a compliance dimension or type, the audited profile, a device path, `uat: true`, or 10 or more Acceptance items), a migration doc on a data dimension or type or an irreversible change, a compliance doc (its DPIA) when a risk dimension is privacy (on normal too), with the data map (`data-map`) suggested beside it, and an analytics doc (a tracking plan) when the Spec has a `hypothesis` (on normal too); on normal the design-spec, test-plan, and migration rules are suggestions `aidd new spec` prints. Otherwise testing lives in the Spec's Acceptance and the tech spec's Test strategy. A child config cannot set `off` for a kind its parent sets to `warn`."
+        },
+        "exemplars": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$))[^*?]+\\.md$",
+            "description": "A Spec file, repo-relative: no leading `/`, no `..`, no wildcard."
+          },
+          "uniqueItems": true,
+          "description": "The project's best Specs, which a person names, such as `[\"specs/SPEC-12.md\"]`. `aidd context` lists them for the Specify step, and whoever writes a Spec reads them first, for their shape and depth, never to copy them. `aidd validate` warns on a path that does not exist. aidd never chooses them."
+        },
+        "max_review_age_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650,
+          "description": "Days after a living doc's `reviewed_on` date before `aidd doctor` warns that it is stale. Default 180, about six months. The living docs are the architecture overview, the data map, the vendor register, the glossary, and every doc a Spec links with `frozen: false`, except a runbook, which has `tested_on`. `reviewed_on` is optional: a person sets it in the doc's `---` YAML front matter each time they review the doc. A doc nobody has reviewed lately describes a system that has moved on."
+        },
+        "max_runbook_age_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650,
+          "description": "Days after a runbook's `tested_on` date before `aidd doctor` warns that it is stale. Default 180. A runbook nobody has run lately is a guess at the moment it is needed."
+        }
+      },
+      "description": "Linked documents: where `aidd new` writes them, which ones `aidd validate` asks for, and how old they may grow."
+    },
+    "owners": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "default_owner_team": {
+          "type": "string",
+          "description": "owner_team that `aidd new` writes into new objects."
+        },
+        "approvers": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/identity"
+          },
+          "description": "Eligible Approvers: users, @org/team, or `email:you@example.com` (local-first: the email your commits use). The schema accepts an empty or missing list, but the gate fails closed on it: every profile needs at least one Approver, and until then no change can merge. Under solo, `aidd init` fills in your own login or commit email."
+        },
+        "specialists": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:aidd:1:common#/$defs/identity"
+            },
+            "minItems": 1
+          },
+          "description": "Specialist Approver pools by name: `security`, `privacy`, `finance`, `compliance`, `data`, or any pool a risk rule names. A major change needs an approval from each pool its reasons name; an unbound pool falls back to `security`, so a financial major change (`baseline:payments`) goes to `finance` when it is bound and to `security` until then. Locked once a parent sets a pool."
+        },
+        "paths": {
+          "type": "array",
+          "description": "Per-path owners for monorepos. For every entry whose paths the change touches, at least one approval must come from that entry's approvers.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "paths",
+              "approvers"
+            ],
+            "properties": {
+              "paths": {
+                "type": "array",
+                "items": {
+                  "$ref": "urn:aidd:1:common#/$defs/glob"
+                },
+                "minItems": 1,
+                "description": "Globs this entry owns."
+              },
+              "approvers": {
+                "type": "array",
+                "items": {
+                  "$ref": "urn:aidd:1:common#/$defs/identity"
+                },
+                "minItems": 1,
+                "description": "Users or @org/team; one of them must approve a change that touches these paths."
+              }
+            }
+          }
+        },
+        "codeowners": {
+          "type": "boolean",
+          "description": "Also read per-path Approvers from the base branch's CODEOWNERS (last matching rule wins), for Spec approval and Merge approval. Once a parent sets true, it stays true."
+        },
+        "backup_approvers": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/identity"
+          },
+          "description": "Who to ask when a wait for an Approver passes `limits.escalate_after_minutes`: `aidd list` names them. Naming them changes nobody's eligibility: a backup approves only when they are an eligible Approver for the change."
+        }
+      },
+      "description": "Who owns and approves changes in this repo."
+    },
+    "mission": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "The team's enduring purpose, set by humans, such as \"small shops get paid on time\". It changes rarely; `goal` is the current measurable target under it. `aidd list` shows it first in each Spec's why chain, and the session-start hook briefs the agent with it. A child config may replace it."
+    },
+    "goal": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "The team's current measurable goal, set by humans, such as \"make onboarding succeed on the first try\": the target under `mission`. Agents weigh an open choice against it, `aidd observe --band` writes it into the draft Specs it opens, and `aidd list` shows it in each Spec's why chain."
+    },
+    "agents": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "How the agents work in this repository: which roles may suggest work nobody asked for, and when they earn more autonomy. `aidd owners` shows the roles with the humans who decide.",
+      "properties": {
+        "proactive_roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z-]*$"
+          },
+          "uniqueItems": true,
+          "description": "Agent roles that may suggest work nobody asked for, always as a draft Spec with `suggested_by: agent:<role>` that stays a draft until a person records `triage` (`aidd validate` enforces it). Default: product-manager (which also drafts Specs from incoming issues), agile-coach, and sre. An empty list means agents only work when asked."
+        },
+        "models": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^(inherit|[a-z0-9][a-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._:\\[\\]-]*)$"
+          },
+          "description": "The model each aidd-team role runs on, as `provider/model` (`anthropic/claude-opus-5-5`) or `inherit` (the session's model). Key it by tier (`reasoning` or `execution`) or by role name. A role's own entry wins over its tier's, so one role, such as the verifier, can run on any model by name. A key that names no tier and no role selects nothing, and `aidd doctor` warns about it. `aidd init --team` and `aidd upgrade` write it into each harness's own agent model field: Claude Code takes only an `anthropic/` model or `inherit` and Codex only an `openai/` one, OpenCode the whole `provider/model`, Kiro and Copilot the model name; where a harness cannot run it, the generated file says so and the harness's default runs, and `inherit` writes no model field outside Claude Code. Unset: the tier's default per harness."
+        },
+        "delegate": {
+          "enum": [
+            "always",
+            "never",
+            "auto"
+          ],
+          "description": "Whether the main session hands its edits of repository content to an aidd-team role. `auto`: in the session that holds the autopilot lease (`aidd autopilot start --session ID`), the guard denies the main session's edit and names the role that owns the file; in every other session it allows the edit and tells the agent which role owns it, once per session and role, when the team is installed. `always`: the guard denies that edit in every session; set explicitly without the team installed, it still denies, says to install the team (`aidd init --team`), and `aidd doctor` reports an error. `never`: neither. Role subagents are never affected. Not governed: running `aidd`, git branch, worktree, push, and PR/MR commands, reads, ignored files that git does not track, and starting subagents. Default by profile: `always` under audited, which applies only when the team is installed (without it the guard acts as `auto`, and `aidd doctor` says so), `auto` otherwise. A child config cannot loosen a parent's value."
+        },
+        "independent_review": {
+          "type": "boolean",
+          "description": "Ask for review on another model: `aidd doctor` warns when the Reviewer or the Verifier role resolves, through `models`, to the developer's model family (`anthropic/claude`, `openai/gpt`), or when `models` leaves one of them unset. The Reviewer and the Verifier start their reports with the harness and the model they ran on. Default false."
+        },
+        "autonomy": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "When `aidd metrics --autonomy` suggests more autonomy for an agent and a kind of change. A group with any failed change or reworked Spec stays at the first stage. The report only suggests; a person decides.",
+          "properties": {
+            "min_changes": { "type": "integer", "minimum": 1, "description": "Changes needed before the report suggests reviewing only the trade-offs. Default 10." },
+            "min_first_pass": { "type": "number", "minimum": 0, "maximum": 1, "description": "Share of passed changes that passed on the first try, needed for that stage. Default 0.8." },
+            "standard_min_changes": { "type": "integer", "minimum": 1, "description": "Changes needed before the report names the work a candidate standard change. Default 25." },
+            "standard_min_first_pass": { "type": "number", "minimum": 0, "maximum": 1, "description": "First-try share needed for a candidate standard change. Default 0.9." }
+          }
+        }
+      }
+    },
+    "standards": {
+      "type": "array",
+      "description": "Standards: the team's own written rules and its copies of aidd's library standards (`aidd standard add`), each a Markdown document in the repository that agents read before a loop step, beside the standards their roles already apply. Each is opinionated (the default) or industry. `aidd owners` lists them by role with their type; `aidd doctor` checks each path, role, and `enforced_by` name, and each copy against the library. A child config adds entries; it cannot drop or redefine one a parent names.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "path",
+          "roles"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$",
+            "description": "Stable name, shown by `aidd owners`, such as `api-errors`."
+          },
+          "path": {
+            "$ref": "urn:aidd:1:common#/$defs/repo_path",
+            "description": "The Markdown document that states the standard, repo-relative, such as `docs/standards/api-errors.md`."
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^(\\*|[a-z][a-z-]*)$"
+            },
+            "minItems": 1,
+            "uniqueItems": true,
+            "description": "aidd-team role keys that read it before their step, such as `developer` or `reviewer`, or `*` for every role."
+          },
+          "when_changed": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:aidd:1:common#/$defs/glob"
+            },
+            "minItems": 1,
+            "description": "Load it only for a change that touches one of these paths. Omit to load it for every change."
+          },
+          "enforced_by": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$"
+            },
+            "uniqueItems": true,
+            "description": "Names of `tests` entries that check the rule, so the gate enforces it. Without one, the standard is guidance a reviewer checks."
+          },
+          "type": {
+            "const": "opinionated",
+            "default": "opinionated",
+            "description": "`opinionated`, the default and the only value here: a choice the team or company commits to, which a company can require, exclude, or replace. An industry standard (what the field agrees on) lives only in the registry, `schemas/industry-standards.json`; the packs apply it everywhere, and a project only waives it, with a reason and an expiry."
+          },
+          "fills": {
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": { "$ref": "urn:aidd:1:standard#/$defs/choice_ref" },
+            "description": "The open choices it answers, each `<pack or skill>:<choice>`, such as `ci-pipeline:linter` (`aidd standard list` names them). Optional for the team's own standard. `aidd doctor` warns about a choice no pack or skill declares, and about two copies of library standards that fill one choice for one ecosystem."
+          },
+          "from_library": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "aidd_version", "sha256"],
+            "description": "Written by `aidd standard add` and `aidd stack add` for a copy of a library standard: never edit the copy. To change the rule, write your own standard and replace the library one in `standards_policy`. `aidd doctor` reports an edited copy and drift; `aidd upgrade` refreshes an unedited one.",
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$", "description": "The library standard's id." },
+              "aidd_version": { "$ref": "urn:aidd:1:common#/$defs/aidd_version", "description": "The aidd that wrote the copy." },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "The SHA-256 of the copy as written." },
+              "stack": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,39}$", "description": "The stack that brought it, when `aidd stack add` wrote it." }
+            }
+          }
+        }
+      }
+    },
+    "standards_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A company's rules for library standards, usually in its org preset: `aidd standard add` and `aidd stack add` follow them and `aidd doctor` reports a breach. Only opinionated ids: an industry standard is never excluded or replaced, only waived per project, with a reason and an expiry. A child config adds and tightens: it cannot drop a parent's entry, require what a parent excludes, or allow a stack the parent does not.",
+      "properties": {
+        "require": { "$ref": "#/$defs/library_ids", "description": "Library standards every project must carry; `aidd doctor` fails while one is missing." },
+        "exclude": { "$ref": "#/$defs/library_ids", "description": "Library standards no project may add." },
+        "replace": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$" },
+          "description": "A library standard and the `standards` name of the company's own standard that takes its place, such as `python/mypy-typing: typing`. Projects cannot add the library one."
+        },
+        "allow_stacks": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,39}$" },
+          "description": "The only stacks a project may add. Unset, any stack."
+        }
+      }
+    },
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Delivery targets `aidd metrics --dora` checks the five DORA metrics against, and `aidd metrics` the loop-speed metrics. Set them from your own baseline, or from the latest DORA report's distribution; DORA advises comparing a service with its own past, not with other teams.",
+      "properties": {
+        "min_deployments_per_week": { "type": "number", "minimum": 0, "description": "At least this many changes passing the gate per week." },
+        "max_lead_time_hours": { "type": "number", "minimum": 0, "description": "At most this many median hours from a change's first gate run to its first pass." },
+        "max_change_fail_rate": { "type": "number", "minimum": 0, "maximum": 1, "description": "At most this share of released Specs rolled back or failing observe." },
+        "max_recovery_days": { "type": "number", "minimum": 0, "description": "At most this many median days to restore a failed release." },
+        "max_rework_rate": { "type": "number", "minimum": 0, "maximum": 1, "description": "At most this share of passed changes on the emergency route." },
+        "max_first_feedback_minutes": { "type": "number", "minimum": 0, "description": "At most this many median minutes from a head's push to the first gate decision holding its test results. `aidd metrics` exits 1 when missed." },
+        "max_approval_wait_p90_minutes": { "type": "number", "minimum": 0, "description": "At most this many minutes at the 90th percentile of the slowest approval's wait (Spec approval, Merge approval, specialist approval). `aidd metrics` exits 1 when missed." },
+        "min_flow_efficiency": { "type": "number", "minimum": 0, "maximum": 1, "description": "At least this share of lead time (opened to first pass) not spent waiting on a human approval. `aidd metrics` exits 1 when missed." },
+        "max_cost_per_change": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "amount",
+            "currency"
+          ],
+          "properties": {
+            "amount": {
+              "type": "number",
+              "minimum": 0,
+              "description": "The most one change should cost."
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$",
+              "description": "Its ISO 4217 currency, such as `USD`: only cost log entries in it count, since aidd converts nothing."
+            }
+          },
+          "description": "At most this agent cost for each change in `aidd metrics --cost`: it warns for each change over it, and the target is met when none is. Display only: never a gate rule, never pauses work, never sets the exit code."
+        }
+      }
+    },
+    "tests": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "urn:aidd:1:common#/$defs/test_command"
+          },
+          {
+            "not": {
+              "required": [
+                "new_behavior"
+              ]
+            }
+          }
+        ],
+        "description": "A repository suite command. It has no new_behavior: red-then-green belongs to a Spec's own tests."
+      },
+      "description": "The repository suite, run on every change. Empty means Characterization: every Spec must bring its own commands."
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "$ref": "urn:aidd:1:common#/$defs/command",
+          "description": "Prints allow, deny, or freeze, or a JSON answer with findings. No output or a timeout is deny. Locked once a parent sets it."
+        },
+        "pass_env": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,127}$"
+          },
+          "maxItems": 20,
+          "uniqueItems": true,
+          "description": "Credential-like variables (names with TOKEN, SECRET, PASSWORD, KEY, or CREDENTIAL) the Policy command may see, by name; every other one is dropped from its environment, as for the test commands. Locked once a parent sets it."
+        }
+      },
+      "description": "The Policy interface: org rules in any language, run from the base branch without credentials unless `pass_env` names them."
+    },
+    "publish": {
+      "enum": ["person", "agents"],
+      "default": "person",
+      "description": "Who takes work off this machine: a `git push`, a pull or merge request. `person`, the default: the team works on this machine (the inner loop and the local trunk), and only a person publishes, by typing `publish` or running `aidd publish`. The guard holds an agent's push and PR/MR until they do, and their record grants only a plain push of that branch to that remote. `agents`: for a team that works in pull requests, agents push their branches and open PR/MRs, and the platform's gate decides. Under both, a release, a tag, and a package stay the person's, and no agent merges or approves. Only a person changes it."
+    },
+    "observe": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "$ref": "urn:aidd:1:common#/$defs/command",
+          "description": "Default post-release check when a Spec's observe block names none."
+        },
+        "bands": {
+          "type": "array",
+          "description": "Control bands for `aidd observe --band`: a metric judged against its recent baseline. Detection is deterministic; the tier sets what an agent may do (log, diagnose read-only, propose a change through the gate).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "metric"
+            ],
+            "properties": {
+              "metric": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The metric's name, as `aidd observe --band` gives it."
+              },
+              "window": {
+                "type": "integer",
+                "minimum": 8,
+                "maximum": 1000,
+                "description": "How many recent values make the baseline. Default 30."
+              },
+              "diagnose_sigma": {
+                "type": "number",
+                "minimum": 0.1,
+                "description": "Standard deviations at which an agent may diagnose read-only. Default 2."
+              },
+              "propose_sigma": {
+                "type": "number",
+                "minimum": 0.1,
+                "description": "Standard deviations at which an agent may propose a fix or run a pre-approved runbook. Default 3."
+              }
+            }
+          }
+        }
+      },
+      "description": "The Observe interface."
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command"
+      ],
+      "properties": {
+        "command": {
+          "$ref": "urn:aidd:1:common#/$defs/command",
+          "description": "Starts the app on this machine with its seed data (the command loads them), from a clean checkout, such as [\"docker\", \"compose\", \"up\", \"--build\"]. The verifier runs it in a worktree of the exact head commit."
+        },
+        "url": {
+          "type": "string",
+          "description": "Where the running preview answers, such as http://localhost:3000: the address the verifier drives."
+        }
+      },
+      "description": "The one-command local preview: no hosting, no cost. The verifier starts it from a clean checkout of the head and records screenshots, a trace or video, and API transcripts under `.aidd/evidence/preview/<head_sha>/`, for people; the gate never reads it. `aidd init` fills it only when the command is obvious (a Docker Compose file)."
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Overrides that may only tighten the profile.",
+      "properties": {
+        "separation_of_duties": {
+          "type": "boolean",
+          "description": "Approvers must differ from the change's authors. Only true tightens."
+        },
+        "spec_approval_required_routes": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/route"
+          },
+          "description": "Routes that need Spec approval before implementation."
+        },
+        "specialist_spec_approval": {
+          "type": "boolean",
+          "description": "Each required specialist pool also approves the Spec on major."
+        },
+        "approvals": {
+          "$ref": "#/$defs/route_ints",
+          "description": "Approvals needed at Merge approval, per route."
+        },
+        "specialist_approvals": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "description": "Approvals needed from each required specialist pool on major, and on emergency changes that touch protected paths."
+        },
+        "policy_required_routes": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/route"
+          },
+          "description": "Routes that fail without a bound Policy command."
+        },
+        "provenance": {
+          "enum": [
+            "declare",
+            "every_commit"
+          ],
+          "description": "declare: assisted_by lists every agent a commit names (an `Assisted-by:` trailer, or a `Co-authored-by:` agent). every_commit: also, every non-merge commit carries an `Assisted-by:` trailer (`Assisted-by: none` when no agent wrote it)."
+        },
+        "red_green": {
+          "enum": [
+            "warn",
+            "require"
+          ],
+          "description": "warn or require that new-behavior tests fail on base."
+        },
+        "standard_changes": {
+          "type": "boolean",
+          "description": "Allow configured standard changes. Only false tightens."
+        },
+        "observe_required_routes": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/route"
+          },
+          "description": "Routes whose Spec must have an observe block."
+        },
+        "max_changed_lines": {
+          "$ref": "#/$defs/line_limits",
+          "description": "Maximum changed lines per route, after changed_lines_exclude_paths and the files Spec approval froze. The standard and emergency routes have no changed-line limit."
+        },
+        "unlinked_authors": {
+          "enum": [
+            "warn",
+            "fail"
+          ],
+          "description": "A commit author the platform cannot map to an account might be an Approver: warn, or fail. Only fail tightens."
+        },
+        "spec_approval_proof": {
+          "enum": [
+            "optional",
+            "require"
+          ],
+          "description": "optional: an approval line may name the commit it was given on, and the gate records whether Spec approval came before implementation. require: only such approvals count, on a commit that changed nothing but the Spec and its frozen files. Only require tightens."
+        },
+        "approval_carry": {
+          "enum": [
+            "trivial_rebase",
+            "none"
+          ],
+          "description": "Whether a Merge approval of an earlier head counts for the new head after a trivial rebase (Gerrit's TRIVIAL_REBASE): the change's diff is identical, byte for byte apart from line offsets, onto a base that descends from the approved one on the protected branch; nobody new committed; no protected path changes; the tests run again on the new head as usual. none: every new head needs a new approval. The emergency route never carries. Only none tightens."
+        },
+        "approval_carry_routes": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/route"
+          },
+          "description": "The routes on which `approval_carry` applies; emergency never does. A shorter list tightens."
+        },
+        "local_approvals": {
+          "enum": [
+            "any",
+            "signed"
+          ],
+          "description": "Local-first approvals (`aidd approve`, read by the local gate and `aidd land`): any counts every recorded approval; signed counts only those whose git signature verifies as good (with SSH signing, from the Approver's own email principal). Read from the base branch, so an agent cannot switch it off. Only signed tightens."
+        },
+        "local_signers": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "The repository file listing whose SSH signatures count as local approvals, in git's allowed signers format (one `<email> <public key>` line per Approver), read from the base branch's tip and never from the working tree or this machine's git config (default `.aidd/allowed_signers`). The check pins its own settings (SSH signatures, ssh-keygen, this file), so an agent's edit to the machine's gpg config changes nothing. Under `local_approvals: signed` with no such file on the base branch, no local approval counts. A parent config's path stands."
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Work-in-progress limits for people: `aidd list`, `aidd doctor`, and autopilot read them, and the gate never does. Each may only tighten the profile and the parent config: 0 is off, the loosest, and a lower number (not 0) tightens. A child may set any value for a limit its parent left unset.",
+      "properties": {
+        "max_open_per_approver": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "The most open waits (Spec approval or Merge approval) one Approver should hold; 0 turns it off. `aidd list --waiting-on-me` and `aidd list` warn when an Approver holds more, and autopilot starts no new work while one does."
+        },
+        "max_in_progress_per_owner": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "The work-in-progress limit: the most Specs in progress one `owner` should hold; unset or 0 is off. `aidd list` warns when a person holds more."
+        },
+        "max_in_progress_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3650,
+          "description": "Work item age: the most days a Spec should stay in progress before `aidd list` flags it as aging (`aged`). Unset is 10; 0 turns the flag off, and the age still shows. Set it from your own cycle time, such as its 85th percentile."
+        },
+        "max_branch_age_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3650,
+          "description": "Branch age, for trunk-based work: the most days a branch with work the default branch lacks should live before `aidd list` and `aidd doctor` warn, counted from its oldest own commit. Unset is 2 (DORA: hours, merged at least daily; an agent's branch also waits on a person's approvals); 0 turns the warning off. Land the work, behind a flag when it is unfinished, or split it."
+        },
+        "max_open_branches": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000,
+          "description": "Open branches, for trunk-based work: the most local branches with work the default branch lacks (goal branches aside; a branch whose work another open branch holds, such as a Task branch merged into its Spec's, counts as that branch) before `aidd list` and `aidd doctor` warn. Unset is 3, DORA's mark; 0 turns the warning off."
+        },
+        "max_goal_age_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3650,
+          "description": "Goal age: the most days a goal branch (`goal/<name>`) should live before `aidd list` and `aidd doctor` warn, counted from its oldest commit the default branch lacks. Unset is 7; 0 turns the warning off. A long integration branch drifts from the default branch: release what is integrated, or split the goal."
+        },
+        "escalate_after_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 525600,
+          "description": "Minutes a Spec may wait for an Approver before `aidd list` marks the wait escalated and names `owners.backup_approvers`; 0 turns it off. It never approves anything."
+        }
+      }
+    },
+    "risk_rules": {
+      "type": "array",
+      "description": "Path, dependency, and content rules that raise the required route, add dimensions, and name the specialist pool that reviews.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "paths"
+            ]
+          },
+          {
+            "required": [
+              "dependencies"
+            ]
+          },
+          {
+            "required": [
+              "content"
+            ]
+          }
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Rule name, shown in findings and usable in rule_exclusions and disabled_rules."
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:aidd:1:common#/$defs/glob"
+            },
+            "minItems": 1,
+            "description": "Globs that trigger the rule. A rule names `paths`, `dependencies`, `content`, or a mix. With `content`, the paths only narrow where its patterns are read: a path alone never triggers it."
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "description": "Regular expressions (Python `re`, searched in each line) that trigger the rule when a line the diff adds matches one, in a file its `paths` match (any file without `paths`) and its `exclude` does not. What the code does, wherever it sits: a raw SQL string, a call to a model API, a new outbound host. The adapter reads the diff with git and sends the matches in the context (`content_matches`); `aidd gate --paths` cannot see content, so a plan's forecast never shows them. A pattern that does not compile is a config error."
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Dependency names that also trigger the rule when the diff adds one to a manifest (package.json, requirements*.txt, pyproject.toml, Pipfile, go.mod, Cargo.toml, pom.xml, build.gradle(.kts), *.csproj, Gemfile, composer.json, pubspec.yaml, mix.exs, or a Django settings module's INSTALLED_APPS), wherever the code that uses it sits. A name matches ignoring case and treating `-`, `_`, and `.` alike; one ending in `/` matches every name it starts (an npm scope or a Go module path). A version change never matches, and `exclude` applies to the manifest's path."
+          },
+          "route": {
+            "enum": [
+              "minor",
+              "normal",
+              "major"
+            ],
+            "description": "Minimum route when the rule matches; without it, only the dimensions raise the route."
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:aidd:1:common#/$defs/dimension"
+            },
+            "description": "Risk dimensions the change must declare when the rule matches."
+          },
+          "specialists": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:aidd:1:common#/$defs/pool"
+            },
+            "description": "Specialist Approver pools that must approve the head. A rule below major asks them whenever it matches, on every route (an emergency too, unless it is an exact revert): a pool asked for what the change does, not only for its size. A rule that forces major asks them through the major route. Default: the pools its dimensions name, else `security`, and only when the rule makes the change major."
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:aidd:1:common#/$defs/glob"
+            },
+            "description": "Paths this rule never matches."
+          }
+        }
+      }
+    },
+    "disabled_rules": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^baseline:"
+      },
+      "description": "Baseline risk rule names to turn off, such as `baseline:payments` in a repository with no payment code. Protected paths cannot be turned off; to keep a rule and drop one folder from it, use `rule_exclusions`."
+    },
+    "rule_exclusions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "urn:aidd:1:common#/$defs/glob"
+        }
+      },
+      "description": "Extra excluded paths for baseline rules, keyed by rule name. The recipe for a folder a rule matches by name that holds no such logic, such as UI components: `rule_exclusions: {\"baseline:auth\": [\"src/components/permissions/**\"]}` keeps permission badges out of the auth rule while src/auth/ stays major. Narrow a rule this way rather than disabling it. Protected paths have no exclusions."
+    },
+    "protected_paths": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/glob"
+      },
+      "description": "Extra protected paths, added to the built-in set."
+    },
+    "scope_exclude_paths": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/glob"
+      },
+      "description": "Paths any change may touch outside its scope, such as CHANGELOG.md. Never a catch-all."
+    },
+    "changed_lines_exclude_paths": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/glob"
+      },
+      "description": "Paths not counted in the changed-line limit, such as lockfiles and generated code. Never a catch-all."
+    },
+    "standard_changes": {
+      "type": "array",
+      "description": "Pre-approved change classes that merge on green tests without a human.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "paths",
+          "authors"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Class name, recorded as standard_change."
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:aidd:1:common#/$defs/glob"
+            },
+            "minItems": 1,
+            "description": "Globs the change may touch; any other path takes it off the standard route."
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:aidd:1:common#/$defs/identity"
+            },
+            "minItems": 1,
+            "description": "Every commit author and the change author must be listed, usually bots."
+          },
+          "max_changed_lines": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum changed lines for the class."
+          },
+          "type": {
+            "$ref": "urn:aidd:1:common#/$defs/type",
+            "description": "Type recorded when a bot PR has no block. Default deps."
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:aidd:1:common#/$defs/dimension"
+            },
+            "description": "Risk dimensions recorded when a bot PR has no block. Default [\"third_party\"]."
+          },
+          "update_types": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "patch",
+                "minor",
+                "major"
+              ]
+            },
+            "uniqueItems": true,
+            "description": "The dependency updates the class takes: patch, minor, major. Read from the diff's manifests and lockfiles (npm, pip, uv, poetry, Go, Cargo) and from Dependabot's `updated-dependencies` metadata, the worst of both; an update it cannot classify counts as major. Default [\"patch\", \"minor\"] for a class with the third_party dimension; no limit otherwise. `aidd doctor` warns when a third_party class allows major."
+          }
+        }
+      }
+    },
+    "identities": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "system_accounts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Platform bookkeeping accounts that are never authors, such as web-flow. Only bot-like accounts (`*[bot]`, web-flow, github-actions) are accepted."
+        },
+        "bots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Agent accounts that act as implementers. They can never approve, and their commits count as agent-written for provenance."
+        }
+      },
+      "description": "How platform accounts map to authors and agents."
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workflow": {
+          "type": "string",
+          "description": "CI workflow name that uploads evidence. Default aidd-tests."
+        },
+        "artifact": {
+          "type": "string",
+          "description": "The name of the CI artifact that carries the evidence. Default aidd-evidence. Locally, `aidd test` writes it to `.aidd/evidence/`; when this is set, the hooks and the status also read a folder of this name."
+        },
+        "workflow_path": {
+          "type": "string",
+          "pattern": "^\\.github/workflows/[^/]+\\.ya?ml$",
+          "description": "Workflow file whose runs carry the evidence artifact. Default .github/workflows/aidd-tests.yml. Point it at your existing CI to avoid running the suite twice."
+        },
+        "status_checks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Check runs from your existing CI that must succeed on head (success, neutral, or skipped), as evidence beside or instead of `tests`. GitHub only. Only check runs count, from an app in status_check_apps and the pull request's own branch; commit statuses never count. Lists from parents merge."
+        },
+        "status_check_apps": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "GitHub App slugs whose check runs count for status_checks. Default [\"github-actions\"]. Locked once a parent sets it."
+        },
+        "signer_workflow": {
+          "type": "string",
+          "minLength": 1,
+          "description": "owner/repo/.github/workflows/file.yml of a central test workflow (an organization required workflow). When set, the gate accepts evidence only with a valid GitHub artifact attestation signed by that workflow. Locked once a parent sets it."
+        }
+      },
+      "description": "Where the CI test run publishes evidence."
+    },
+    "emergency": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "review_sla_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30,
+          "description": "Longest allowed gap between the day an emergency change opens and its review_due. Default 2. A child takes the smaller value."
+        }
+      },
+      "description": "Emergency route settings."
+    },
+    "guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "held_commands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "match"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Gate name, shown in the deny message."
+              },
+              "match": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "description": "Patterns that must all match one simple command, ignoring case: a pattern with `*`, `?`, or `[` is a glob over the whole command, any other a substring. [\"deploy\", \"production\"] matches `make deploy ENV=production`. A glob that ends in ` *` also matches a command that ends just before it, so `make* deploy *` matches `make deploy` and never `make deployment`. The hook also reads the command as the program it runs. It skips environment assignments, wrappers such as sudo, and runners such as npx. It cuts the program's path to its name, takes a script run by an interpreter as the script, and leaves out NAME=value words. So `terraform* apply *` matches `AWS_PROFILE=prod ./bin/terraform apply`."
+              },
+              "unless": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "description": "Patterns read like `match`: the entry does not hold a command that any of them matches, such as [\"vercel build *\"]."
+              },
+              "environment": {
+                "type": "string",
+                "description": "Label of the environment the command reaches, such as production or staging, shown in the deny message."
+              },
+              "requires": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Environment variable a person sets to a non-empty value, in the environment Claude Code starts with, to approve the command, such as RELEASE_APPROVAL. A command that names the variable itself is denied. Without it, agents never run the command."
+              },
+              "message": {
+                "type": "string",
+                "description": "Extra text for the deny message, such as where to ask for approval."
+              }
+            }
+          },
+          "description": "Shell commands the guard hook denies to every agent until a person approves them, such as a production deploy. `aidd init` writes one, named `init: ...`, for each deploy script, Makefile deploy target, and infrastructure tool command it finds; a person may delete any. A child config adds held commands to its parents'; it cannot drop or redefine one a parent names."
+        }
+      },
+      "description": "The guard (`aidd hook pre-tool`). Advisory, like the rest of the hook: it guides agents; the platform's own deploy protections decide."
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "enum": ["off", "minimal", "balanced", "strict"],
+          "description": "How much the session hooks do. off: none of them speaks, and the guard keeps every rule. minimal: `aidd hook session-start` adds a summary of this change: its route and next steps. balanced: also the stop reminder (`aidd hook stop`, for Stop and SubagentStop, asks the agent once to run `aidd test` when in-scope changes have no passing evidence on HEAD, and names each change the guard would have denied once Spec approval holds); the compaction note (`aidd hook pre-compact` saves the state of the work in the git directory, never in a tracked file, and after a compaction or on a resume session-start reads it back with a reminder of the handoff note); and, under the team and org profiles, the prompt hint (`aidd hook prompt-submit` adds one line with this change's first step to each prompt, and never blocks one). strict: the stop reminder blocks the stop instead. Default by profile: solo minimal, team and org balanced, audited strict. A child config cannot lower a parent's level."
+        },
+        "orca_status": {
+          "type": "boolean",
+          "description": "Inside Orca, with its `orca` CLI on PATH, put this change's first step on the worktree's Orca card (its comment) when session-start and stop run. Display only, never evidence or an approval; time-boxed to 2 seconds and silent on failure. Does nothing outside Orca. Default true."
+        }
+      },
+      "description": "The session hooks (`aidd hook session-start`, `aidd hook prompt-submit`, `aidd hook stop`, `aidd hook pre-compact`). Advisory helpers: they never use the network or a model (inside Orca, `orca_status` only calls the local `orca` CLI), and they allow whenever they cannot tell."
+    },
+    "autopilot": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Autopilot runs the AIDD loop between your decisions: aidd decides each next step and stops whenever a person must decide. These are its limits, which `aidd autopilot next` reads. Each has a default or is off, so nothing asks a question.",
+      "properties": {
+        "timebox": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,3}(m|h)$",
+          "description": "How long one run may last, such as `90m` or `2h`. `aidd autopilot start` sets the lease to end then, and `aidd autopilot next` stops at that time. Default `6h`."
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The most tokens one run may record with `aidd autopilot note --tokens`. `aidd autopilot next` stops the run when the total reaches it. No default."
+        },
+        "max_cost": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["amount", "currency"],
+          "properties": {
+            "amount": { "type": "number", "minimum": 0, "description": "The most one run may cost." },
+            "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "description": "Its ISO 4217 currency, such as `USD`. Only notes in this currency count, since aidd converts nothing." }
+          },
+          "description": "The most one run may cost, from the costs `aidd autopilot note --cost` records. `aidd autopilot next` stops the run when the total reaches it. No default."
+        },
+        "retro_every": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Run `/aidd-team:retro` after this many merged changes, counted since the last retro the journal records. Off when unset."
+        },
+        "parallel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "description": "How many Specs one turn may work on at once. `aidd autopilot next` returns its action and, in `also`, up to this many minus one more agent steps, each on another Spec whose Tasks' scopes overlap none of the others. Each runs in its own worktree on its Spec's branch. Approvals and lands never run in parallel. Default 2."
+        },
+        "notify": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "A command aidd runs, with the message as its last argument, once each time a run stops for a person: a decision waits, it is blocked, a limit ended it, or it finished. For a run nobody watches, such as `[\"ntfy\", \"publish\", \"my-topic\"]` or `[\"osascript\", \"-e\", \"display notification (system attribute \\\"AIDD_NOTICE\\\")\"]`. A vector, never a shell string; the message is in AIDD_NOTICE too. Off when unset."
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The project's constraints and rules, set by humans: a technology radar, the hosting, a budget, the team's own rules each with its why, and the waivers a person approved. Agents read them in Specify and Review; `aidd gate --paths` and `aidd owners` print the rules that apply to the paths in question, must first. `aidd validate` checks them; the gate never reads them. A parent that lists `project` in `locks` binds its rules, its hold list, its budget, and its hosting: a child may add rules and raise a rule's level, never lower one, waive a locked rule, or spend more.",
+      "properties": {
+        "repo": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}/(?!\\.{1,2}$)[A-Za-z0-9._-]{1,100}$",
+          "description": "The GitHub repository this config belongs to, as `owner/name`. `aidd init` writes it from `origin`. Autopilot trusts the platform's approvals only from it, read from the base branch."
+        },
+        "work": {
+          "enum": ["product", "client"],
+          "description": "Whose work the repository holds: `product`, the team's own product (the default), or `client`, work for a client. With `client`, `aidd autopilot next` starts a goal with `/aidd-team:propose`, not `/aidd-team:plan`."
+        },
+        "stack": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "A technology radar: what new work uses. A child config adds to each list.",
+          "properties": {
+            "adopt": { "$ref": "#/$defs/stack_items", "description": "The default for new work." },
+            "trial": { "$ref": "#/$defs/stack_items", "description": "In use on a trial basis: fine where the design says why." },
+            "hold": {
+              "$ref": "#/$defs/stack_items",
+              "description": "Not for new work without an ADR that records a person's decision. `aidd validate` warns when a Spec's Context or Design names one and the Spec links no ADR (a case-insensitive text match: a hint, never a gate rule)."
+            }
+          }
+        },
+        "hosting": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Where the project runs, in a phrase, such as \"one VPS in the EU\". Agents design and deploy for it."
+        },
+        "dev_services": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "up": {
+              "$ref": "urn:aidd:1:common#/$defs/command",
+              "description": "Starts the shared stack once per machine (the database server, the object store, the fake model, the tracing stack), such as [\"docker\", \"compose\", \"-p\", \"shop\", \"up\", \"-d\"]. Every worktree uses it: never a second stack for the same service."
+            },
+            "down": {
+              "$ref": "urn:aidd:1:common#/$defs/command",
+              "description": "Stops the shared stack."
+            },
+            "teardown": {
+              "$ref": "urn:aidd:1:common#/$defs/command",
+              "description": "Removes what one worktree made in the shared stack (its database, its bucket, its tracing project), named by AIDD_WORKTREE. `aidd worktrees clean` runs it for each worktree it removes."
+            }
+          },
+          "description": "The project's dev services, shared by every worktree on this machine. aidd gives each command it runs (`aidd test`, the teardown) AIDD_WORKTREE, a stable name per worktree, so the project names its database, bucket, and ports by it."
+        },
+        "budget": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "What running the project may cost. The SRE picks the zero-cost option that fits first.",
+          "properties": {
+            "max_infra_per_month": { "type": "number", "minimum": 0, "description": "The most the infrastructure may cost per month, in `currency`." },
+            "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "description": "The ISO 4217 code of `max_infra_per_month`, such as `EUR`." },
+            "new_paid_service": {
+              "enum": ["ask", "allowed", "forbidden"],
+              "description": "A new paid service: `ask` a person first (the default reading when unset), `allowed` within the budget, or `forbidden`."
+            }
+          },
+          "if": { "required": ["max_infra_per_month"] },
+          "then": { "required": ["currency"] }
+        },
+        "rules": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/project_rule" },
+          "description": "The team's own rules. `aidd validate` fails on a repeated id and warns once a rule's `review_due` has passed."
+        },
+        "waivers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/project_waiver" },
+          "description": "Time-boxed exceptions to a rule. `aidd validate` fails on a waiver of an unknown rule or one an agent or bot approved, warns 14 days before `until`, and fails once it has passed."
+        },
+        "defaults": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "What every product gets unless a person turns it off: each default is on unless `disabled` names it, with the reason (`disabled: {dark_mode: a print-only report}`). Agents build them on the MVP's Day 0 and whenever a change touches the area, from `aidd-team:product-defaults`, which owns each one and its test. `aidd init` writes the list commented, and in a repository it detects as a command-line tool or a library (no web or mobile interface) turns the interface defaults off with the reason \"no user interface\". A child's `disabled` replaces its parent's; when the parent locks `project`, the child may only drop keys (turn a default back on), never add one.",
+          "properties": {
+            "disabled": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "The defaults turned off, each with the one line a reader accepts as the reason, such as \"no user interface\". Every default it does not name is on.",
+              "properties": {
+                "dark_mode": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Light and dark themes: the design tokens carry both sets, the UI follows `prefers-color-scheme` with a persisted manual toggle, contrast is checked in both, and a design spec's screen inventory has a dark column (`aidd validate` warns when it has none)."
+                },
+                "responsive": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Layouts work from 320 CSS px up, with touch targets of at least 24 by 24 CSS px (WCAG 2.2 SC 2.5.8; 44 by 44 pt on iOS), and forms that allow `autocomplete`, paste, and inline validation."
+                },
+                "i18n_ready": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Strings live outside the code, dates, numbers, and money are formatted for the locale, and CSS uses logical properties, so a second language or a right-to-left script is a translation, not a rewrite."
+                },
+                "perf_budget": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "A Core Web Vitals budget each page is tested against: LCP 2.5 s or less, INP 200 ms or less, and CLS 0.1 or less at the 75th percentile, checked in CI (Lighthouse CI) on the pages a change touches."
+                },
+                "public_page_basics": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Every public page has a title, a description, social preview tags, and icons, and the product has designed 404, 500, and maintenance pages."
+                },
+                "api_conventions": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "APIs are versioned, paginate lists with a cursor, accept an idempotency key on writes, answer errors as RFC 9457 problem details, and send rate-limit headers."
+                },
+                "data_conventions": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Times stored in UTC and exchanged in ISO 8601, money as integer minor units with its currency, sortable IDs (UUIDv7 or ULID), `created_at`, `updated_at`, and `created_by` on every record, and a soft delete where a person can undo."
+                },
+                "operability": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Health and readiness endpoints, structured logs that carry the request and trace IDs, a graceful shutdown on SIGTERM, and configuration from the environment."
+                },
+                "security_headers": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Security headers and cookies: Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options, and Referrer-Policy on every response; cookies `Secure`, `HttpOnly`, and `SameSite`; CSRF protection on every state-changing form."
+                },
+                "legal_placeholders": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "A privacy policy and terms page exist from Day 0 as placeholders a person writes (an agent never drafts the legal text), linked from the footer and the sign-up form."
+                },
+                "transactional_email": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Every email the product sends has a plain-text part beside the HTML, and an unsubscribe link and `List-Unsubscribe` header where the message is not strictly transactional."
+                },
+                "dev_basics": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "A formatter, a linter, and a type check run in CI and in a pre-commit hook, an `.editorconfig`, one command to set up and run the project, a dependency update bot, and Conventional Commits."
+                },
+                "modular_monolith": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "A new project starts as a modular monolith in a monorepo: one deployable, modules by business capability under `modules/`, each with a public `api/` and its own data, and the boundaries checked in CI (`aidd-team:modular-monolith`). A client project or an existing structure turns it off with the reason or its ADR. `aidd init` writes it off in a repository that already has code, so an existing structure stays as it is."
+                }
+              }
+            }
+          }
+        },
+        "compliance": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "What the product must be ready for. Compliance is on when `targets` names a framework or law, or when the profile is `audited`: `aidd gate --paths` names the `enterprise-controls` pack, `aidd validate` warns for a threat model and an authorization matrix on security and auth paths (`docs.required`), and `aidd init` writes the security-scanning workflow. The organizational work (policies, an ISMS, vendor reviews, training, a penetration test, the auditor) stays with people outside the team. `aidd validate` warns when a target that expects separation of duties (soc2, iso27001, pci-dss, fedramp, hipaa) meets the `solo` profile, which waives it. `aidd init` writes this table commented out unless given `--compliance-target`. A parent that locks `project` keeps its targets: a child adds to them.",
+          "properties": {
+            "targets": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "enum": ["soc2", "iso27001", "gdpr", "hipaa", "pci-dss", "fedramp", "cra", "other"] },
+              "description": "The frameworks and laws the product answers to: `soc2` (SOC 2 Trust Services Criteria), `iso27001` (ISO/IEC 27001:2022), `gdpr`, `hipaa`, `pci-dss`, `fedramp`, `cra` (the EU Cyber Resilience Act, Regulation (EU) 2024/2847), or `other` (name it in a project rule). Any target turns compliance on. `cra` leans on two controls most: EC-08 (scanning and an SBOM per release) and EC-18 (vulnerability handling). It needs a `support_period`, and `aidd doctor` checks the repository's `security.txt`."
+            },
+            "support_period": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["ends"],
+              "description": "How long the product gets security updates, which the CRA makes the manufacturer declare (Art. 13(8)). It is at least five years, unless people use the product for less time. `aidd validate` fails a config whose targets name `cra` without it, and warns once `ends` has passed. A parent that locks `project` keeps the later end.",
+              "properties": {
+                "ends": {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$",
+                  "description": "The last month of support, `YYYY-MM`: the month and year the buyer must see at the time of purchase (CRA Art. 13(19))."
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300,
+                  "description": "Why this length fits how long people use the product. Write one when the period is shorter than five years."
+                }
+              }
+            }
+          }
+        },
+        "writing": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "How the project's documents are written. It only records an opt-in for the humans and agents who write them; no check, rule, or gate reads it. A parent that locks `project` keeps its kinds: a child adds to them.",
+          "properties": {
+            "ste_100": {
+              "type": "array",
+              "uniqueItems": true,
+              "default": [],
+              "items": { "enum": ["acceptance", "adr", "agents", "analytics", "api", "architecture", "authz", "compliance", "contract", "data-map", "design-spec", "design-system", "epic", "exploration", "feedback", "glossary", "initiative", "migration", "postmortem", "proposal", "runbook", "slo", "spec", "tech-spec", "test-plan", "threat-model", "vendors", "vulnerability-policy"] },
+              "description": "The doc kinds written in ASD-STE100 Simplified Technical English: the objects (`spec`, `epic`, `initiative`, `proposal`, `runbook`, `postmortem`) and the kinds `aidd new` writes. Default empty: no kind opts in."
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "folder": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$))(?=.*[^./])[^*?]+$",
+      "description": "A folder inside the repository, repo-relative: no leading `/`, no `..`, no wildcard, and never the repository's top (`.`, `./`, or empty). A leading `./` and doubled slashes are read away, so `./custom/` is `custom`."
+    },
+    "library_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$",
+        "description": "An opinionated library standard's id, `<group>/<topic>`. A registry id (an industry standard) never has this form."
+      }
+    },
+    "stack_items": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 80 },
+      "uniqueItems": true,
+      "description": "Technologies by name, such as `PostgreSQL` or `pytest`."
+    },
+    "project_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "level", "statement", "why", "owner"],
+      "description": "One rule of the project, with the reason for it.",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$", "description": "Stable, unique name, such as `money-in-minor-units`; a waiver names it." },
+        "level": {
+          "enum": ["must", "should", "may"],
+          "description": "How binding it is, in the BCP 14 sense (RFC 2119, RFC 8174): must, should (a reason to differ is written down), or may."
+        },
+        "statement": { "type": "string", "minLength": 1, "maxLength": 500, "description": "The rule, in one sentence." },
+        "why": { "type": "string", "minLength": 1, "maxLength": 500, "description": "Why the rule exists, printed beside it." },
+        "applies": {
+          "type": "array",
+          "items": { "$ref": "urn:aidd:1:common#/$defs/glob" },
+          "description": "The paths it applies to. Omitted or empty: the whole repository."
+        },
+        "check": { "type": "string", "minLength": 1, "maxLength": 200, "description": "The command or `tests` name that enforces it; without one it is a rule a reviewer checks." },
+        "source": { "$ref": "urn:aidd:1:common#/$defs/repo_path", "description": "The ADR or document that decided it." },
+        "owner": { "$ref": "urn:aidd:1:common#/$defs/identity", "description": "The person or team who answers for it." },
+        "review_due": { "$ref": "urn:aidd:1:common#/$defs/date", "description": "When its owner reviews it again; `aidd validate` warns once it has passed." }
+      }
+    },
+    "project_waiver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule", "reason", "approved_by", "until"],
+      "description": "A time-boxed exception to one rule.",
+      "properties": {
+        "rule": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$", "description": "The id of the rule it waives." },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 500, "description": "Why the rule cannot hold for now." },
+        "approved_by": { "$ref": "urn:aidd:1:common#/$defs/identity", "description": "The person who approved it; never an agent or a bot account." },
+        "until": { "$ref": "urn:aidd:1:common#/$defs/date", "description": "The last day it holds." }
+      }
+    },
+    "doc_level": {
+      "enum": ["off", "warn"],
+      "description": "warn: `aidd validate` warns, and `aidd new spec` suggests, when a Spec that aidd's rule for this kind matches links no document of the kind. off: never for this kind."
+    },
+    "extends": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "$ref": "urn:aidd:1:common#/$defs/repo_path",
+          "description": "Repo-relative path to a parent config: no leading / or ./, no .., backslashes, or wildcards."
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://",
+          "description": "HTTPS URL of a parent config."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Required with url. Pins the content."
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "required": [
+            "url",
+            "sha256"
+          ]
+        }
+      ]
+    },
+    "route_ints": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "One non-negative integer per route, such as the approvals it needs. A route the config leaves out keeps the profile's value, and a value lower than the profile's is ignored with a warning: a config only tightens.",
+      "properties": {
+        "standard": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The value for the standard route."
+        },
+        "minor": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The value for the minor route."
+        },
+        "normal": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The value for the normal route."
+        },
+        "major": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The value for the major route."
+        },
+        "emergency": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The value for the emergency route."
+        }
+      }
+    },
+    "line_limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Per-route integers for the changed-changed-line limit. A route the config leaves out keeps the profile's value, and a value higher than the profile's is ignored with a warning: a config only tightens. `standard` and `emergency` are deliberately absent: gate_budget applies no budget to either route, so offering them would let an operator set a limit the gate never reads.",
+      "properties": {
+        "minor": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The most changed lines a minor change may have."
+        },
+        "normal": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The most changed lines a normal change may have."
+        },
+        "major": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The most changed lines a major change may have."
+        }
+      }
+    }
+  }
+}

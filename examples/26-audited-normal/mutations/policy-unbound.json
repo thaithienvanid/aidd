@@ -1,0 +1,25 @@
+{
+  "summary": "No Policy answers for this change: audited requires a bound Policy on every normal change, so the gate fails.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/policy",
+      "value": {
+        "result": "unbound"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "observe",
+      "policy"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail observe.missing",
+      "fail policy.required"
+    ]
+  }
+}

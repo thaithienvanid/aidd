@@ -1,0 +1,21 @@
+{
+  "summary": "Without the author's and the agent's approvals, the one approval on the head comes from an independent Approver: Merge approval holds with nothing to flag.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/reviews/1"
+    },
+    {
+      "op": "set",
+      "path": "/reviews/0/user",
+      "value": "checkout-lead"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

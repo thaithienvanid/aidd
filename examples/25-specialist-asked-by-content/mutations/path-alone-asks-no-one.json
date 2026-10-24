@@ -1,0 +1,16 @@
+{
+  "summary": "The same Python file changes, but no added line matches the pattern: a content rule's paths only say where to read, so nothing asks the data pool and the change passes.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/content_matches"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

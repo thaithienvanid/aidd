@@ -1,0 +1,22 @@
+{
+  "summary": "A commit names an agent in its Assisted-by trailer, but the block declares no agent: the provenance record would be wrong.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "assisted_by: [claude-code/claude-opus-5-5]\n",
+      "new": "assisted_by: []\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "provenance"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail provenance.undeclared_agent"
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+# Every cloud stack carries the cost guards (cost/*).
+name: aws-containers
+description: "A container service on Amazon ECS with Fargate and PostgreSQL on Amazon RDS, for a team whose service runs steadily or holds long requests."
+standards:
+  - aws/ecs-fargate-arm64
+  - aws/rds-postgres
+  - aws/s3-lifecycle
+  - aws/log-retention
+  - aws/no-default-nat
+  - aws/budgets-anomaly
+  - aws/hard-caps
+  - iac/opentofu
+  - cost/arm64-first
+  - cost/preview-env-ttl
+  - cost/llm-spend-caps
+  - cost/pr-cost-delta-threshold
+  - cost/policy-caps
+  - cost/kill-switch
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt:
+      - Amazon ECS
+      - AWS Fargate
+      - Amazon RDS for PostgreSQL
+      - PostgreSQL
+      - Amazon S3
+      - AWS Budgets
+      - OpenTofu
+      - TFLint
+      - Infracost
+      - Conftest

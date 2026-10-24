@@ -1,0 +1,587 @@
+"""What each gate rule checks, as data: the single source for the rule tables in docs/METHOD.md and the
+skill's references/gate.md (`aidd gen-docs`), for the finding-code table in examples/README.md, and for
+`aidd gate --explain <rule>` and `--explain <code>`.
+
+A test keeps this list and the rules gate/rules can emit in step, and each row's `codes` equal to the finding codes
+the gate declares for it.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+from aidd.config import EMPTY_APPROVERS
+from aidd.kernel.text import code_anchor
+
+REPO_URL = "https://github.com/thaithienvanid/aidd"
+# Where a person reports a bug in aidd: a crash, or a context aidd built that its own schema rejects.
+BUG_REPORT_URL = f"{REPO_URL}/issues/new?template=bug.yml"
+
+
+def errors_url(code: str, ref: str = "main") -> str:
+    """A finding code's row on docs/ERRORS.md, as the page reads at `ref`: the commit aidd runs from, so the row
+    matches the code, or the default branch when aidd knows no commit."""
+    return f"{REPO_URL}/blob/{ref}/docs/ERRORS.md#{code_anchor(code)}"
+
+
+@dataclass(frozen=True)
+class Rule:
+    name: str
+    levels: str
+    holds: str
+    fix: str
+    # Every finding code the rule can emit (`rule.reason`), each with a one-line meaning.
+    codes: dict[str, str] = field(default_factory=dict, hash=False)
+    # The fix of a code whose next step differs from the rule's own `fix`; every other code takes the rule's.
+    fixes: dict[str, str] = field(default_factory=dict, hash=False)
+
+    def fix_for(self, code: str) -> str:
+        return self.fixes.get(code, self.fix)
+
+
+RULES: tuple[Rule, ...] = (
+    Rule(
+        "context",
+        "fail",
+        "the adapter's context validates against its schema",
+        "fix the adapter that built the context; if aidd built it, report the bug at "
+        f"{BUG_REPORT_URL} with the context JSON attached, secrets removed. The gate fails closed until then",
+        codes={"context.invalid": "the context does not validate against context.schema.json (one finding per schema error, up to ten)"},
+    ),
+    Rule(
+        "internal",
+        "fail",
+        "the gate ran without error; any crash fails closed and the gate posts `error`",
+        f"report the bug at {BUG_REPORT_URL} with the context JSON attached, secrets removed; the gate fails closed until it is fixed",
+        codes={"internal.crash": "the gate raised an exception; it fails closed"},
+    ),
+    Rule(
+        "config",
+        "fail, pending, or warn",
+        "the base branch has a valid `.aidd/config.yaml` (pending when only the change itself adds one, fail when there is none); "
+        "outside solo, `owners.approvers` is not empty",
+        "an administrator merges the first config; set `owners.approvers`",
+        codes={
+            "config.missing": "no `.aidd/config.yaml` on the base branch or in the change",
+            "config.bootstrap": "only the change itself adds the config; an administrator merges the first one",
+            "config.invalid": "the base branch's config (or a parent it extends) does not parse or validate",
+            "config.warning": "a config setting was ignored, such as a gate looser than the profile allows",
+            "config.newer_version": "the config declares an `aidd_version` newer than this aidd",
+            "config.no_approvers": "the profile needs `owners.approvers`, and it is empty",
+        },
+        fixes={
+            "config.missing": "run `aidd init` on a branch, and an administrator merges its config first",
+            "config.bootstrap": "an administrator merges this first config outside the gate; the gate checks every later change",
+            "config.invalid": "fix `.aidd/config.yaml` on the base branch, where `aidd validate` names each error",
+            "config.warning": "tighten or remove the setting the warning names in `.aidd/config.yaml`; `aidd validate` lists each one",
+            "config.newer_version": "run `aidd self-update` for the CLI, then `aidd upgrade --ref <sha> --yes` for the CI pins, as docs/INSTALL.md describes",
+            "config.no_approvers": f"list the people who approve in `owners.approvers`, or your own login under solo; {EMPTY_APPROVERS}",
+        },
+    ),
+    Rule(
+        "change_request",
+        "fail or warn",
+        "at most one valid Change Request block; with `spec`, only `spec` and `trace_id`; an inline emergency names its `backfill`; "
+        "with no block, a bot PR matches its standard change class, the diff's one Spec is the change's, or else the gate computes "
+        "the route from the diff, the type from the commit subjects, and `assisted_by` from the commit trailers",
+        'run `aidd describe`, which prints a valid block; a change that needs a Spec takes `aidd new spec "<title>"` first',
+        codes={
+            "change_request.several_specs": "there is no Change Request block, and the diff carries several Specs, so the gate cannot tell which one the change is",
+            "change_request.invalid": "the block does not parse, is not the only one, or does not validate against change-request.schema.json",
+            "change_request.extra_keys": "a block that names a Spec holds keys other than `spec` and `trace_id`",
+            "change_request.trace_id_mismatch": "the block's `trace_id` differs from the Spec's",
+            "change_request.standard_by_default": "a bot PR with no block is treated as the standard change class that lists its author",
+        },
+        fixes={
+            "change_request.several_specs": "name the change's Spec (`spec: specs/<ID>.md`) or a goal's Specs (`specs: [...]`) in a block; `aidd describe` prints one",
+            "change_request.invalid": "fix the block so it is the only one and validates; `aidd describe` writes a valid one",
+            "change_request.extra_keys": "keep only `spec` and `trace_id` in the block; the Spec holds the rest",
+            "change_request.trace_id_mismatch": "copy the Spec's `trace_id` into the block, or take `trace_id` out of it",
+            "change_request.standard_by_default": "add a block (`aidd describe` prints one) when the bot's change does not fit that class",
+        },
+    ),
+    Rule(
+        "spec",
+        "fail",
+        "normal and major name a Spec that exists at head, validates, and lints",
+        "fix the Spec, then run `aidd validate` on it until it shows 0 errors",
+        codes={
+            "spec.missing": "normal or major, as the block declares or the gate computes with no block, and no Spec",
+            "spec.not_at_head": "the named Spec file is not in the head commit",
+            "spec.unparsable": "the Spec's front matter does not parse",
+            "spec.invalid": "the Spec does not validate or lint (one finding per error)",
+        },
+        fixes={
+            "spec.missing": "write the Spec with `aidd new spec`, and commit it on the branch; the gate finds it in the diff",
+            "spec.not_at_head": "commit the Spec file at the path the block's `spec` names",
+        },
+    ),
+    Rule(
+        "confidence",
+        "fail",
+        "not `low`",
+        "answer the open questions, then run `aidd gate --paths` again",
+        codes={"confidence.low": "the change declares confidence `low`"},
+    ),
+    Rule(
+        "route",
+        "fail or warn",
+        "the declared route is at least the computed minimum, except that a Spec-backed normal change is raised to major (warn); "
+        "an inline Change Request block declares every implied dimension (a Spec gets a warning); with no block, the route is the computed "
+        "minimum; a config edit that sets only preference keys does not make a change major (warn)",
+        "`aidd gate --paths`; write a Spec when the change needs one",
+        codes={
+            "route.too_low": "the declared route is below the minimum the paths, added dependencies, dimensions, and type compute",
+            "route.raised_to_major": "a Spec-backed normal change computes major, so it is raised and the major route's rules apply",
+            "route.undeclared_dimensions": "`risk.dimensions` lacks a dimension the changed paths or added dependencies imply (fail on an inline Change Request block, warn on a Spec)",
+            "route.config_preferences_only": "the change edits `.aidd/config.yaml` and sets only preference keys (baseline.json's `config_preference_keys`), so the file does not make it major",
+        },
+        fixes={
+            "route.too_low": "set `route` to what `aidd gate --paths` computes, with a Spec when it needs one",
+            "route.raised_to_major": "meet the major route: approvals from the named specialist pools, and an `observe` block unless only a protected path made it major",
+            "route.undeclared_dimensions": "add the dimensions `aidd gate --paths` names to `risk.dimensions`",
+            "route.config_preferences_only": "nothing to do: the Approver reads the preference change at Merge approval",
+        },
+    ),
+    Rule(
+        "scope",
+        "fail or warn",
+        "every changed path (rename sources too) is inside a Task's scope, the Spec, its backfill, a test or design file, a frozen "
+        "doc, or `scope_exclude_paths`; no scope pattern matches every path; a declared inline scope and the test files do not overlap "
+        "(a minor change that declares no scope takes its changed paths); every Task of a Spec changes something in its "
+        "scope (warn: the plan and the diff disagree)",
+        "keep to the scope, or widen the Task's `scope` in the Spec and ask an Approver for Spec approval again; finish or remove a Task that changed nothing",
+        codes={
+            "scope.outside": "a changed path (or rename source) is outside every Task's scope and the exempt paths",
+            "scope.catch_all": "a scope pattern matches every path, so it declares no scope",
+            "scope.test_catch_all": "a test-file pattern matches every path, so it names no test file",
+            "scope.overlaps_test": "an inline Change Request block's scope overlaps a test file",
+            "scope.untouched_task": "a Task changed nothing in its scope: the plan and the diff disagree",
+        },
+        fixes={
+            "scope.outside": "keep to the scope, or widen the Task's `scope` in the Spec and ask an Approver for Spec approval again",
+            "scope.catch_all": "name the files or directories the change touches in its `scope`",
+            "scope.test_catch_all": "name the test files or directories in `tests.files`",
+            "scope.overlaps_test": "keep test files out of the block's `scope`",
+            "scope.untouched_task": "finish the Task, or remove it from the Spec and ask an Approver for Spec approval again",
+        },
+    ),
+    Rule(
+        "changed_lines",
+        "fail",
+        "changed lines are within `max_changed_lines` for the route, excluding `changed_lines_exclude_paths` and, for a Spec, the Spec and its "
+        "test and design files and frozen docs Spec approval froze, and a change that touches only the proposals folder (standard uses its class "
+        "limit; emergency has none)",
+        "split the change, or list generated files in `changed_lines_exclude_paths`",
+        codes={"changed_lines.over_limit": "the changed lines exceed the route's `max_changed_lines`"},
+    ),
+    Rule(
+        "merge_queue",
+        "fail",
+        "for a merge queue entry, in a GitHub merge queue or a GitLab merge train (`merge_queue` in the context): its commit's tree is exactly the approved head "
+        "merged into the commit the entry was built on; an entry built on another entry passes only when the queue merges a group once every entry passed",
+        "queue the pull request again from its approved head (on GitLab, add the merge request to the merge train again); ask an administrator to "
+        'turn on the queue\'s "Only merge non-failing pull requests"',
+        codes={
+            "merge_queue.conflict": "the approved head does not merge cleanly into the commit the queue entry was built on",
+            "merge_queue.diff_mismatch": "the queue entry's commit's tree is not the approved head merged into the commit it was built on",
+            "merge_queue.stacked_unverified": "the entry is built on another entry, and the queue is not confirmed to merge only all-green groups",
+        },
+        fixes={
+            "merge_queue.conflict": "update the pull request from its base, ask an Approver for Merge approval on the new head, and queue it again "
+            "(on GitLab, add the merge request to the merge train again)",
+            "merge_queue.diff_mismatch": "remove the entry and queue the pull request again from its approved head (on GitLab, remove the merge "
+            "request from the merge train and add it again); if it repeats, ask an administrator to check the queue",
+            "merge_queue.stacked_unverified": 'ask an administrator to turn on the queue\'s "Only merge non-failing pull requests", or build one entry at a time',
+        },
+    ),
+    Rule(
+        "authors",
+        "fail or warn",
+        "the platform returned the whole commit list (fail); every commit author maps to a platform account, unless the platform itself "
+        "blocks committers from approving (`unlinked_authors`: warn, fail under audited)",
+        "split or squash the change; link the email, or list agent emails in `identities.bots`",
+        codes={
+            "authors.truncated": "the platform returned only part of the commit list",
+            "authors.unlinked": "a commit author maps to no platform account (warn, or fail under `unlinked_authors: fail`)",
+        },
+        fixes={
+            "authors.truncated": "the author splits the change, or squashes it below the platform's commit limit",
+            "authors.unlinked": "link the email to its platform account, list agent emails in `identities.bots`, or rewrite the commits",
+        },
+    ),
+    Rule(
+        "tests",
+        "pending, fail, or warn",
+        "the repository has tests (a suite, `evidence.status_checks`, or the Spec's); a minor change has the suite or `status_checks`; "
+        "every applicable command (`when_changed` included) has a green result on this exact head and base, from a test run of the "
+        "change's own branch, with the declared command; names are unique; every `status_checks` name succeeded on head, from an allowed "
+        "app and the change's own branch; with `evidence.signer_workflow`, the evidence carries that workflow's attestation; the "
+        "evidence is not partial (`aidd test --changed`) and did not run in a dirty tree; in a merge queue, the head and base are the entry's commit and the "
+        "commit it was built on; in the Spec phase (every changed path is the Spec, a file it freezes, or its backfill, and a Task "
+        "has yet to change anything) a failing command is expected, and the gate waits (pending) instead of failing; on a Spec-backed change, "
+        "a changed file that configures or runs the tests (conftest.py, pytest.ini, tox.ini, setup.cfg, a jest, vitest, playwright, "
+        "cypress, karma, or mocha config, phpunit.xml, or a file a test command names) is in `tests.files` (warn); under "
+        "`tests.mode: with_code` (new code with nothing to break, which the Spec's own checks hold), the route the gate computes stays below major",
+        "run `aidd test`; in CI, wait for `aidd-tests`",
+        codes={
+            "tests.spec_phase": "the change is in its Spec phase: it waits for Spec approval and Implement, and its failing tests are early proof",
+            "tests.flaky": "a command passed on head only after a retry (`retries`): counted green, and flaky",
+            "tests.retries_exceeded": "a command ran more times on head than its declared `retries` allow",
+            "tests.evidence_partial": "the evidence comes from `aidd test --changed`, which runs only some commands",
+            "tests.dirty_tree": "`aidd test` ran in a tree with uncommitted changes or untracked files no .gitignore ignores, so its results "
+            "prove nothing about the head commit",
+            "tests.none": "the repository and the change declare no tests at all",
+            "tests.minor_without_suite": "a minor change has neither the repository suite nor `evidence.status_checks`",
+            "tests.none_applies": "no declared test command's `when_changed` matches the diff",
+            "tests.duplicate_name": "a test name is declared twice, in the config and the Spec",
+            "tests.no_op": "a test command proves nothing, such as `true`, `echo`, or `sh -c true`",
+            "tests.with_code_not_allowed": "`tests.mode: with_code`, but the gate computed the major route: the tests must come first",
+            "tests.no_evidence": "no evidence for the head commit yet",
+            "tests.evidence_invalid": "the evidence artifact could not be read (the adapter's `invalid` record)",
+            "tests.evidence_schema": "the evidence does not validate against evidence.schema.json",
+            "tests.evidence_other_head": "the evidence is for another head commit",
+            "tests.evidence_other_base": "the evidence ran against another base commit",
+            "tests.duplicate_result": "the evidence holds two results for one test name in one phase",
+            "tests.no_result": "an applicable command has no result on head",
+            "tests.command_mismatch": "the runner ran another command than the one declared",
+            "tests.failed": "an applicable command did not pass on head",
+            "tests.check_failed": "a required status check ended in failure, cancelled, timed_out, or action_required",
+            "tests.check_waiting": "a required status check is still queued, running, or missing",
+            "tests.check_skipped": "a required status check was skipped on head",
+            "tests.setup_unfrozen": "a changed file configures or runs the tests, and `tests.files` does not list it, so Spec approval does not freeze it",
+        },
+        fixes={
+            "tests.spec_phase": "finish the Tasks until the tests pass on head; the route may need a person's Spec approval first",
+            "tests.flaky": "fix the flake; `aidd metrics` counts flaky runs",
+            "tests.retries_exceeded": "fix the flake, or ask a person to set `retries` on the command in the config",
+            "tests.evidence_partial": "run `aidd test` without `--changed`; in CI, wait for `aidd-tests`",
+            "tests.none": "name one command that proves today's behavior, in the config's `tests` or the Spec's",
+            "tests.minor_without_suite": "bind the repository suite in `.aidd/config.yaml`, or list your CI checks in `evidence.status_checks`",
+            "tests.none_applies": "widen a command's `when_changed` to cover the diff, or declare a command that runs on every change",
+            "tests.duplicate_name": "rename one of the two commands in `tests`, so each name is declared once across the config and the Spec",
+            "tests.no_op": "write a command that fails when the behavior is wrong, in place of the no-op in `tests`",
+            "tests.with_code_not_allowed": "set `tests.mode: first` (or remove it), write and commit the tests, and ask an Approver for Spec approval again",
+            "tests.evidence_invalid": "run `aidd-tests` again; if it repeats, fix the test job that writes the artifact",
+            "tests.duplicate_result": "run `aidd test` again, so each command has one result in each phase",
+            "tests.command_mismatch": "run the declared command with `aidd test`, or correct the command in the Spec",
+            "tests.failed": "fix the change until the command passes, then run `aidd test` again; a wrong Spec goes back to Specify",
+            "tests.check_failed": "fix the change until the `evidence.status_checks` check passes in your CI",
+            "tests.check_waiting": "wait for the check to finish; if it never starts, add it to your CI or take it out of `evidence.status_checks`",
+            "tests.check_skipped": "make the check run on this head, or take it out of `evidence.status_checks`",
+            "tests.setup_unfrozen": "add the file to the Spec's `tests.files`, so Spec approval freezes it with the tests",
+            "tests.dirty_tree": "add each path the tests, a build, or your computer left, such as a coverage report, a build folder, or .DS_Store, to .gitignore, "
+            "and commit or stash your own changes, then run `aidd test` again",
+        },
+    ),
+    Rule(
+        "red_green",
+        "fail (warn in solo, unless a Spec approval was recorded)",
+        "on Spec-backed normal and major: every `new_behavior` command failed on base (a non-zero exit other than 126 or 127; "
+        "a compile or import error counts, except under pytest, whose exits 3 to 5 mean no test ran to a failure) with the declared command, and a feat or fix change has one; under solo a failure is a "
+        "warning, except for a Spec whose optional Spec approval was recorded, which binds it",
+        "declare the test in `new_behavior`, write it first, and run `aidd test`, which runs it on base, where it must fail",
+        codes={
+            "red_green.no_new_behavior": "a feat or fix Spec declares no `new_behavior` test command",
+            "red_green.no_red_run": "a `new_behavior` command has no run against the base commit",
+            "red_green.passes_on_base": "a `new_behavior` command passes on base, so it proves nothing new",
+            "red_green.red_not_assertion": "the red run did not fail with a real exit code: a timeout, an error, exit 126 or 127, or "
+            "pytest's 3 to 5 (internal error, usage error, no tests collected)",
+            "red_green.red_command_mismatch": "the red run used another command than the one declared",
+            "red_green.red_retried": "the red run was retried: red runs once, so a flaky test cannot pass for red",
+        },
+        fixes={
+            "red_green.no_red_run": "run `aidd test` without `--no-red`, so it runs the test on base",
+            "red_green.passes_on_base": "tighten the test until it fails on base, then run `aidd test`",
+            "red_green.red_not_assertion": "make the test fail by an assertion on base, and check its command collects it; then run `aidd test`",
+            "red_green.red_command_mismatch": "run red again with the declared command (`aidd test` runs it), or correct the command in the Spec",
+            "red_green.red_retried": "run red once with `aidd test`, which never retries it",
+        },
+    ),
+    Rule(
+        "spec_approval",
+        "fail, pending, or warn",
+        "on the profile's routes, an eligible Approver (not an author, except under solo) approved the Spec at a commit where it, its "
+        "tests, and its design read as they do at head (the same Spec hash, which the gate computes); on a route where the profile "
+        "makes it optional, a Spec approval an eligible Approver recorded anyway binds too, so one of the Spec as it read before fails; "
+        "an approval naming a commit git does not have never counts; each owner "
+        "area the Spec touches has an approval from its owners; under `spec_approval_proof: require`, the approval names a commit whose "
+        "own diff held only the Spec and its frozen files, in head's history or rebased away; "
+        "on a local context under `gates.local_approvals: signed`, only approvals the "
+        "adapter marked `verified` count (warn when one was dropped); with a `tenant`, an approval by another tenant's identity never counts (warn); "
+        "an approval line an App posted for a person (`via_app`) never counts (warn)",
+        "a person types `approve <ID>` at the prompt, and aidd records or posts the line for them",
+        codes={
+            "spec_approval.missing": "no eligible Approver approved the Spec as it reads at head",
+            "spec_approval.voided": "on a route where Spec approval is optional, an eligible Approver recorded one, and the Spec or its tests changed after it",
+            "spec_approval.owner_area": "an owner area the Spec touches has no Spec approval from its owners",
+            "spec_approval.commit_required": "`spec_approval_proof: require`, and no approval names a commit holding only the Spec and its frozen files",
+            "spec_approval.names_base": "an approval names the base commit, which proves no Spec commit",
+            "spec_approval.after_implementation": "the approved commit already held implementation, so approval came after it began",
+            "spec_approval.unsigned": "locally under `local_approvals: signed`, a Spec approval without `verified: true` was dropped",
+            "spec_approval.other_tenant": "the config names a `tenant`, and a Spec approval came from an identity qualified with another tenant; it never counts",
+            "spec_approval.via_app": "an `/aidd approve-spec` line was posted through an App for the person it names (GitHub's performed_via_github_app); it never counts",
+        },
+        fixes={
+            "spec_approval.voided": "restore the approved Spec and tests, or a person reads the change and types `approve <ID>` again",
+            "spec_approval.owner_area": "an owner of each area the Spec touches approves it",
+            "spec_approval.commit_required": "commit the Spec and its tests alone, and an Approver approves that commit",
+            "spec_approval.names_base": "a person types `approve <ID>` again, so the approval names the commit that holds the Spec",
+            "spec_approval.after_implementation": "commit the Spec and its tests before any implementation, so a person's approval proves it came first",
+            "spec_approval.unsigned": "the approver records it again with git commit signing set up (`aidd approve`), with a key git trusts",
+            "spec_approval.other_tenant": "an Approver from the config's `tenant` approves the Spec",
+            "spec_approval.via_app": "the approver posts the line themselves, on the platform's web page or with its CLI, never through an App",
+        },
+    ),
+    Rule(
+        "merge_approval",
+        "pending or warn",
+        "as many eligible Approvers as the route requires (`gates.approvals`) approved the head commit, or, under `gates.approval_carry: "
+        '"trivial_rebase"` on `approval_carry_routes` (never emergency, never a protected path), an earlier head whose diff is identical '
+        "onto a base that descends from the approved one, with nobody new committing (the adapter's `approval_equivalents`); each owner "
+        "area the diff touches has an approval from its owners; "
+        "no Approver, specialist Approver, or path owner's latest review requests changes; on a local context under "
+        "`gates.local_approvals: signed`, only approvals the adapter marked `verified` count (warn when one was dropped); an agent "
+        "account never approves, and its platform approval warns; with a `tenant`, an approval by another tenant's identity never counts (warn); "
+        "an `/aidd approve` line an App posted for "
+        "a person (`via_app`) never counts (warn); a platform that keeps approvals across pushes (`approvals_reset_on_push: false`) warns",
+        "a human approves the head commit, by typing `land it` at their coding agent's prompt or by approving the PR/MR",
+        codes={
+            "merge_approval.missing": "fewer eligible approvals on head than `gates.approvals` asks for the route",
+            "merge_approval.owner_area": "an owner area the diff touches has no approval from its owners",
+            "merge_approval.changes_requested": "an Approver, specialist Approver, or path owner's latest review requests changes",
+            "merge_approval.carried": "an approval of an earlier head counts for this one: a trivial rebase carried it (the record names both heads)",
+            "merge_approval.not_carried": "an approval of an earlier head does not carry: the diff differs, the base does not descend, someone new "
+            "committed, or the approved head is unknown",
+            "merge_approval.unsigned": "locally under `local_approvals: signed`, an approval without `verified: true` was dropped",
+            "merge_approval.other_tenant": "the config names a `tenant`, and an approval came from an identity qualified with another tenant; it never counts",
+            "merge_approval.agent_approval": "an agent account (`identities.bots`, a baseline `agent_accounts` login such as Copilot's reviewer, a `[bot]` "
+            "named for an agent) or a bot no pool names approved on the platform; it never counts, and the platform's own review count may",
+            "merge_approval.via_app": "an `/aidd approve` line was posted through an App for the person it names (GitHub's performed_via_github_app); it never counts",
+            "merge_approval.survives_push": "the platform keeps approvals when commits are pushed (GitLab's `reset_approvals_on_push` off), so its own approval "
+            "count can include an older head's; the gate binds a GitLab approval by time",
+        },
+        fixes={
+            "merge_approval.owner_area": "an owner of each area the diff touches approves head",
+            "merge_approval.changes_requested": "answer the requested changes and push; the reviewer then approves, or dismisses the review",
+            "merge_approval.carried": "a human approves head again if the rebase changed more than the base",
+            "merge_approval.unsigned": "the approver records it again with git commit signing set up (`aidd approve`), with a key git trusts",
+            "merge_approval.other_tenant": "an Approver from the config's `tenant` approves head",
+            "merge_approval.agent_approval": "require the aidd/gate status in the branch rules (docs/PLATFORMS.md), and a person approves",
+            "merge_approval.via_app": "the approver posts the line themselves, on the platform's web page or with its CLI, never through an App",
+            "merge_approval.survives_push": 'ask a GitLab administrator to turn on "Remove all approvals when commits are added" in the merge request approval settings',
+        },
+    ),
+    Rule(
+        "secrets",
+        "warn",
+        "no added line has the shape of a secret: an AWS access key id, a Stripe live key, a GitHub token, a private key header, or a "
+        "`*_SECRET` assignment with a literal value; the rule reads the added lines an adapter passes (`files[].added_lines`: the local "
+        "one does, GitHub and GitLab do not, where the platform's own secret scanning is the control)",
+        "if it is real, take it out of the change and its history, ask its owner to rotate it, and load it from the environment or a secret store",
+        codes={"secrets.added": "an added line of a file has the shape of a secret; the finding names the file and the kind, never the value"},
+    ),
+    Rule(
+        "edited_comments",
+        "warn",
+        "no edited comment was ignored",
+        "post the approval (`/aidd approve-spec` or `/aidd approve-merge`) in a new comment instead of editing one",
+        codes={"edited_comments.ignored": "an edited comment was ignored; approval commands in it do not count"},
+    ),
+    Rule(
+        "specialist_approval",
+        "pending or fail",
+        "major, and emergency when a protected path changes: `specialist_approvals` approvals on head from each pool the reasons name "
+        "(`owners.specialists`; an unbound pool falls back to `security`); on any route, from each pool a matched risk rule below major "
+        "names in `specialists`, by path, dependency, or a line the diff adds (`content`); under `specialist_spec_approval`, each pool "
+        "also approved the Spec hash",
+        "a member of each named pool approves",
+        codes={
+            "specialist_approval.unbound": "a required specialist pool (and the `security` fallback) is not bound in `owners.specialists`",
+            "specialist_approval.missing": "a required specialist pool has too few approvals on head",
+            "specialist_approval.spec_missing": "under `specialist_spec_approval`, a required pool has not approved the Spec hash",
+        },
+        fixes={
+            "specialist_approval.unbound": 'bind the pool in `owners.specialists`, such as `security: ["@org/security"]`',
+            "specialist_approval.spec_missing": "a member of each named pool approves the Spec hash",
+        },
+    ),
+    Rule(
+        "policy",
+        "fail or warn",
+        "Policy allows; a freeze passes only emergency; a required Policy is bound; unreachable is deny",
+        "wait for the freeze to end, or bind `policy.command`",
+        codes={
+            "policy.required": "the profile requires a bound Policy command on this route, and none is bound",
+            "policy.deny": "the Policy command returned deny",
+            "policy.freeze": "a freeze is on and the route is not emergency",
+            "policy.break_glass": "an emergency merges under a freeze",
+            "policy.unreachable": "the Policy command did not answer, which is deny",
+        },
+        fixes={
+            "policy.required": "bind `policy.command` in the config",
+            "policy.deny": "change the PR/MR so the Policy allows it, or ask the Policy's owner",
+            "policy.freeze": "wait for the freeze to end; if production is broken and this is the repair, take route `emergency`",
+            "policy.break_glass": "the commander makes sure the post-incident review covers landing under the freeze",
+            "policy.unreachable": "fix the Policy command (`policy.command`) or its runner, then run the gate again",
+        },
+    ),
+    Rule(
+        "policy:<rule>",
+        "as reported",
+        "each finding the Policy command reports",
+        "what the finding says; without a fix of its own, meet the rule or ask the Policy's owner",
+        codes={"policy:<rule>": "a finding the Policy command reported; its code is its rule, at the level it chose"},
+    ),
+    Rule(
+        "emergency",
+        "fail, pending, or warn",
+        "the emergency block is complete and names its `incident`; `review_due` falls within `emergency.review_sla_days` (default 2) of the "
+        "day the change opened or its head was last pushed, whichever is later; the backfill Spec is committed with the same `review_due`; "
+        "the commander is a human eligible Approver, not an author or agent, and approved the head; an exact `git revert` of a commit merged "
+        "on the base (the context's `revert_of`) needs the commander's approval alone, with no specialist or path-owner review",
+        "fill the block, commit the backfill stub, and ask the commander",
+        codes={
+            "emergency.no_block": "route emergency without an emergency block",
+            "emergency.incident_missing": "the emergency block names no `incident` (the ticket or page id)",
+            "emergency.revert": "the repair is an exact revert of a commit merged on the base: the commander's approval alone merges it",
+            "emergency.review_due_invalid": "`review_due` is not a calendar date",
+            "emergency.review_due_early": "`review_due` is before the day the change opened",
+            "emergency.review_due_late": "`review_due` is further than `emergency.review_sla_days` from the day the change opened or was last pushed",
+            "emergency.backfill_missing": "the backfill Spec is not in the head commit",
+            "emergency.backfill_unparsable": "the backfill Spec does not parse",
+            "emergency.backfill_mismatch": "the backfill is not an emergency Spec with the same `review_due`",
+            "emergency.commander_is_agent": "the incident commander is an agent or bot account",
+            "emergency.commander_is_author": "the incident commander is an author of the change",
+            "emergency.commander_not_approver": "the incident commander is not an eligible Approver",
+            "emergency.commander_pending": "the incident commander has not approved head",
+            "emergency.would_be_major": "outside an emergency the repair would be major, so the specialist approval still applies",
+        },
+        fixes={
+            "emergency.no_block": "add an `emergency` block with its five keys to the Change Request block",
+            "emergency.incident_missing": "set `incident` in the `emergency` block to the ticket or page id",
+            "emergency.revert": "the commander approves head; the revert needs no specialist or path-owner review",
+            "emergency.review_due_invalid": "set `review_due` to a date, such as 2026-11-05",
+            "emergency.review_due_early": "set `review_due` on or after the day the change opened",
+            "emergency.review_due_late": "set `review_due` within `emergency.review_sla_days` of the day the change opened or was last pushed",
+            "emergency.backfill_missing": "commit the backfill stub (`aidd new spec <ID> --route emergency`) at the block's `backfill` path, with the same `review_due`",
+            "emergency.backfill_unparsable": "fix the backfill Spec's front matter, or write it again with `aidd new spec <ID> --route emergency`",
+            "emergency.backfill_mismatch": "set the backfill Spec's `route: emergency` and the block's `review_due`",
+            "emergency.commander_is_agent": "name the human who runs the incident as its commander",
+            "emergency.commander_is_author": "name a commander who did not write the change",
+            "emergency.commander_not_approver": "name a commander listed in `owners.approvers`",
+            "emergency.commander_pending": "the commander approves head",
+            "emergency.would_be_major": "a member of each named specialist pool approves head",
+        },
+    ),
+    Rule(
+        "observe",
+        "fail",
+        "the profile's routes carry an `observe` block; a change only a protected path made major needs none (no major "
+        "dimension, type, or risk rule, reversible, and no service or deploy path), unless the profile asks for one on normal",
+        "add an `observe` block with `window`, `rollback_trigger`, and a `command` or `signals`, or `not_applicable` with the reason; "
+        "a change only a protected path made major, such as one to CI checks, needs none",
+        codes={
+            "observe.missing": "the profile's routes need an `observe` block, the Spec or block has none, and more than a protected path made the change major",
+            "observe.not_applicable": "the `observe` block says nothing runs to watch (`not_applicable`), with the reason the Approver weighs",
+        },
+        fixes={
+            "observe.not_applicable": "the Approver weighs the reason; if something runs after release, replace it with `window`, `rollback_trigger`, and a `command` or `signals`",
+        },
+    ),
+    Rule(
+        "provenance",
+        "fail or warn",
+        "`assisted_by` is set whenever a commit names an agent: an `Assisted-by:` trailer, a `Co-authored-by:` agent (the baseline's "
+        "`agent_coauthors`), or an author in `identities.bots`; under audited, every non-merge commit carries a trailer "
+        "(`Assisted-by: none` when no agent wrote it)",
+        "amend the commits' `Assisted-by:` trailers, or the `assisted_by` declaration",
+        codes={
+            "provenance.undeclared_agent": "a commit names an agent, but `assisted_by` is empty",
+            "provenance.undeclared_trailer": "a commit trailer names an agent `assisted_by` does not list",
+            "provenance.missing_trailer": "under audited, a non-merge commit has no `Assisted-by` trailer",
+            "provenance.no_agent_commit": "`assisted_by` is set, but no commit names an agent",
+        },
+        fixes={
+            "provenance.undeclared_agent": "list each harness/model in `assisted_by`",
+            "provenance.undeclared_trailer": "list each harness/model in `assisted_by`",
+            "provenance.missing_trailer": "amend each commit with `Assisted-by: <harness>/<model>`, or `Assisted-by: none` when no agent wrote it",
+            "provenance.no_agent_commit": "add `Assisted-by:` trailers to the agent's commits, or take out `assisted_by`",
+        },
+    ),
+    Rule(
+        "standard_change",
+        "fail",
+        "the class exists and the profile allows it; paths, authors, and the line limit fit; every commit has a platform-verified signature; "
+        "every dependency update is one of the class's `update_types` (default patch and minor for a third_party class), read from the diff's "
+        "manifests and lockfiles and from Dependabot's metadata, with an unclassifiable update counted as major",
+        "when the change does not fit its class, take the route `aidd gate --paths` gives instead",
+        codes={
+            "standard_change.not_allowed": "the profile does not allow standard changes",
+            "standard_change.unknown_class": "the block names a standard change class the config lacks",
+            "standard_change.mismatch": "the change does not fit its class: paths, authors, line limit, or unsigned commits",
+            "standard_change.update_type": "a dependency update is bigger than the class's `update_types` allow (unknown counts as major)",
+        },
+        fixes={
+            "standard_change.not_allowed": "take the route `aidd gate --paths` gives, with a Spec when it needs one",
+            "standard_change.unknown_class": "set `standard_change` to a class the config lists, or take the route `aidd gate --paths` gives",
+            "standard_change.update_type": "take the update through a normal change, or ask a person to widen the class's `update_types` in the base branch's config",
+        },
+    ),
+    Rule(
+        "explore",
+        "fail",
+        "the change does not come from a `explore/` branch, where the guard holds no edit, or one named before 1.0 (`explore/`)",
+        "rename the branch (`git branch -m <name>`), then open the change from it again: the gate then checks it as it checks any change",
+        codes={"explore.branch": "the change's head branch is an explore branch (free work that never merges as it is)"},
+    ),
+    Rule("draft", "pending", "the PR/MR is not a draft", "the author marks the PR/MR ready for review", codes={"draft.is_draft": "the PR/MR is a draft"}),
+)
+
+BY_NAME = {r.name: r for r in RULES}
+
+
+def finding_fix(code: str, detail: str = "") -> str:
+    """A finding's fix: its code's next step (`Rule.fix_for`, the one owner of that wording), then what this finding
+    adds after a colon, such as the head, the pool, or the path. A code no rule here owns (`policy:<rule>`) keeps its
+    detail alone."""
+    rule = BY_NAME.get(code.split(".", 1)[0])
+    base = rule.fix_for(code) if rule else ""
+    return f"{base}: {detail}" if base and detail else base or detail
+
+
+# The rules as the five questions they answer about the exact commit, for humans to read (`rules:questions`): each rule in one.
+QUESTIONS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Can the gate trust what it reads?", ("context", "internal", "config", "edited_comments")),
+    ("Is the change what it says it is?", ("change_request", "spec", "confidence", "route", "scope", "changed_lines", "standard_change", "explore", "draft")),
+    ("Is it proven on this commit?", ("tests", "red_green", "merge_queue")),
+    ("Did the right humans approve it?", ("spec_approval", "merge_approval", "specialist_approval", "authors")),
+    ("Is it safe to release?", ("secrets", "policy", "policy:<rule>", "emergency", "observe", "provenance")),
+)
+
+
+def explain_rule(name: str) -> str:
+    """What a rule checks and how to satisfy it. A finding code (`scope.outside`) names its rule before the first `.`:
+    the code's meaning and fix come first, then its rule."""
+    rule_name, dot, _ = name.partition(".")
+    if dot and not name.startswith("policy:"):
+        found = BY_NAME.get(rule_name)
+        if found is None or name not in found.codes:
+            hint = f"`aidd gate --explain {rule_name}` lists its codes" if found else f"the rules are {', '.join(BY_NAME)}"
+            raise LookupError(f"no finding code {name!r}; {hint}")
+        return f"{name}: {found.codes[name]}\n  to fix: {found.fix_for(name)}\n\n" + _rule_text(found)
+    r = BY_NAME.get(name)
+    if r is None and name.startswith("policy:"):
+        from aidd.gate.policy import RULE_NAME
+
+        sub = name[len("policy:") :]
+        if RULE_NAME.match(sub):
+            r = Rule(name, "fail or warn", f"the custom policy rule {sub!r} holds", "fix the issue reported by the policy command")
+    if r is None:
+        raise LookupError(f"no rule {name!r}; give a rule, one of {', '.join(BY_NAME)}, or a finding code such as `scope.outside`")
+    return _rule_text(r)
+
+
+def _rule_text(r: Rule) -> str:
+    codes = "".join(f"\n    {code}: {meaning}" for code, meaning in r.codes.items())
+    return f"{r.name} ({r.levels})\n  holds when: {r.holds}\n  to satisfy: {r.fix}" + (f"\n  codes:{codes}" if codes else "")

@@ -1,0 +1,17 @@
+{
+  "summary": "The test file changed after Spec approval, as a test written with the code does: the approval never bound it, so it still holds.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/head_tree/tests~1checkout~1test_gift_cards.py",
+      "value": "5555555555555555555555555555555555555555"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

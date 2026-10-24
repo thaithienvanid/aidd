@@ -1,0 +1,27 @@
+{
+  "summary": "No block, and a commit's Assisted-by value holds a space, so it is no harness/model id: the gate leaves it out of the derived assisted_by, and the provenance rule names it.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Fix a typo in the setup guide."
+    },
+    {
+      "op": "replace_text",
+      "path": "/commits/0/message",
+      "old": "Assisted-by: claude-code/claude-opus-5-5",
+      "new": "Assisted-by: Claude Code"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "provenance"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail provenance.undeclared_agent"
+    ]
+  }
+}

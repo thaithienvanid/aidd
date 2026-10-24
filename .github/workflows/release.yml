@@ -1,0 +1,274 @@
+# Release: runs only when a maintainer pushes a vX.Y.Z tag (see RELEASING.md).
+#   verify   the tag is signed and GitHub-verified, its commit is on main, came through a
+#            pull request whose head passed aidd/gate (posted by the gate App, not a person
+#            or GITHUB_TOKEN), passed ci on main and the full ci matrix (a manual run: Linux,
+#            macOS, and Windows), and CHANGELOG.md dates this version; it stops first when the
+#            repository is private, since the attestations need a public one
+#   build    builds once, hermetically (pinned uv, hash-locked backend, SOURCE_DATE_EPOCH
+#            from the tag commit), with a CycloneDX SBOM and SHA256SUMS; also aidd.pyz, the
+#            CLI as one zipapp, built with the standard library from the same commit
+#   rebuild  builds the same commit again on a clean runner; every file must match SHA256SUMS
+#            byte for byte, or nothing is attested or released (reproducible builds)
+#   attest   build provenance and the SBOM as attestations; mandatory, never skipped
+#   release  the GitHub Release, with the dists, aidd.pyz, the SBOM, the checksums, and the bundles.
+#            It is the only place aidd is distributed: aidd is not on PyPI (RELEASING.md)
+name: release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions: {}
+
+# One release at a time, and never cancel one half way through.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read       # the tag object, the commit, and the history of main
+      pull-requests: read  # the pull request that merged the tagged commit
+      statuses: read       # aidd/gate on that pull request's head, and who posted it
+      actions: read        # the ci run on the tagged commit
+    steps:
+      # First, before any other check: the attest job needs a public repository (or Enterprise Cloud), and failing
+      # there would come after the build. RELEASING.md lists what the first public release needs.
+      - name: The repository is public
+        env:
+          PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          if [ "$PRIVATE" != "false" ]; then
+            echo "::error::this repository is private: artifact attestations, which every release carries, need a public repository. Make it public and complete RELEASING.md, 'The first public release', then push the tag again"
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"  # stays on 3.12 with the hash-locked toolchains in .github/requirements/ (runtime jobs use 3.14)
+      - name: The tag matches the package version and CHANGELOG.md dates it
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(PYTHONPATH=src python -P -c 'import aidd; print(aidd.__version__)')
+          test "$TAG" = "v$version" || { echo "::error::tag $TAG does not match version $version"; exit 1; }
+          # "## X.Y.Z (YYYY-MM-DD)" or "## [X.Y.Z] - YYYY-MM-DD"; "(unreleased)" does not count.
+          pattern="^## \[?${version//./\\.}\]? (\(|- )[0-9]{4}-[0-9]{2}-[0-9]{2}"
+          grep -Eq "$pattern" CHANGELOG.md || { echo "::error::CHANGELOG.md has no dated entry for $version"; exit 1; }
+      - name: The tagged commit is on main
+        run: |
+          git fetch --quiet origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::$GITHUB_SHA is not on main"; exit 1; }
+      - name: The tag is annotated, signed, and verified by GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          ref=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG")
+          if [ "$(jq -r .object.type <<<"$ref")" != "tag" ]; then echo "::error::$TAG is a lightweight tag; use git tag -s"; exit 1; fi
+          verified=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$(jq -r .object.sha <<<"$ref")" --jq '.verification.verified')
+          test "$verified" = "true" || { echo "::error::GitHub does not verify the signature on $TAG"; exit 1; }
+      - name: The commit passed ci on main and came through a pull request that passed aidd/gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP_LOGIN: ${{ vars.AIDD_GATE_APP_LOGIN }}
+        run: |
+          ci=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&branch=main&event=push&status=success" --jq '.total_count')
+          test "$ci" -gt 0 || { echo "::error::ci has not passed on $GITHUB_SHA on main"; exit 1; }
+          # A push and the weekly schedule run Linux only; the full matrix (every OS and Python) runs only by hand.
+          full=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=workflow_dispatch&status=success" --jq '.total_count')
+          test "$full" -gt 0 || { echo "::error::the full ci matrix has not passed on $GITHUB_SHA; run ci by hand on main (workflow_dispatch) first"; exit 1; }
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '[.[] | select(.merged_at != null and .merge_commit_sha == env.GITHUB_SHA)][0].head.sha // ""')
+          test -n "$head" || { echo "::error::no merged pull request produced $GITHUB_SHA"; exit 1; }
+          # The latest aidd/gate status on that head (the list is newest first), and who posted it.
+          gate=$(gh api "repos/$GITHUB_REPOSITORY/commits/$head/statuses?per_page=100" --jq '[.[] | select(.context == "aidd/gate")][0] // {} | [.state // "", .creator.type // "", .creator.login // ""] | @tsv')
+          IFS=$'\t' read -r state type login <<<"$gate"
+          test "$state" = "success" || { echo "::error::aidd/gate is '$state' on the pull request head $head"; exit 1; }
+          # Only the gate App may post it. Its App ID lives on the aidd-gate environment, which this job cannot
+          # read, so the check is on the poster: a bot, never a person or GITHUB_TOKEN (github-actions[bot]),
+          # which anyone with write access can use to post the status. Set the AIDD_GATE_APP_LOGIN repository
+          # variable to the App's bot login (<app-slug>[bot]) to require exactly that App.
+          if [ "$type" != "Bot" ] || [ "$login" = "github-actions[bot]" ]; then
+            echo "::error::aidd/gate on $head was posted by '$login' ($type), not by the gate App"; exit 1
+          fi
+          if [ -n "$APP_LOGIN" ] && [ "$login" != "$APP_LOGIN" ]; then
+            echo "::error::aidd/gate on $head was posted by '$login', not by $APP_LOGIN"; exit 1
+          fi
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"  # stays on 3.12 with the hash-locked toolchains in .github/requirements/ (runtime jobs use 3.14)
+      - run: PYTHONPATH=src python -m unittest discover -s tests
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: 0.12.24  # unquoted: tests/test_version.py reads quoted `version:` lines as aidd pins
+      - name: Build (hash-locked backend, reproducible timestamps)
+        run: |
+          SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "$GITHUB_SHA")
+          export SOURCE_DATE_EPOCH
+          uv build --no-cache --build-constraint .github/requirements/build.txt --require-hashes
+      - name: The zipapp (standard library only, reproducible timestamps)
+        run: |
+          SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "$GITHUB_SHA")
+          export SOURCE_DATE_EPOCH
+          # Outside dist/, which holds only the wheel and the sdist.
+          PYTHONPATH=src python -P -m aidd.pyz pyz/aidd.pyz
+          python -I pyz/aidd.pyz --version
+      - name: CycloneDX SBOM and checksums
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          mkdir -p meta
+          python -m venv "$RUNNER_TEMP/sbom-tool"
+          "$RUNNER_TEMP/sbom-tool/bin/python" -m pip install --quiet --require-hashes --no-deps -r .github/requirements/sbom.txt
+          # The SBOM describes exactly what installing the wheel yields: a clean venv with it and nothing else.
+          python -m venv --without-pip "$RUNNER_TEMP/installed"
+          "$RUNNER_TEMP/sbom-tool/bin/python" -m pip --python "$RUNNER_TEMP/installed/bin/python" install --quiet --no-deps dist/*.whl
+          "$RUNNER_TEMP/sbom-tool/bin/cyclonedx-py" environment --output-reproducible --of JSON \
+            -o "meta/aidd-$TAG.cdx.json" "$RUNNER_TEMP/installed/bin/python"
+          { (cd dist && sha256sum -- *); (cd pyz && sha256sum -- *); } > meta/SHA256SUMS
+          cat meta/SHA256SUMS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+          retention-days: 30
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pyz
+          path: pyz/
+          retention-days: 30
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: meta
+          path: meta/
+          retention-days: 30
+
+  # A second, independent build of the tagged commit, with the same pinned tools and SOURCE_DATE_EPOCH, on a fresh
+  # runner. The file names and their sha256 must equal the build job's SHA256SUMS exactly, or the release stops here.
+  rebuild:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"  # the build job's Python, so the zipapp and the dists come out the same
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: 0.12.24  # unquoted: tests/test_version.py reads quoted `version:` lines as aidd pins
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: meta
+          path: meta/
+      - name: Build again (the build job's commands)
+        run: |
+          SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "$GITHUB_SHA")
+          export SOURCE_DATE_EPOCH
+          uv build --no-cache --build-constraint .github/requirements/build.txt --require-hashes
+          PYTHONPATH=src python -P -m aidd.pyz pyz/aidd.pyz
+      - name: Every file matches SHA256SUMS
+        run: |
+          { (cd dist && sha256sum -- *); (cd pyz && sha256sum -- *); } > "$RUNNER_TEMP/SHA256SUMS.rebuild"
+          if ! diff -u meta/SHA256SUMS "$RUNNER_TEMP/SHA256SUMS.rebuild"; then
+            echo "::error::the rebuild of $GITHUB_SHA differs from the build job's, so nothing is attested or released. Download this run's dist, pyz, and rebuild artifacts, and compare each differing pair with diffoscope (pip install diffoscope, then diffoscope <built> <rebuilt>). Fix the cause on main, then release the next patch version as RELEASING.md says"
+            exit 1
+          fi
+      - if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rebuild
+          path: |
+            dist/
+            pyz/
+          retention-days: 30
+
+  # Attestations need a public repository, or Enterprise Cloud on a private one. They are
+  # mandatory: without them nothing is released.
+  attest:
+    needs: [build, rebuild]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      id-token: write      # sign with the workflow's OIDC identity
+      attestations: write  # store the attestations on the repository
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: meta
+          path: meta/
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pyz
+          path: pyz/
+      # One provenance attestation for the dists and the zipapp alike (a newline-delimited subject list).
+      - id: provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            dist/*
+            pyz/aidd.pyz
+      # The SBOM covers the zipapp too: it is the same package, built from the same commit.
+      - id: sbom
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-path: |
+            dist/*
+            pyz/aidd.pyz
+          sbom-path: meta/aidd-${{ github.ref_name }}.cdx.json
+      - name: Keep the bundles
+        env:
+          PROVENANCE: ${{ steps.provenance.outputs.bundle-path }}
+          SBOM: ${{ steps.sbom.outputs.bundle-path }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          mkdir -p bundles
+          cp "$PROVENANCE" "bundles/aidd-$TAG.provenance.sigstore.json"
+          cp "$SBOM" "bundles/aidd-$TAG.sbom.sigstore.json"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bundles
+          path: bundles/
+          retention-days: 30
+
+  release:
+    needs: attest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write  # create the GitHub Release
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: assets/
+          merge-multiple: true
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release create "$TAG" assets/* --repo "$GITHUB_REPOSITORY" --title "$TAG" --notes "See CHANGELOG.md. Verify with gh attestation verify <file> --repo $GITHUB_REPOSITORY." --verify-tag

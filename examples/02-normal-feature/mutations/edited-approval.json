@@ -1,0 +1,24 @@
+{
+  "summary": "An edited comment never approves.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/comments/0/edited",
+      "value": true
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [
+      "edited_comments"
+    ],
+    "findings": [
+      "pending spec_approval.missing",
+      "warn edited_comments.ignored"
+    ]
+  }
+}

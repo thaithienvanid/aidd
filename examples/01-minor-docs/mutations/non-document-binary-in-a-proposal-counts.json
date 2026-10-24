@@ -1,0 +1,32 @@
+{
+  "summary": "A binary that is not a document, proposals/PROP-1/tool.bin, still counts in a proposal-only change, so minor does not hold.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "proposals/PROP-1/tool.bin"
+    },
+    {
+      "op": "set",
+      "path": "/files/0/binary",
+      "value": true
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope: [docs/guide.md]\n",
+      "new": "scope: [\"proposals/PROP-1/**\"]\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

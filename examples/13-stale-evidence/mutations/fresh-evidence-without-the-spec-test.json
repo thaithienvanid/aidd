@@ -1,0 +1,31 @@
+{
+  "summary": "The evidence is for the new head and its base, but it holds only the suite. Stale evidence waits for a new run, but this run is current and left out the Spec's own test, so the gate fails. The test has no result on head and no red run.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/head_sha",
+      "value": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+    },
+    {
+      "op": "remove",
+      "path": "/evidence/results/2"
+    },
+    {
+      "op": "remove",
+      "path": "/evidence/results/1"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "red_green",
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail red_green.no_red_run",
+      "fail tests.no_result"
+    ]
+  }
+}

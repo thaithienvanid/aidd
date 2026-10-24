@@ -1,0 +1,20 @@
+{
+  "summary": "Under solo, a new-behavior test with no red run on the base commit is a warning, not a failure: the solo profile trusts the one developer to have seen it fail.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/evidence/results/2"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "red_green"
+    ],
+    "findings": [
+      "warn red_green.no_red_run"
+    ]
+  }
+}
