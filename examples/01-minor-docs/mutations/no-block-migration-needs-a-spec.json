@@ -1,0 +1,26 @@
+{
+  "summary": "No block, and the diff holds a migration: the computed route is major, which needs a Spec, so the change fails rather than passing as minor.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Fix a typo in the setup guide."
+    },
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "db/migrations/0042_user_timezone.sql"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec.missing"
+    ]
+  }
+}

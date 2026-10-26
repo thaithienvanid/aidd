@@ -1,0 +1,21 @@
+{
+  "summary": "The description has no Change Request block, and the diff carries two Specs: the gate cannot tell which one the change is, so it fails and asks for a block that names them.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Lands the checkout goal."
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "change_request"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail change_request.several_specs"
+    ]
+  }
+}

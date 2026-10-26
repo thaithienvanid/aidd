@@ -1,0 +1,68 @@
+# aidd: the secret scan for the product (control EC-04 of the `enterprise-controls` pack), the GitLab side of the
+# `secrets` job in GitHub's aidd-security.yml. `aidd init` writes it when compliance is on (`project.compliance`
+# names a target, or the profile is audited), or with --security-ci. Include it from .gitlab-ci.yml:
+#   include:
+#     - local: .gitlab/aidd-security.gitlab-ci.yml
+#
+# gitleaks scans the history and the working tree, on every MR pipeline and on a schedule, with no token. A finding
+# fails the job. A secret in the history stays valid after its commit is gone: revoke it first.
+#
+# gitleaks comes from its GitHub release, checked against the SHA-256 that the release's checksums file lists for the
+# linux x64 tarball. Both are written into the script, not read from a variable, so a pipeline variable cannot swap
+# the binary. Update the version and the SHA-256 together. To mirror, host the same tarball and change the URL.
+#
+# On a merge request, the scan takes .gitleaks.toml and .gitleaksignore from the merge request's diff base, by its
+# SHA, so the change under scan cannot turn its own scan off. When that commit is missing and cannot be fetched, or
+# lacks the file, the scan uses the default rules and no ignore list. Run this job in the parent project's pipelines
+# (Settings > CI/CD: run pipelines in the parent project for merge requests from forks): a fork controls a pipeline
+# in its own project. A scheduled pipeline
+# takes them from the checked-out tree. gitleaks reads ./.gitleaksignore whatever --gitleaks-ignore-path names, so
+# the scan removes it first. --ignore-gitleaks-allow ignores inline `gitleaks:allow` comments. --redact keeps a found
+# secret out of the log; --verbose names each finding's file, line, and fingerprint.
+
+aidd-secrets:
+  # python:3.14.7-trixie, the image of the aidd jobs, pinned by the digest of its multi-arch index. It carries git,
+  # curl, and sha256sum. Update the tag and the digest together.
+  image: python:3.14.7-trixie@sha256:0876e54cf728d89fd9d0fdaf5837b9ee879ea5fbbd6fd0cddbe5eb0cce3f5f9e
+  stage: test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  variables:
+    GIT_DEPTH: 0  # the whole history: a secret a later commit deleted is still in an earlier one
+  script:
+    - |
+      set -eu
+      GITLEAKS_VERSION=8.30.1
+      GITLEAKS_SHA256=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+      GITLEAKS_DIR="${TMPDIR:-/tmp}/gitleaks"
+      mkdir -p "$GITLEAKS_DIR"
+      curl -fsSL --retry 3 -o "$GITLEAKS_DIR/gitleaks.tar.gz" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+      echo "$GITLEAKS_SHA256  $GITLEAKS_DIR/gitleaks.tar.gz" | sha256sum --check --strict
+      tar -xzf "$GITLEAKS_DIR/gitleaks.tar.gz" -C "$GITLEAKS_DIR" gitleaks
+    - |
+      set -eu
+      GITLEAKS_DIR="${TMPDIR:-/tmp}/gitleaks"
+      unset GITLEAKS_CONFIG GITLEAKS_CONFIG_TOML
+      conf="$GITLEAKS_DIR/config.toml"
+      ignore="$GITLEAKS_DIR/ignore"
+      if [ "${CI_PIPELINE_SOURCE:-}" = "merge_request_event" ] || [ -n "${CI_MERGE_REQUEST_DIFF_BASE_SHA:-}" ]; then
+        base="${CI_MERGE_REQUEST_DIFF_BASE_SHA:-}"
+        # Only a full commit SHA: anything else fails closed to the default rules.
+        if ! printf '%s' "$base" | grep -Eq '^([0-9a-f]{40}|[0-9a-f]{64})$'; then
+          base="0000000000000000000000000000000000000000"
+        elif ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+          git fetch --quiet origin "$base" 2>/dev/null || true
+        fi
+        git show "$base:.gitleaks.toml" > "$conf" 2>/dev/null || printf '[extend]\nuseDefault = true\n' > "$conf"
+        git show "$base:.gitleaksignore" > "$ignore" 2>/dev/null || : > "$ignore"
+      else
+        cp .gitleaks.toml "$conf" 2>/dev/null || printf '[extend]\nuseDefault = true\n' > "$conf"
+        cp .gitleaksignore "$ignore" 2>/dev/null || : > "$ignore"
+      fi
+      rm -f .gitleaksignore
+      set -- --config "$conf" --gitleaks-ignore-path "$ignore" --ignore-gitleaks-allow --no-banner --redact --verbose
+      status=0
+      "$GITLEAKS_DIR/gitleaks" git "$@" . || status=1
+      "$GITLEAKS_DIR/gitleaks" dir "$@" . || status=1
+      exit "$status"

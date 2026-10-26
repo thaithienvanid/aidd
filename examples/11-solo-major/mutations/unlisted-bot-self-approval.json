@@ -1,0 +1,43 @@
+{
+  "summary": "An agent's bot account authors the change and comments the approvals: a bot that owners.approvers does not name never approves.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/author",
+      "value": "coder-agent[bot]"
+    },
+    {
+      "op": "set",
+      "path": "/commits/0/author",
+      "value": "coder-agent[bot]"
+    },
+    {
+      "op": "set",
+      "path": "/commits/0/committer",
+      "value": "coder-agent[bot]"
+    },
+    {
+      "op": "set",
+      "path": "/comments/0/user",
+      "value": "coder-agent[bot]"
+    },
+    {
+      "op": "set",
+      "path": "/comments/1/user",
+      "value": "coder-agent[bot]"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval",
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending merge_approval.missing",
+      "pending spec_approval.missing"
+    ]
+  }
+}

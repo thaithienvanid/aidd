@@ -1,0 +1,21 @@
+{
+  "summary": "The new head was pushed, and no run has reported on it yet. With no evidence at all, the gate waits, as it does for stale evidence.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence",
+      "value": null
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "tests"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending tests.no_evidence"
+    ]
+  }
+}

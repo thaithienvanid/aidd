@@ -1,0 +1,21 @@
+{
+  "summary": "Red runs against the target branch alone do not prove the entry: its base is the entry ahead.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/base_sha",
+      "value": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "tests"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending tests.evidence_other_base"
+    ]
+  }
+}

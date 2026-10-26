@@ -1,0 +1,41 @@
+# SAST: CodeQL over the Python source and the workflows themselves. Weekly and by hand, and only while the
+# repository is public: code scanning on a private repository needs GitHub Code Security, and without it the upload
+# fails ("Resource not accessible by integration"). A pull request runs the ci workflow's checks and tests
+# (ci.yml), which include ruff, mypy, actionlint, and zizmor; a CodeQL finding becomes a fix through the gate.
+name: codeql
+
+on:
+  schedule:
+    - cron: "41 4 * * 3"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read         # check out the code
+      security-events: write # upload the results to code scanning
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, actions]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-extended
+      - uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          category: /language:${{ matrix.language }}

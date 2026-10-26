@@ -1,0 +1,95 @@
+# aidd observe --band: closes the loop after release. On a schedule, it judges one metric against its control band
+# (no model involved; see `aidd observe --help` and `observe.bands` in .aidd/config.yaml). When the
+# metric breaches the band far enough that an agent may diagnose or suggest a change, it opens an issue holding a
+# draft Spec with the evidence: the triage queue. The service owner then fixes now, schedules, or
+# dismisses, and a fix goes through the gate like any change. A breach that lasts keeps one issue per
+# metric open, found by its `aidd-observe:<metric>` label, and adds each later reading to it as a comment;
+# close the issue to have the next breach open a new one.
+#
+# Optional: copy it into .github/workflows/ and replace the "Export the series" step with the query your
+# metrics store answers (one value per line, oldest first). One workflow per metric, or a matrix.
+name: aidd-observe
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aidd-observe-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read  # check out this repository's .aidd/config.yaml (the bands)
+      issues: write   # open the triage issue, comment on it, and create its label
+    env:
+      METRIC: http_5xx_rate
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # aidd-pin: pin this ref to the aidd release's commit SHA (`aidd upgrade --ref <sha> --yes` does it, as `aidd init` does for the other workflows).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: thaithienvanid/aidd
+          ref: v1.0.0
+          path: .aidd-src
+          persist-credentials: false
+          sparse-checkout: |
+            src
+            schemas
+            .agents/skills/aidd
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Export the series
+        # Replace with your metrics query. Each line is one value, oldest first, over the band's window.
+        run: printf '%s\n' 0.8 0.9 1.1 1.0 0.9 1.2 1.0 0.8 1.1 1.0 > series.txt
+      - name: Judge the metric against its band
+        id: band
+        env:
+          PYTHONPATH: .aidd-src/src
+        run: |
+          set +e
+          python3 -P -m aidd observe --band "$METRIC" series.txt --write --json > reading.json
+          code=$?
+          set -e
+          cat reading.json
+          if [ "$code" -gt 1 ]; then exit "$code"; fi
+          echo "breach=$([ "$code" -eq 1 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - name: Open the triage issue, or add to the open one
+        if: steps.band.outputs.breach == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          label="aidd-observe:$METRIC"
+          spec=$(python3 -c 'import json; print(json.load(open("reading.json"))["spec"])')
+          {
+            echo "A control band was breached. The draft Spec below holds the evidence; triage it: fix now, schedule, or dismiss (and tune the band)."
+            echo
+            echo '```json'
+            cat reading.json
+            echo '```'
+            echo
+            echo "<details><summary>Draft Spec ($spec)</summary>"
+            echo
+            cat "$spec"
+            echo
+            echo "</details>"
+          } > body.md
+          # One open issue per metric: a breach that lasts adds a comment every run instead of a new issue.
+          gh label create "$label" --color D93F0B --description "aidd observe: $METRIC breached its control band" 2>/dev/null || true
+          open=$(gh issue list --label "$label" --state open --limit 1 --json number --jq '.[0].number // ""')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body-file body.md
+          else
+            gh issue create --title "aidd observe: $METRIC breached its control band" --label "$label" --body-file body.md
+          fi

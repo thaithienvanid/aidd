@@ -1,0 +1,26 @@
+{
+  "summary": "The approved Spec's new-behavior test also passes on the base commit: with a Spec approval recorded, red-then-green is required for that Spec, not a warning.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/results/2/status",
+      "value": "passed"
+    },
+    {
+      "op": "set",
+      "path": "/evidence/results/2/exit",
+      "value": 0
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "red_green"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail red_green.passes_on_base"
+    ]
+  }
+}

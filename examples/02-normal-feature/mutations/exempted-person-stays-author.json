@@ -1,0 +1,39 @@
+{
+  "summary": "identities.system_accounts cannot exempt a person who co-committed.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/commits",
+      "value": {
+        "sha": "2222222222222222222222222222222222222222",
+        "author": "checkout-lead",
+        "committer": "checkout-lead",
+        "message": "Help\n\nAssisted-by: claude-code/claude-opus-5-5",
+        "merge": false,
+        "verified": true
+      }
+    },
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "  system_accounts: [web-flow]\n",
+      "new": "  system_accounts: [web-flow, checkout-lead]\n"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval",
+      "spec_approval"
+    ],
+    "warn_rules": [
+      "config"
+    ],
+    "findings": [
+      "pending merge_approval.missing",
+      "pending spec_approval.missing",
+      "warn config.warning"
+    ]
+  }
+}

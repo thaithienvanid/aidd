@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "Merge-queue entry",
+  "summary": "The approved feature in a merge queue: approvals stay on the pull request head, the tests re-ran green and red on the merge-group commit, and its tree is exactly that head merged into the commit the entry was built on."
+}

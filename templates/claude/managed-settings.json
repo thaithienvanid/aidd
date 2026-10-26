@@ -1,0 +1,100 @@
+{
+  "requiredMinimumVersion": "2.1.259",
+  "permissions": {
+    "allow": [
+      "Bash(aidd list)",
+      "Bash(aidd list *)",
+      "Bash(aidd owners)",
+      "Bash(aidd owners *)",
+      "Bash(aidd new *)",
+      "Bash(aidd describe)",
+      "Bash(aidd describe *)",
+      "Bash(aidd validate)",
+      "Bash(aidd validate *)",
+      "Bash(aidd hash *)",
+      "Bash(aidd test)",
+      "Bash(aidd test *)",
+      "Bash(aidd gate)",
+      "Bash(aidd gate *)",
+      "Bash(aidd observe *)",
+      "Bash(aidd doctor)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "mcp__aidd",
+      "mcp__plugin_aidd_aidd"
+    ],
+    "deny": [
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/credentials)",
+      "Read(~/.aws/config)",
+      "Read(~/.config/gh/hosts.yml)",
+      "Read(~/.netrc)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(nc *)",
+      "Bash(scp *)",
+      "Bash(ssh *)",
+      "WebFetch"
+    ],
+    "disableBypassPermissionsMode": "disable"
+  },
+  "allowManagedPermissionRulesOnly": true,
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "REPLACE-WITH-YOUR-PACKAGE-MIRROR.example.com"
+      ],
+      "allowManagedDomainsOnly": true
+    },
+    "filesystem": {
+      "denyRead": [
+        "~/.ssh"
+      ]
+    },
+    "credentials": {
+      "files": [
+        { "path": "~/.aws/credentials", "mode": "deny" }
+      ],
+      "envVars": [
+        { "name": "GITHUB_TOKEN", "mode": "deny" },
+        { "name": "GH_TOKEN", "mode": "deny" }
+      ]
+    }
+  },
+  "allowManagedHooksOnly": true,
+  "env": {
+    "AIDD_HOOK_FAIL_CLOSED": "1"
+  },
+  "allowManagedMcpServersOnly": true,
+  "allowedMcpServers": [
+    { "serverCommand": ["/bin/sh", "-c", "unset CDPATH; unset -f test cd pwd command 2>/dev/null; R=$PYTHONPATH; L='import sys; sys.version_info < (3, 11) and sys.exit(3); sys.path.insert(0, sys.argv.pop(1)); sys.argv[0] = sys.argv.pop(1); from aidd.cli import main; sys.exit(main())'; W=$(pwd -P); D=$CLAUDE_PROJECT_DIR; test -n \"$D\" || { D=$W; echo \"aidd mcp: CLAUDE_PROJECT_DIR is not set; serving the current folder $W\" >&2; }; D=$(cd -P -- \"$D\" 2>/dev/null && pwd -P) || { echo \"aidd mcp: CLAUDE_PROJECT_DIR is not a folder; not starting\" >&2; exit 1; }; ok() { case \"$1\" in /*) ;; *) return 1;; esac; p=$(cd -P -- \"${1%/*}/\" 2>/dev/null && pwd -P) || return 1; for d in \"$D\" \"$W\"; do test -n \"$d\" || return 1; x=$p; while :; do test \"$x\" -ef \"$d\" && return 1; case \"$x\" in \"\"|/) break;; esac; x=${x%/*}; test -n \"$x\" || x=/; done; done; }; ok \"$R/aidd\" || { echo \"aidd mcp: the plugin source is inside the project; not starting\" >&2; exit 1; }; cd -P -- \"$D\" || exit 1; P3=$(cd -P -- \"$R\" && command -v python3); if ok \"$P3\" && \"$P3\" -I -S -c 'import sys; sys.exit(sys.version_info < (3, 11))' 2>/dev/null; then exec \"$P3\" -I -S -c \"$L\" \"$R\" aidd mcp; fi; PY=; UV=$(cd -P -- \"$R\" && command -v uv); if ok \"$UV\"; then PY=$(cd -P -- \"$R\" && unset VIRTUAL_ENV && \"$UV\" python find --offline --no-project --no-config --no-python-downloads --system '>=3.11' 2>/dev/null) && ok \"$PY\" || PY=; fi; test -n \"$PY\" && exec \"$PY\" -I -S -c \"$L\" \"$R\" aidd mcp; echo \"aidd mcp: could not start (it needs Python 3.11 or later, or uv with a Python outside any virtual environment: uv python install 3.12)\" >&2; exit 1"] }
+  ],
+  "strictKnownMarketplaces": [
+    { "source": "github", "repo": "thaithienvanid/aidd" }
+  ],
+  "extraKnownMarketplaces": {
+    "aidd": {
+      "source": { "source": "github", "repo": "thaithienvanid/aidd" },
+      "autoUpdate": false
+    }
+  },
+  "enabledPlugins": {
+    "aidd@aidd": true
+  },
+  "pluginSuggestionMarketplaces": [
+    "aidd"
+  ],
+  "disableSideloadFlags": true
+}

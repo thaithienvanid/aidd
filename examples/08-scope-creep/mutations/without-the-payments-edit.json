@@ -1,0 +1,16 @@
+{
+  "summary": "The near miss: without the edit to payments code, every changed path is inside the Task's scope or is the Spec and its test.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/files/3"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

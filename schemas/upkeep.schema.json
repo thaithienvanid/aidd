@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:upkeep",
+  "title": "aidd list --upkeep --json",
+  "description": "The upkeep that is due, from what aidd already knows: each item with the command or skill it goes to. A person decides what to do; aidd decides nothing. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "items"],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/item" },
+      "description": "Each item that is due, in a fixed order by kind."
+    }
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "what", "where", "due", "route", "how"],
+      "properties": {
+        "code": {
+          "enum": [
+            "upkeep.standard_review",
+            "upkeep.flag_cleanup",
+            "upkeep.deprecation_removal",
+            "upkeep.backfill_due",
+            "upkeep.flaky_test",
+            "upkeep.waiver_expiring",
+            "upkeep.runbook_stale",
+            "upkeep.doctor_warning",
+            "upkeep.config_unread"
+          ],
+          "description": "The kind of upkeep."
+        },
+        "what": { "type": "string", "description": "What is due, in a sentence." },
+        "where": { "type": ["string", "null"], "description": "The file it is about, repo-relative, or null." },
+        "due": { "type": ["string", "null"], "description": "The date it was or is due, `YYYY-MM-DD`, or null when it has none." },
+        "route": {
+          "enum": ["standards-update", "release-rollout", "api-design", "postmortem", "flaky-quarantine", "waiver", "runbook-drill", "doctor"],
+          "description": "Where the item goes: a standards update, the release-rollout skill's flag cleanup, the api-design skill's removal of a deprecation, a postmortem and its backfill, a flaky test's quarantine, a waiver's renewal or the rule met, a runbook drill, or the fix `aidd doctor` names."
+        },
+        "how": { "type": "string", "description": "The command or skill that takes it, in words." }
+      }
+    }
+  }
+}

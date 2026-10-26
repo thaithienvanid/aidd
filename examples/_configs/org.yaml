@@ -1,0 +1,14 @@
+aidd_version: "1.0.0"
+profile: org
+owners:
+  default_owner_team: identity
+  approvers: ["@oncall-lead", "@identity-lead"]
+  specialists:
+    security: ["@sec-alice"]
+tests:
+  - name: unit
+    command: [make, test]
+policy:
+  command: ["./scripts/aidd-policy"]
+emergency:
+  review_sla_days: 2

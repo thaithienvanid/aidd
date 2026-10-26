@@ -1,0 +1,26 @@
+{
+  "summary": "On GitLab, the project keeps approvals when commits are pushed (reset_approvals_on_push off). GitLab's approval names no commit, so the gate binds it by time, and the platform's own count can keep an approval of an older head: the gate passes and warns.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/platform",
+      "value": "gitlab"
+    },
+    {
+      "op": "set",
+      "path": "/approvals_reset_on_push",
+      "value": false
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "merge_approval"
+    ],
+    "findings": [
+      "warn merge_approval.survives_push"
+    ]
+  }
+}

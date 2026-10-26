@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 660" width="1280" height="660" role="img" aria-labelledby="t d">
+  <title id="t">AIDD: AI-Driven Development</title>
+  <desc id="d">One loop in two places, with four decisions that are yours. On your machine: first, the plan, where you agree to what will be built. AI agents write the Spec and its tests. Second, Spec approval: you approve the contract. Agents implement until the tests pass, then verify and review side by side on that exact commit, on their own branches. Third, Merge approval: you type land it, and the change lands on your local trunk once the gate passes on the exact commit. Nothing leaves your machine until you publish. Shared: the work rolls out, and fourth, for a feature behind a flag, you decide when users see it. Learn feeds every lesson back to the plan.</desc>
+  <style>
+    .bg { fill: #f8fafc; stroke: #e2e8f0; }
+    .ink { fill: #0f172a; }
+    .muted { fill: #475569; }
+    .brand { fill: #4338ca; }
+    .pill { fill: #ffffff; stroke: #6366f1; }
+    .pill-t { fill: #1e1b4b; }
+    .idea { fill: #ffffff; stroke: #94a3b8; }
+    .trunk { fill: #ffffff; stroke: #15803d; }
+    .trunk-t { fill: #14532d; }
+    .team { fill: #eef2ff; stroke: #c7d2fe; }
+    .team-t { fill: #4338ca; }
+    .band { fill: #f1f5f9; stroke: #e2e8f0; }
+    .band-t { fill: #64748b; }
+    .edge { stroke: #d97706; fill: none; stroke-dasharray: 2 7; stroke-linecap: round; }
+    .you { fill: #fff7ed; stroke: #d97706; }
+    .you-t { fill: #9a3412; }
+    .dec { fill: #d97706; }
+    .dec-n { fill: #ffffff; }
+    .dec-t { fill: #b45309; }
+    .flow { stroke: #64748b; fill: none; }
+    .head { fill: #64748b; }
+    .learn { stroke: #6366f1; fill: none; stroke-dasharray: 7 6; }
+    .learn-head { fill: #6366f1; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0b1020; stroke: #1e293b; }
+      .ink { fill: #f1f5f9; }
+      .muted { fill: #94a3b8; }
+      .brand { fill: #a5b4fc; }
+      .pill { fill: #161b33; stroke: #818cf8; }
+      .pill-t { fill: #e0e7ff; }
+      .idea { fill: #161b33; stroke: #64748b; }
+      .trunk { fill: #0c1d14; stroke: #22c55e; }
+      .trunk-t { fill: #bbf7d0; }
+      .team { fill: #121735; stroke: #312e81; }
+      .team-t { fill: #a5b4fc; }
+      .band { fill: #0f1529; stroke: #1e293b; }
+      .band-t { fill: #94a3b8; }
+      .edge { stroke: #f59e0b; }
+      .you { fill: #1c1204; stroke: #f59e0b; }
+      .you-t { fill: #fcd34d; }
+      .dec { fill: #f59e0b; }
+      .dec-n { fill: #1c1204; }
+      .dec-t { fill: #fbbf24; }
+      .flow { stroke: #94a3b8; }
+      .head { fill: #94a3b8; }
+      .learn { stroke: #818cf8; }
+      .learn-head { fill: #818cf8; }
+    }
+  </style>
+  <defs>
+    <marker id="h" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="head" d="M0 0 L10 5 L0 10z"/>
+    </marker>
+    <marker id="hl" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="learn-head" d="M0 0 L10 5 L0 10z"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="1" y="1" width="1278" height="658" rx="28" stroke-width="2"/>
+
+  <g font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text class="ink" x="64" y="118" font-size="92" font-weight="800" letter-spacing="-3">AIDD</text>
+    <text class="brand" x="68" y="158" font-size="22" font-weight="600" letter-spacing="0.5">AI-Driven Development</text>
+    <text class="ink" x="68" y="206" font-size="26" font-weight="600">You decide what to build, what lands, and what leaves your machine.</text>
+    <text class="muted" x="68" y="240" font-size="20">AI agents do everything in between, and prove it on the exact commit.</text>
+    <text class="muted" x="1216" y="74" font-size="16" text-anchor="end">One loop from intent to production.</text>
+
+    <!-- Two places: your machine, and what is shared -->
+    <rect class="band" x="40" y="276" width="1200" height="176" rx="20" stroke-width="1.5"/>
+    <text class="band-t" x="64" y="302" font-size="13" font-weight="700" letter-spacing="2">ON YOUR MACHINE</text>
+    <rect class="band" x="40" y="500" width="1200" height="132" rx="20" stroke-width="1.5"/>
+    <text class="band-t" x="64" y="526" font-size="13" font-weight="700" letter-spacing="2">SHARED</text>
+
+    <!-- The boundary: only the person's publish crosses it -->
+    <line class="edge" x1="64" y1="476" x2="1216" y2="476" stroke-width="3"/>
+    <text class="dec-t" x="64" y="468" font-size="14" font-weight="600">Nothing leaves your machine until you publish</text>
+
+    <!-- The AI team's inner loop, on its own branches -->
+    <rect class="team" x="272" y="312" width="530" height="122" rx="18" stroke-width="1.5"/>
+    <text class="team-t" x="537" y="334" font-size="13" font-weight="700" letter-spacing="2" text-anchor="middle">AI TEAM, ON ITS OWN BRANCHES</text>
+
+    <!-- Row 1 -->
+    <rect class="idea" x="64" y="356" width="96" height="48" rx="24" stroke-width="2"/>
+    <text class="pill-t" x="112" y="387" font-size="19" font-weight="600" text-anchor="middle">Plan</text>
+    <line class="flow" x1="160" y1="380" x2="194" y2="380" stroke-width="2" marker-end="url(#h)"/>
+    <rect class="dec" x="205" y="365" width="30" height="30" rx="5" transform="rotate(45 220 380)"/>
+    <text class="dec-n" x="220" y="386" font-size="16" font-weight="800" text-anchor="middle">1</text>
+    <text class="dec-t" x="220" y="348" font-size="15" font-weight="700" text-anchor="middle">The plan</text>
+    <line class="flow" x1="244" y1="380" x2="282" y2="380" stroke-width="2" marker-end="url(#h)"/>
+
+    <rect class="pill" x="288" y="356" width="112" height="48" rx="24" stroke-width="2"/>
+    <text class="pill-t" x="344" y="387" font-size="19" font-weight="600" text-anchor="middle">Specify</text>
+    <line class="flow" x1="400" y1="380" x2="420" y2="380" stroke-width="2" marker-end="url(#h)"/>
+    <rect class="dec" x="431" y="365" width="30" height="30" rx="5" transform="rotate(45 446 380)"/>
+    <text class="dec-n" x="446" y="386" font-size="16" font-weight="800" text-anchor="middle">2</text>
+    <text class="dec-t" x="446" y="422" font-size="15" font-weight="700" text-anchor="middle">Spec approval</text>
+    <line class="flow" x1="470" y1="380" x2="488" y2="380" stroke-width="2" marker-end="url(#h)"/>
+
+    <rect class="pill" x="494" y="356" width="124" height="48" rx="24" stroke-width="2"/>
+    <text class="pill-t" x="556" y="387" font-size="19" font-weight="600" text-anchor="middle">Implement</text>
+    <text class="muted" x="556" y="424" font-size="13" text-anchor="middle">until green</text>
+
+    <!-- Verify and Review, side by side on one head -->
+    <path class="flow" d="M618 380 H636 Q644 380 644 372 V366 Q644 358 652 358 H660" stroke-width="2" marker-end="url(#h)"/>
+    <path class="flow" d="M618 380 H636 Q644 380 644 388 V394 Q644 402 652 402 H660" stroke-width="2" marker-end="url(#h)"/>
+    <rect class="pill" x="664" y="342" width="104" height="32" rx="16" stroke-width="2"/>
+    <text class="pill-t" x="716" y="364" font-size="17" font-weight="600" text-anchor="middle">Verify</text>
+    <rect class="pill" x="664" y="386" width="104" height="32" rx="16" stroke-width="2"/>
+    <text class="pill-t" x="716" y="408" font-size="17" font-weight="600" text-anchor="middle">Review</text>
+    <path class="flow" d="M768 358 H778 Q786 358 786 366 V372 Q786 380 794 380" stroke-width="2"/>
+    <path class="flow" d="M768 402 H778 Q786 402 786 394 V388 Q786 380 794 380 H828" stroke-width="2" marker-end="url(#h)"/>
+
+    <rect class="dec" x="839" y="365" width="30" height="30" rx="5" transform="rotate(45 854 380)"/>
+    <text class="dec-n" x="854" y="386" font-size="16" font-weight="800" text-anchor="middle">3</text>
+    <text class="dec-t" x="854" y="348" font-size="15" font-weight="700" text-anchor="middle">Merge approval</text>
+    <text class="dec-t" x="854" y="422" font-size="14" font-weight="600" text-anchor="middle">"land it"</text>
+    <line class="flow" x1="878" y1="380" x2="912" y2="380" stroke-width="2" marker-end="url(#h)"/>
+
+    <rect class="trunk" x="918" y="356" width="150" height="48" rx="24" stroke-width="2"/>
+    <text class="trunk-t" x="993" y="387" font-size="19" font-weight="600" text-anchor="middle">Local trunk</text>
+    <text class="muted" x="993" y="424" font-size="13" text-anchor="middle">proven on the exact commit</text>
+
+    <!-- Publish: the person's step across the boundary -->
+    <path class="flow" d="M1068 380 H1150 V556" stroke-width="2" marker-end="url(#h)"/>
+    <rect class="you" x="1090" y="456" width="120" height="40" rx="20" stroke-width="2"/>
+    <text class="you-t" x="1150" y="482" font-size="17" font-weight="700" text-anchor="middle">you: publish</text>
+
+    <!-- Row 2, right to left -->
+    <rect class="pill" x="1086" y="560" width="128" height="48" rx="24" stroke-width="2"/>
+    <text class="pill-t" x="1150" y="591" font-size="19" font-weight="600" text-anchor="middle">Roll out</text>
+    <line class="flow" x1="1086" y1="584" x2="1004" y2="584" stroke-width="2" marker-end="url(#h)"/>
+    <rect class="dec" x="963" y="569" width="30" height="30" rx="5" transform="rotate(45 978 584)"/>
+    <text class="dec-n" x="978" y="590" font-size="16" font-weight="800" text-anchor="middle">4</text>
+    <text class="dec-t" x="978" y="552" font-size="15" font-weight="700" text-anchor="middle">The launch</text>
+    <text class="muted" x="978" y="622" font-size="13" text-anchor="middle">when users see it</text>
+    <line class="flow" x1="953" y1="584" x2="868" y2="584" stroke-width="2" marker-end="url(#h)"/>
+    <rect class="pill" x="760" y="560" width="102" height="48" rx="24" stroke-width="2"/>
+    <text class="pill-t" x="811" y="591" font-size="19" font-weight="600" text-anchor="middle">Learn</text>
+    <text class="muted" x="436" y="610" font-size="14" text-anchor="middle">every lesson feeds back into the plan</text>
+
+    <!-- Learn back to Plan -->
+    <path class="learn" d="M760 584 H130 Q112 584 112 566 V412" stroke-width="2.5" marker-end="url(#hl)"/>
+  </g>
+</svg>

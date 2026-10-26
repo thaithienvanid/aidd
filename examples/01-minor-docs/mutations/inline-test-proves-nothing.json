@@ -1,0 +1,36 @@
+{
+  "summary": "An inline test command that cannot fail proves nothing.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "```\n",
+      "new": "tests:\n  files: [tests/docs/test_guide.py]\n  commands:\n    - name: docs\n      command: [\"true\"]\n```\n"
+    },
+    {
+      "op": "append",
+      "path": "/evidence/results",
+      "value": {
+        "name": "docs",
+        "command": [
+          "true"
+        ],
+        "red_green": "green",
+        "status": "passed",
+        "exit": 0,
+        "source": "change_request"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail tests.no_op"
+    ]
+  }
+}

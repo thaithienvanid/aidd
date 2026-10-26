@@ -1,0 +1,21 @@
+{
+  "summary": "The block declares an agent, but no commit names one: a warning, since the commits may simply lack the trailer.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/commits/0/message",
+      "value": "Fix a typo in the setup guide"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "provenance"
+    ],
+    "findings": [
+      "warn provenance.no_agent_commit"
+    ]
+  }
+}

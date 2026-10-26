@@ -1,0 +1,70 @@
+# aidd: the test runner of record. It runs the PR's code (untrusted) with a
+# read-only token and no secrets, and uploads evidence bound to the head and
+# base commits. The gate reads evidence only from this workflow file.
+#
+# In a merge queue (merge_group) it runs again on the merge-group commit, green,
+# and red against the commit the entry was built on; its completion starts the
+# gate through workflow_run, which judges the entry and posts aidd/gate on it.
+name: aidd-tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+  pull-requests: read  # in a merge queue: the queued pull request's description, which names its Spec
+
+# One run per pull request head: a repeated event for the same head waits for the one in progress. A description edit
+# gets a group of its own, so it never displaces a queued run for a new head; the tests job below still cancels the
+# run for an older head.
+concurrency:
+  group: aidd-tests-run-${{ github.event.action == 'edited' && github.run_id || format('{0}-{1}', github.event.pull_request.number || 'queue', github.event.pull_request.head.sha || github.event.merge_group.head_sha) }}
+  cancel-in-progress: false
+
+jobs:
+  # A description edit re-runs the tests only when it changes the Change Request block they read (the Spec, or the inline
+  # tests); a title-only edit, or one elsewhere in the description, leaves the earlier run's evidence for this head standing.
+  block:
+    if: github.event.action == 'edited'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      changed: ${{ steps.compare.outputs.changed }}
+    steps:
+      - id: compare
+        shell: python
+        run: |
+          import json, os, re
+          event = json.load(open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8"))
+          fence = re.compile(r"^ {0,3}(`{3,}|~{3,})[ \t]*yaml[ \t]+aidd[ \t]*\r?$(.*?)^ {0,3}\1[ \t]*\r?$", re.M | re.S)
+          blocks = lambda text: [m.group(2).replace("\r\n", "\n") for m in fence.finditer(text or "")]
+          old = ((event.get("changes") or {}).get("body") or {}).get("from")
+          changed = old is not None and blocks(old) != blocks((event.get("pull_request") or {}).get("body"))
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"changed={str(changed).lower()}\n")
+
+  tests:
+    needs: block
+    # !cancelled(): the tests run when the block job was skipped (every event but an edit), and after an edit that changed the block.
+    if: ${{ !cancelled() && (github.event.action != 'edited' || needs.block.outputs.changed == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # At job level, so a skipped title-only edit never cancels a real run. Each queue entry has its own group.
+    concurrency:
+      group: aidd-tests-${{ github.event.pull_request.number || github.event.merge_group.head_sha }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Install your toolchain and dependencies here, with lockfile-exact installs
+      # (npm ci, uv sync --frozen, go mod download, ./gradlew dependencies).
+
+      # aidd-pin: `aidd init` rewrites this ref to the release commit SHA; pin by SHA if you copy the file by hand.
+      - uses: thaithienvanid/aidd@v1.0.0

@@ -1,0 +1,28 @@
+{
+  "summary": "The same module API edit inside a Spec-backed normal change passes: baseline:module-api asks for the normal route, which this change already takes.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "scope_exclude_paths: [\"modules/orders/api/**\"]\nowners:\n"
+    },
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "modules/orders/api/index.ts",
+        "previous_path": null,
+        "additions": 4,
+        "deletions": 1
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

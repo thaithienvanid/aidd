@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/thaithienvanid/aidd/v1.0.0/schemas/editor/config.json
+# This repository runs its own change control. One maintainer, so the solo profile applies:
+# self-approval is recorded as waived_solo.
+aidd_version: "1.0.0"
+profile: solo
+scope_exclude_paths: [CHANGELOG.md]
+# The gate's own code, its data, the CI it ships, and the plugins that run on users'
+# machines: changing any of them is major. So are the files that
+# install and release aidd and the policies it publishes (the installer, the package manifest,
+# the security, governance, release, and review policies): the baseline leaves those to each
+# adopter, since every project has its own. So is .importlinter, the module boundaries and their
+# list of known wrong-way imports, which only gets shorter.
+protected_paths:
+  - "src/**"
+  - "schemas/**"
+  - "templates/**"
+  - "evals/**"
+  - ".claude-plugin/**"
+  - "hooks/**"
+  - "plugins/**"
+  - "docs/**"
+  - install.sh
+  - pyproject.toml
+  - SECURITY.md
+  - .github/SECURITY.md
+  - GOVERNANCE.md
+  - RELEASING.md
+  - REVIEW.md
+  - .importlinter
+changed_lines_exclude_paths: ["tests/jsonschema_suite/**"]
+goal: "Every change an agent writes can be trusted to merge: the right thing, proven, and approved by a person."
+
+owners:
+  default_owner_team: maintainers
+  approvers: ["@thaithienvanid"]
+
+# The suite also checks generated docs, the examples, and the repository (tests/test_cli.py).
+tests:
+  - name: unit
+    command: [python3, tests/run.py]
+    timeout_seconds: 900
+
+# Dependabot's bumps of the dev tools merge on green tests without a person, majors included: the Node tools and the
+# lint and coverage locks run only in CI, with a read-only token and no secrets on a Dependabot PR, so a break shows as
+# red CI. The release's build backend and SBOM generator (.github/requirements/build.*, sbom.*) stay out: a bad one
+# would pass the reproducible rebuild, since both builds use it, so their bumps take a reviewed change. Actions bumps
+# (.github/workflows/, action.yml) and a pyproject.toml bump touch protected paths and need an approval; so does a
+# Claude Code CLI bump, which needs `python3 tools/sync_pins.py` before the tests pass. The limit fits one grouped
+# monthly lockfile bump (a major Mermaid and jsdom bump changed about 920 lines of tools/mermaid/package-lock.json).
+standard_changes:
+  - name: dependabot-dev-tools
+    paths:
+      - tools/mermaid/package.json
+      - tools/mermaid/package-lock.json
+      - ".github/requirements/lint.*"
+      - ".github/requirements/coverage.*"
+    authors: ["dependabot[bot]"]
+    max_changed_lines: 1200
+    type: deps
+    dimensions: [third_party]
+    update_types: [patch, minor, major]   # dev tools run only in CI, with no secrets on a Dependabot PR: a break shows as red CI
+
+identities:
+  system_accounts: [web-flow]
+  bots: ["claude[bot]"]
+
+# Above the solo default (minimal): the stop reminder asks the agent to run the tests before it stops, and a
+# compaction brings the handoff note back.
+hooks:
+  level: balanced

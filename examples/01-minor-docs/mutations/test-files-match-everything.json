@@ -1,0 +1,43 @@
+{
+  "summary": "An inline Change Request block without a scope that names every path as a test file names no test file.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope: [docs/guide.md]\nrollback: Revert the PR.\n",
+      "new": "rollback: Revert the PR.\n"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "```\n",
+      "new": "tests:\n  files: [\"**\"]\n  commands:\n    - name: docs\n      command: [make, docs-check]\n```\n"
+    },
+    {
+      "op": "append",
+      "path": "/evidence/results",
+      "value": {
+        "name": "docs",
+        "command": [
+          "make",
+          "docs-check"
+        ],
+        "red_green": "green",
+        "status": "passed",
+        "exit": 0,
+        "source": "change_request"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "scope"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail scope.test_catch_all"
+    ]
+  }
+}

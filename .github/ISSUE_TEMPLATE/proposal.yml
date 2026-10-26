@@ -1,0 +1,25 @@
+name: Proposal
+description: Suggest a change to the method, a rule, a profile, or the tooling.
+labels: [proposal]
+body:
+  - type: markdown
+    attributes:
+      value: Changes to routes, profiles, gate rules, schemas, or the loop need an RFC (see CONTRIBUTING.md). Use this issue to test the idea first.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What goes wrong today, for whom, and how often.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should change. Say whether it can turn a passing change into a failing one, or the reverse.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

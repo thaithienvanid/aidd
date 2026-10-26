@@ -1,0 +1,17 @@
+{
+  "summary": "The context names a content match for a rule the base config does not have: the gate reads its rules from the base, so the match counts for nothing and the change passes.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/content_matches/0/rule",
+      "value": "no-such-rule"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

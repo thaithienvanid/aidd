@@ -1,0 +1,38 @@
+{
+  "summary": "The rebase is trivial, but someone who had not committed to the approved head did the rebase: separation of duties must see them, so the approval does not carry.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/reviews/0/commit_sha",
+      "value": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+    },
+    {
+      "op": "set",
+      "path": "/approval_equivalents",
+      "value": {
+        "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3": {
+          "base_sha": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1",
+          "identical_diff": true,
+          "base_descends": true,
+          "new_committers": [
+            "email:platform-lead@example.com"
+          ]
+        }
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval"
+    ],
+    "warn_rules": [
+      "merge_approval"
+    ],
+    "findings": [
+      "pending merge_approval.missing",
+      "warn merge_approval.not_carried"
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "summary": "SPEC-222 changes after the one commit was approved for both Specs: its approval no longer holds, SPEC-220's still does.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1SPEC-222.md",
+      "old": "title: Round invoice totals half-even",
+      "new": "title: Round invoice totals half-even (changed)"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending spec_approval.missing"
+    ]
+  }
+}

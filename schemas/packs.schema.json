@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:packs",
+  "title": "aidd eval packs --json",
+  "description": "Each domain pack's and practice skill's estimated size, every break of their templates, and each skill's and command's description length. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "sizes", "problems", "descriptions"],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "sizes": {
+      "type": "array",
+      "description": "One entry per pack or practice skill.",
+      "items": {
+        "type": "object",
+        "required": ["name", "kind", "tokens"],
+        "properties": {
+          "name": { "type": "string", "description": "The pack's slug or the skill's name." },
+          "kind": { "enum": ["pack", "practice"], "description": "A domain pack or a practice skill." },
+          "tokens": { "type": "integer", "minimum": 0, "description": "Its estimated size in tokens, at four characters a token." },
+          "references": {
+            "type": "object",
+            "additionalProperties": { "type": "integer", "minimum": 0 },
+            "description": "Each reference file's estimated size in tokens, by its name."
+          }
+        }
+      }
+    },
+    "problems": {
+      "type": "array",
+      "description": "Every break of the templates or the caps; empty when there is none.",
+      "items": {
+        "type": "object",
+        "required": ["where", "problem"],
+        "properties": {
+          "where": { "type": "string", "description": "The pack, skill, or file." },
+          "problem": { "type": "string", "description": "What is wrong, in a sentence." }
+        }
+      }
+    },
+    "descriptions": {
+      "type": "array",
+      "description": "Each skill's and team command's description length, which loads on every session.",
+      "items": {
+        "type": "object",
+        "required": ["name", "kind", "chars"],
+        "properties": {
+          "name": { "type": "string", "description": "The skill or command." },
+          "kind": { "enum": ["skill", "command"], "description": "A skill or a team command." },
+          "chars": { "type": "integer", "minimum": 0, "description": "Its description's length in characters." }
+        }
+      }
+    }
+  }
+}

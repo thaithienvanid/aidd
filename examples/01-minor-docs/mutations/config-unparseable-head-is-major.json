@@ -1,0 +1,37 @@
+{
+  "summary": "The edited config uses a YAML anchor and alias, which aidd's strict reader refuses: a config the gate cannot read counts as a control change, so the file stays protected.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope: [docs/guide.md]\n",
+      "new": "scope: [docs/guide.md, .aidd/config.yaml]\n"
+    },
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": ".aidd/config.yaml",
+        "previous_path": null,
+        "additions": 1,
+        "deletions": 0
+      }
+    },
+    {
+      "op": "set",
+      "path": "/head_files/.aidd~1config.yaml",
+      "value": "aidd_version: \"1.0.0\"\nprofile: team\nchanged_lines_exclude_paths: [\"**/package-lock.json\"]\nowners:\n  default_owner_team: checkout\n  approvers: [\"@checkout-lead\", \"@platform-lead\", \"@oncall-lead\"]\n  specialists:\n    security: [\"@sec-alice\"]\ntests:\n  - name: unit\n    command: [make, test]\nstandard_changes:\n  - name: dependency-patch\n    paths: [package.json, package-lock.json]\n    authors: [\"dependabot[bot]\"]\n    max_changed_lines: 300\nidentities:\n  system_accounts: [web-flow]\n  bots: [\"claude[bot]\"]\nmission: &m \"Small shops get paid on time.\"\ngoal: *m\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

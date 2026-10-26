@@ -1,0 +1,16 @@
+# Dependency updates, written by `aidd init` for the ecosystems it found (control EC-08 of the `enterprise-controls`
+# pack). Monthly, each ecosystem in one grouped pull request, so a bump costs one review and one CI run a month;
+# Dependabot security updates, when they are on, ignore this schedule and arrive with the advisory. A new release
+# ages a week before it is proposed, so a compromised release is usually caught and yanked first. Each bump is a
+# change like any other: the gate routes it, and a `standard_changes` class may pre-approve it.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ["*"]

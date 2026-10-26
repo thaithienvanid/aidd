@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "Linked docs",
+  "summary": "The Spec links a frozen tech spec: approved with the Spec by hash, allowed outside every Task's scope, and left out of the line budget like a design file, so the 420-line document does not push the change over the normal budget."
+}

@@ -1,0 +1,26 @@
+{
+  "summary": "A backfill Spec whose front matter does not parse cannot stand in for the post-incident review.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/head_files/specs~1INC-481.md",
+      "value": "---\nthis is not valid yaml ===\n---\n\n## Context\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "emergency"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "fail emergency.backfill_unparsable",
+      "warn emergency.would_be_major",
+      "warn policy.break_glass"
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+<!-- aidd -->
+## Change control
+
+This repository uses aidd. Before you plan, implement, or land any change, load the skill at `.agents/skills/aidd/SKILL.md` and follow `.agents/skills/aidd/references/loop.md`. The `aidd/gate` status decides whether a change may merge. Agents never approve, merge, or edit the tests after the Spec is approved. A person decides by typing it at the agent's prompt (`approve SPEC-1`, `land it`, `publish`), and aidd's hook records it and tells the agent so. Work stays on this machine until they type `publish`. The agent then says what it does now, where it stops next for them, and how to stop it, and goes on. Where no aidd hook runs, typed words record nothing, so in their own terminal they run `aidd approve spec SPEC-1`, then `aidd land` (or `aidd approve merge` on a pull request), and `aidd publish`. Mark every commit you author with `Assisted-by: <harness>/<model>`.

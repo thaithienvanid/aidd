@@ -1,0 +1,29 @@
+{
+  "summary": "A configured CI check that failed on the head fails the gate.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "evidence:\n  status_checks: [ci]\nowners:\n"
+    },
+    {
+      "op": "set",
+      "path": "/status_checks",
+      "value": {
+        "ci": "failure"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail tests.check_failed"
+    ]
+  }
+}

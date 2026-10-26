@@ -1,0 +1,45 @@
+{
+  "summary": "The suite allows two retries; it failed once on head and passed on the second attempt: it counts green, with a warning that it is flaky, and metrics count it.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "standard_changes:\n",
+      "new": "    retries: 2\nstandard_changes:\n"
+    },
+    {
+      "op": "set",
+      "path": "/evidence/results/0/attempts",
+      "value": [
+        {
+          "exit": 1,
+          "status": "failed",
+          "duration_seconds": 3.2,
+          "log": "logs/green-unit.log"
+        },
+        {
+          "exit": 0,
+          "status": "passed",
+          "duration_seconds": 3.1,
+          "log": "logs/green-unit.attempt-2.log"
+        }
+      ]
+    },
+    {
+      "op": "set",
+      "path": "/evidence/results/0/flaky",
+      "value": true
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "tests"
+    ],
+    "findings": [
+      "warn tests.flaky"
+    ]
+  }
+}

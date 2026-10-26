@@ -1,0 +1,43 @@
+{
+  "summary": "An outsider's pull request on a solo repository approves itself: solo waives only the author rule, so the approval is not from owners.approvers and does not count.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/author",
+      "value": "mallory"
+    },
+    {
+      "op": "set",
+      "path": "/commits/0/author",
+      "value": "mallory"
+    },
+    {
+      "op": "set",
+      "path": "/commits/0/committer",
+      "value": "mallory"
+    },
+    {
+      "op": "set",
+      "path": "/comments/0/user",
+      "value": "mallory"
+    },
+    {
+      "op": "set",
+      "path": "/comments/1/user",
+      "value": "mallory"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval",
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending merge_approval.missing",
+      "pending spec_approval.missing"
+    ]
+  }
+}

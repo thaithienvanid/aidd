@@ -1,0 +1,21 @@
+{
+  "summary": "A draft pull request never passes: it is not asking to merge yet.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/draft",
+      "value": true
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "draft"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending draft.is_draft"
+    ]
+  }
+}

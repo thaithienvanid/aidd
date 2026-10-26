@@ -1,0 +1,411 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:change-record",
+  "title": "Change record predicate",
+  "description": "The predicate of the agent change record: an in-toto Statement v1 (`_type` https://in-toto.io/Statement/v1) whose subject is the head commit (`git+<repo>@<sha>`, digest `gitCommit`) and whose `predicateType` is this schema's URL on the aidd repository. `aidd gate --record` writes it on every decision, `aidd record verify` checks it, and the gate workflow may sign it with actions/attest. A draft: `predicate_version` 0.1 may still change before it is declared stable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "predicate_version",
+    "aidd_version",
+    "loop_version",
+    "tenant",
+    "repo",
+    "platform",
+    "trusted",
+    "change",
+    "route",
+    "lane",
+    "base_sha",
+    "head_sha",
+    "spec",
+    "merge_approval",
+    "evidence",
+    "scope",
+    "provenance",
+    "decision",
+    "findings"
+  ],
+  "properties": {
+    "predicate_version": {
+      "const": "0.1",
+      "description": "The version of this predicate's shape; 0.x is a draft."
+    },
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version",
+      "description": "The aidd release whose gate decided."
+    },
+    "loop_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "description": "The loop contract's version the change ran under."
+    },
+    "tenant": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+      "description": "The tenant the repository's config names, or null: whose Approvers counted."
+    },
+    "repo": {
+      "type": "string",
+      "description": "The repository as the adapter names it (`owner/name` on GitHub, the project path on GitLab)."
+    },
+    "platform": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "github, gitlab, local, or another adapter."
+    },
+    "trusted": {
+      "type": "boolean",
+      "description": "Whether the platform supplied the facts (CI). A record from a local, untrusted context is never evidence."
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The PR/MR number, or locally the head ref."
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The PR/MR's web address."
+        }
+      },
+      "description": "The change the decision is for."
+    },
+    "profile": {
+      "anyOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/profile"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The profile in force; null when the gate could not read a config."
+    },
+    "route": {
+      "anyOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/route"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The route applied, after the gate's own assessment; null when the gate stopped before it."
+    },
+    "lane": {
+      "anyOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/lane"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The lane the route runs in."
+    },
+    "required_route": {
+      "anyOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/route"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The minimum route the real diff requires."
+    },
+    "base_sha": {
+      "anyOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/sha"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The base commit the diff and the red runs were measured against."
+    },
+    "head_sha": {
+      "$ref": "urn:aidd:1:common#/$defs/sha",
+      "description": "The head commit judged: the statement's subject."
+    },
+    "merge_queue_sha": {
+      "$ref": "urn:aidd:1:common#/$defs/sha",
+      "description": "For a merge queue entry: the entry's commit the tests ran on."
+    },
+    "config_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Digest of the base-branch config with its org preset and parents: the policy in force."
+    },
+    "spec": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "approval_required",
+        "approvals"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The Spec's id."
+        },
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The Spec's path in the repository, or null."
+        },
+        "hash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The Spec hash: the Spec, its test files, and its design files."
+        },
+        "approval_required": {
+          "type": "boolean",
+          "description": "Whether the route needed Spec approval under the profile."
+        },
+        "approvals": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/approval"
+          },
+          "description": "Each counted Spec approval of that hash: who, when, and the commit it named."
+        },
+        "approved_before_implementation": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Whether an approval named a commit holding only the Spec and its frozen files."
+        }
+      },
+      "description": "The Spec the change implements, or null for a change without one."
+    },
+    "merge_approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approvals"
+      ],
+      "properties": {
+        "approvals": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/approval"
+          },
+          "description": "Each counted Merge approval of the head commit."
+        },
+        "specialists": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": "Per required specialist pool, who approved the head."
+        },
+        "separation_of_duties": {
+          "enum": [
+            "enforced",
+            "waived_solo",
+            null
+          ],
+          "description": "Whether approvals had to come from outside the authors, or solo waived it."
+        }
+      },
+      "description": "Merge approval: the authorization of what was built."
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tests"
+      ],
+      "properties": {
+        "runner": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The CI run that produced the evidence (`ci`, `run_id`, `url`)."
+        },
+        "tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "source",
+              "command",
+              "green_exit",
+              "green_status"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The test command's name."
+              },
+              "source": {
+                "type": "string",
+                "description": "Where the command came from: config, spec, or change_request."
+              },
+              "command": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The command, as an argument list."
+              },
+              "green_exit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "The exit code on the head commit."
+              },
+              "green_status": {
+                "$ref": "urn:aidd:1:common#/$defs/test_status"
+              },
+              "red_exit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "The exit code on the base commit, when the command ran there (red-then-green)."
+              },
+              "red_status": {
+                "anyOf": [
+                  {
+                    "$ref": "urn:aidd:1:common#/$defs/test_status"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The status on the base commit, or null when the command did not run there."
+              }
+            }
+          },
+          "description": "Each required test command: red on base and green on head, as exit codes from the runner."
+        },
+        "status_checks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Existing CI check runs counted as evidence, with their state on the head."
+        }
+      },
+      "description": "The test evidence the decision rests on."
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result"
+      ],
+      "properties": {
+        "result": {
+          "enum": [
+            "within",
+            "outside",
+            "not_checked"
+          ],
+          "description": "Whether every changed path was inside the declared scope."
+        },
+        "declared": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The paths and globs the change declared as its scope."
+        },
+        "changed_files": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many files the diff changes."
+        },
+        "changed_lines": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Lines added and deleted that the change budget counts."
+        }
+      },
+      "description": "The scope result."
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assisted_by"
+      ],
+      "properties": {
+        "assisted_by": {
+          "$ref": "urn:aidd:1:common#/$defs/assisted_by"
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Everyone accountable for the change; none of them may approve it outside solo."
+        },
+        "agent_accounts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The config's `identities.bots`: accounts that act as agents and never approve."
+        }
+      },
+      "description": "Which agents wrote the change, and who authored it."
+    },
+    "decision": {
+      "$ref": "urn:aidd:1:common#/$defs/decision"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(fail|pending|warn) \\S+$"
+      },
+      "description": "Every finding as `level code`, sorted: what fired and why."
+    },
+    "run_url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The CI run that decided."
+    }
+  }
+}
