@@ -1,0 +1,22 @@
+{
+  "summary": "A standard in a docs/standards/ folder inside a Spec-backed normal change passes: baseline:standards asks for the normal route, which this change already takes, and it is never raised to major.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "src/checkout/rate_limit/docs/standards/limits.md",
+        "previous_path": null,
+        "additions": 12,
+        "deletions": 0
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

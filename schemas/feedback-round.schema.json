@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:feedback-round",
+  "title": "Feedback round",
+  "description": "One round of a person's notes on a prototype, `feedback-round-<N>.json` beside the design. The prototype viewer's feedback mode writes it (Download, or Copy the JSON), the viewer lists the earlier rounds beside the design, and `aidd explore` pairs each item with the round's screenshots. `aidd validate` checks each file against this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["round", "items"],
+  "properties": {
+    "round": { "type": "integer", "minimum": 1, "description": "The round's number, the `<N>` in the file's name." },
+    "items": {
+      "type": "array",
+      "maxItems": 200,
+      "description": "The notes, in the order they were given.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "screen", "state", "note"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^r[0-9]+-[0-9]+$",
+            "description": "The note's id, `r<round>-<n>`, which a later round's `changes.json` names in `answers`."
+          },
+          "kind": {
+            "enum": ["change", "remove", "add", "question"],
+            "description": "What the note asks for: change, remove, or add something, or a question. A file without it reads as change."
+          },
+          "screen": { "type": "string", "minLength": 1, "description": "The screen the note was given on, by its `data-screen` id." },
+          "state": { "type": "string", "minLength": 1, "description": "The state the screen showed, by its `data-state` name." },
+          "testid": { "type": "string", "description": "The `data-testid` of the element the note is about." },
+          "index": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Which of the visible elements that share the test id, counting from 0, when several do, such as one card of a list."
+          },
+          "box": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["x", "y", "width", "height"],
+            "description": "Where the element showed in the frame's view when the note was given, in CSS pixels from the frame's top left.",
+            "properties": {
+              "x": { "type": "integer", "description": "The element's left edge." },
+              "y": { "type": "integer", "description": "The element's top edge." },
+              "width": { "type": "integer", "minimum": 0, "description": "The element's width." },
+              "height": { "type": "integer", "minimum": 0, "description": "The element's height." }
+            }
+          },
+          "note": { "type": "string", "maxLength": 2000, "description": "What the person said, in their words." },
+          "frame": { "type": "string", "description": "The device frame the note was given in, as the viewer's `frame=` key names it." },
+          "theme": { "type": "string", "description": "The theme the note was given in: light, dark, or system." },
+          "link": { "type": "string", "description": "The viewer's deep link to the view the note was given on." }
+        }
+      }
+    }
+  }
+}

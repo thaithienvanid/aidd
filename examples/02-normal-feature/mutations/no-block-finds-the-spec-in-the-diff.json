@@ -1,0 +1,17 @@
+{
+  "summary": "A description without a Change Request block: the diff carries one Spec, so the gate reads the change as that Spec's, and it passes as the worked example does.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Implements the Spec."
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

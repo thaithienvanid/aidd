@@ -1,0 +1,21 @@
+{
+  "summary": "The entry's commit holds a change the approved head merged onto the entry ahead does not: the train must not merge it.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/merge_queue/tree",
+      "value": "9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "merge_queue"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail merge_queue.diff_mismatch"
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+/.aidd/*/
+aidd-events.jsonl
+aidd-record.json
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+
+# claude plugin eval results
+evals/plugin/results/
+plugins/*/evals/results/
+tools/mermaid/node_modules/
+
+# local tooling and OS files
+/.coverage
+/.coverage.*
+.claude/worktrees/
+.playwright-mcp/
+.impeccable/
+.DS_Store
+# aidd: environment files hold secrets; .env.example stays
+.env*
+!.env.example
+# aidd: what tests and builds leave stays out of git, so `aidd test` runs in a clean tree
+.pytest_cache/
+htmlcov/
+node_modules/
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+# aidd: what macOS and Windows leave stays out of git, so `aidd test` runs in a clean tree
+Thumbs.db
+desktop.ini

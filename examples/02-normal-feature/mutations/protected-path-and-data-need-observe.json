@@ -1,0 +1,46 @@
+{
+  "summary": "The same protected-path change with the data dimension declared fails the observe rule: data makes it major beyond the protected path, so it needs an observe block.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "scope_exclude_paths: [.worktreeinclude]\nowners:\n"
+    },
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": ".worktreeinclude",
+        "previous_path": null,
+        "additions": 1,
+        "deletions": 0
+      }
+    },
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1SPEC-220.md",
+      "old": "  dimensions: [availability]\n",
+      "new": "  dimensions: [data]\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "observe"
+    ],
+    "pending_rules": [
+      "spec_approval",
+      "specialist_approval"
+    ],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "fail observe.missing",
+      "pending spec_approval.missing",
+      "pending specialist_approval.missing",
+      "warn route.raised_to_major"
+    ]
+  }
+}

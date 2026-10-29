@@ -1,0 +1,28 @@
+{
+  "summary": "With `docs.dir` = \"./src/checkout/rate_limit\", a standard in its standards/ folder inside a Spec-backed normal change passes: the rule asks for the normal route, which this change already takes.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "docs:\n  dir: ./src/checkout/rate_limit\nowners:\n"
+    },
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "src/checkout/rate_limit/standards/limits.md",
+        "previous_path": null,
+        "additions": 12,
+        "deletions": 0
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

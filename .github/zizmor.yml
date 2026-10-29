@@ -1,0 +1,16 @@
+# zizmor configuration for .github/workflows and action.yml (CI: `zizmor --config .github/zizmor.yml`).
+# Every ignore carries its reason; anything new fails CI.
+rules:
+  dangerous-triggers:
+    ignore:
+      # The gate must run with a token that can post a commit status on a pull request from a
+      # fork, which only pull_request_target and workflow_run provide. Both run the workflow
+      # definition from the default branch; the reusable gate.yml checks out aidd from its own
+      # workflow commit and reads the pull request only as data (git objects and API), never
+      # executing it. See the header of gate.yml and docs/CONTROLS.md.
+      - aidd-gate.yml
+  self-repository:
+    ignore:
+      # actionlint (1.7.12) does not parse the `$/` self-repository form yet, and `./` resolves
+      # to the same default-branch commit on pull_request_target and workflow_run.
+      - aidd-gate.yml

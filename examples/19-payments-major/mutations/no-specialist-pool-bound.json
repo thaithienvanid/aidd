@@ -1,0 +1,22 @@
+{
+  "summary": "With neither a finance nor a security pool bound, the gate fails and names the pool to bind.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "  specialists:\n    security: [\"@sec-alice\"]\ntests:\n",
+      "new": "tests:\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "specialist_approval"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail specialist_approval.unbound"
+    ]
+  }
+}

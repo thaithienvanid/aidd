@@ -1,0 +1,16 @@
+{
+  "decision": "pending",
+  "failed_rules": [],
+  "pending_rules": [
+    "specialist_approval"
+  ],
+  "warn_rules": [
+    "route"
+  ],
+  "findings": [
+    "pending specialist_approval.missing",
+    "warn route.raised_to_major"
+  ],
+  "title": "Raised to major by the boundary baseline",
+  "summary": "A normal Spec carves the notifications module out and removes its lines from boundaries-baseline.json. baseline:module-boundaries matches the baseline file, so the change is raised to major and waits for the architecture pool, which the security pool stands in for until one is bound."
+}

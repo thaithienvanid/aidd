@@ -1,0 +1,38 @@
+{
+  "summary": "A Spec-backed normal change that also edits orca.yaml, which makes the workspace tool run scripts on every new worktree, is raised to major, even with the file exempt from scope: it is a protected path, so the change needs what major asks for, a specialist approval and an observe block.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "scope_exclude_paths: [orca.yaml]\nowners:\n"
+    },
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "orca.yaml",
+        "previous_path": null,
+        "additions": 3,
+        "deletions": 0
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "observe"
+    ],
+    "pending_rules": [
+      "specialist_approval"
+    ],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "fail observe.missing",
+      "pending specialist_approval.missing",
+      "warn route.raised_to_major"
+    ]
+  }
+}

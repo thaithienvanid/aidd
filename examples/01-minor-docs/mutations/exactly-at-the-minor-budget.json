@@ -1,0 +1,17 @@
+{
+  "summary": "A minor change of exactly 50 changed lines is within the minor budget of 50.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/additions",
+      "value": 49
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

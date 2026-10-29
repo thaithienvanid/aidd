@@ -1,0 +1,25 @@
+{
+  "summary": "The Spec approval names the base commit, which holds no Spec commit: a warning, and the approval does not count.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/comments/0/body",
+      "old": "5bec000000000000000000000000000000000001",
+      "new": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [
+      "spec_approval"
+    ],
+    "findings": [
+      "pending spec_approval.missing",
+      "warn spec_approval.names_base"
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "summary": "Copilot's code review account also approved the head on the platform. It never counts toward Merge approval, so the gate passes on the human approval alone and flags the agent's, which a branch rule's own review count may be taking.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/reviews",
+      "value": {
+        "user": "copilot-pull-request-reviewer[bot]",
+        "state": "approved",
+        "commit_sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "submitted_at": "2026-09-23T09:35:00Z"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "merge_approval"
+    ],
+    "findings": [
+      "warn merge_approval.agent_approval"
+    ]
+  }
+}

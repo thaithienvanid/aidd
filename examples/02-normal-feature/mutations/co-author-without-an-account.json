@@ -1,0 +1,21 @@
+{
+  "summary": "A co-author named only by an e-mail address cannot be tied to an account, so, like an unlinked commit author, separation of duties cannot be proven for them: a warning under team.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/commits/0/message",
+      "value": "Implement the change\n\nAssisted-by: claude-code/claude-opus-5-5\nCo-authored-by: Pat Doe <pat@example.com>"
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "authors"
+    ],
+    "findings": [
+      "warn authors.unlinked"
+    ]
+  }
+}

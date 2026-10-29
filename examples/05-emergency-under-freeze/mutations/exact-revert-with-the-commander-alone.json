@@ -1,0 +1,31 @@
+{
+  "summary": "The repair is git's exact revert of a commit already merged on the base: it restores a state that was reviewed, so the incident commander's approval alone merges it, with no specialist approval.",
+  "ops": [
+    {
+      "op": "remove",
+      "path": "/reviews/1"
+    },
+    {
+      "op": "set",
+      "path": "/revert_of",
+      "value": {
+        "sha": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+        "on_base": true,
+        "exact": true
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "emergency",
+      "policy"
+    ],
+    "findings": [
+      "warn emergency.revert",
+      "warn policy.break_glass"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "summary": "The merge-group commit's tree differs from the approved head merged into its parent: something nobody approved would merge.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/merge_queue/tree",
+      "value": "7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b7b"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "merge_queue"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail merge_queue.diff_mismatch"
+    ]
+  }
+}

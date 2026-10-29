@@ -1,0 +1,56 @@
+{
+  "summary": "The protected-path change that also edits scripts/Deploy.sh, a deploy script, fails the observe rule: deploy paths match whatever their case, as on a case-insensitive filesystem, so a service or deploy path makes it major beyond the protected path.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "scope_exclude_paths: [.worktreeinclude, scripts/Deploy.sh]\nowners:\n"
+    },
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": ".worktreeinclude",
+        "previous_path": null,
+        "additions": 1,
+        "deletions": 0
+      }
+    },
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "scripts/Deploy.sh",
+        "previous_path": null,
+        "additions": 2,
+        "deletions": 0
+      }
+    },
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1SPEC-220.md",
+      "old": "  dimensions: [availability]\n",
+      "new": "  dimensions: []\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "observe"
+    ],
+    "pending_rules": [
+      "spec_approval",
+      "specialist_approval"
+    ],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "fail observe.missing",
+      "pending spec_approval.missing",
+      "pending specialist_approval.missing",
+      "warn route.raised_to_major"
+    ]
+  }
+}

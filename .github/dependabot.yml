@@ -1,0 +1,61 @@
+version: 2
+# Monthly, each ecosystem in one grouped pull request, so a bump costs one review and one CI run a month, not one
+# per package. Dependabot security updates, when they are on, ignore this schedule and arrive with the advisory.
+updates:
+  # Pinned action SHAs in .github/workflows/ and the root action.yml ("/"). Dependabot does not
+  # scan templates/github/, so a bump turns CI red through tests/test_version.py until
+  # `python3 tools/sync_pins.py` copies the pins into the templates in the same PR.
+  - package-ecosystem: github-actions
+    directories: ["/", "/.github/workflows"]
+    schedule:
+      interval: monthly
+    # Let a new release age a week before it is proposed, so a compromised release is usually
+    # caught and yanked first.
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # The dev extra in pyproject.toml, and the hash-locked CI toolchain, build backend, and SBOM
+  # generator in .github/requirements/ (compiled with uv pip compile --generate-hashes).
+  # Two groups, by what a bump can reach. release-tools make the wheel and its SBOM: their patch and
+  # minor bumps come in one PR, and a major arrives alone. dev-tools are the CI toolchain and the dev
+  # extra, and move together at every update type. jsonschema is direct in lint.in and transitive in
+  # sbom.txt, so its bump lands in dev-tools and touches sbom.txt too, which takes it out of the
+  # standard change. Under the dependabot-dev-tools standard change in .aidd/config.yaml, a dev-tools bump
+  # of lint.* or coverage.* merges on green tests with no person, a major included; a release-tools bump
+  # (build.*, sbom.*) takes a reviewed change with an approval.
+  - package-ecosystem: pip
+    directories: ["/", "/.github/requirements"]
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      release-tools:
+        patterns: ["hatchling", "hatch-fancy-pypi-readme", "cyclonedx-*"]
+        update-types: ["patch", "minor"]
+      dev-tools:
+        patterns: ["*"]
+        exclude-patterns: ["hatchling", "hatch-fancy-pypi-readme", "cyclonedx-*"]
+
+  # The Node tools CI runs (the Claude Code CLI, Mermaid and jsdom for the diagram check), locked in
+  # tools/mermaid/package-lock.json. They live outside .github/, where Dependabot's npm updates could not write
+  # ("The request contains invalid or unauthorized changes"). Two groups, by what a bump reaches. node-tools (Mermaid,
+  # jsdom) touch only tools/mermaid/, so their bump passes the tests and stays the dependabot-dev-tools standard change.
+  # claude-code-cli comes alone: templates/github/aidd-diagnose.yml carries the same CLI version and linux-x64
+  # integrity, so its bump turns CI red through tests/test_version.py until `python3 tools/sync_pins.py` writes them
+  # in the same PR, a change to templates/ that a person approves.
+  - package-ecosystem: npm
+    directory: "/tools/mermaid"
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      node-tools:
+        patterns: ["*"]
+        exclude-patterns: ["@anthropic-ai/claude-code*"]
+      claude-code-cli:
+        patterns: ["@anthropic-ai/claude-code*"]

@@ -1,0 +1,3 @@
+# Branch coverage for the suite in ci.yml's test job, held to the floors in tests/coverage_floors.py. Regenerate coverage.txt with:
+#   cd .github/requirements && uv pip compile --universal --generate-hashes --python-version 3.14 coverage.in -o coverage.txt
+coverage==7.16.2

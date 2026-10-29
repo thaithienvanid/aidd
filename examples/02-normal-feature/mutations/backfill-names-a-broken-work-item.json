@@ -1,0 +1,37 @@
+{
+  "summary": "A block that names a broken work item as its backfill, outside an emergency, still fails it: only an emergency's backfill has its own rule.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "specs/EPIC-9.md",
+        "previous_path": null,
+        "additions": 4,
+        "deletions": 0
+      }
+    },
+    {
+      "op": "set",
+      "path": "/head_files/specs~1EPIC-9.md",
+      "value": "---\nkind: epic\nid: EPIC-9\nstatus: \"a\"\nstatus: \"b\"\n---\n"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "spec: specs/SPEC-220.md",
+      "new": "spec: specs/SPEC-220.md\nbackfill: specs/EPIC-9.md"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec.unparsable"
+    ]
+  }
+}

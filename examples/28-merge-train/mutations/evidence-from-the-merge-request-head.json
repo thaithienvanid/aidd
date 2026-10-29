@@ -1,0 +1,21 @@
+{
+  "summary": "Green tests on the merge request head do not count for the entry's commit: the tests must re-run there.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/head_sha",
+      "value": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "tests"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending tests.evidence_other_head"
+    ]
+  }
+}

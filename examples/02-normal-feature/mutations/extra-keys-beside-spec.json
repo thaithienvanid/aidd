@@ -1,0 +1,22 @@
+{
+  "summary": "With spec set, the block may carry only spec and trace_id: every other field, such as rollback, lives in the Spec a human approved.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "```\n",
+      "new": "rollback: Revert the PR.\n```\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "change_request"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail change_request.extra_keys"
+    ]
+  }
+}

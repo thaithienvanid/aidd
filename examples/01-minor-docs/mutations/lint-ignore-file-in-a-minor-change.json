@@ -1,0 +1,33 @@
+{
+  "summary": "A minor change that edits .eslintignore fails: an ignore file switches the linter off for the paths it lists, so it is quality configuration (baseline:quality-config) and needs the normal route.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/files/0/path",
+      "value": "web/.eslintignore"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "scope: [docs/guide.md]\n",
+      "new": "scope: [web/.eslintignore]\n"
+    },
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "type: docs\n",
+      "new": "type: chore\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail route.too_low"
+    ]
+  }
+}

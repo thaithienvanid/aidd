@@ -1,0 +1,29 @@
+{
+  "summary": "A configured CI check still running on the head keeps the gate pending.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "evidence:\n  status_checks: [ci]\nowners:\n"
+    },
+    {
+      "op": "set",
+      "path": "/status_checks",
+      "value": {
+        "ci": "in_progress"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "tests"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending tests.check_waiting"
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "summary": "The bot's bump is a major version (1.3.0 to 2.0.0), and a third_party class takes patch and minor updates unless it says otherwise: it is not a standard change.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/dependency_updates/0/to",
+      "value": "2.0.0"
+    },
+    {
+      "op": "set",
+      "path": "/dependency_updates/0/update_type",
+      "value": "major"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "standard_change"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail standard_change.update_type"
+    ]
+  }
+}

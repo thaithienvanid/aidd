@@ -1,0 +1,26 @@
+{
+  "summary": "The regression test hangs on the unfixed code until the runner stops it. A timeout is not a failed assertion, so it proves no fix either.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/results/2/status",
+      "value": "timeout"
+    },
+    {
+      "op": "set",
+      "path": "/evidence/results/2/exit",
+      "value": null
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "red_green"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail red_green.red_not_assertion"
+    ]
+  }
+}

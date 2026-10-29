@@ -1,0 +1,20 @@
+{
+  "name": "aidd-team",
+  "dependencies": [
+    "aidd"
+  ],
+  "description": "Run the aidd loop as a delivery team led by humans: product-manager, delivery-manager, architect, product-designer, security-engineer, compliance-analyst, domain-expert, developer, tech-writer, verifier, reviewer, sre, and agile-coach agents, each applying its discipline's standards and writing only its own files, plus a domain pack per domain (web, APIs, mobile, desktop, AI features, AI agents, data, cloud, payments, health, embedded, public sector, children, internationalization) and practice skills for kinds of work such as API design, schema migration, threat modeling, test design, estimation, proposals, and release rollout. One command per team flow: onboard, propose, plan, refine, mvp, explore, specify, implement, verify, review, rework, fix, secure, rollout, handover, postmortem, retro, and maintain, each telling the session that runs it to route by file path and name each role's model, plus autopilot, which runs those flows between human decisions. Works with git alone; a forge, a tracker, or any other service is optional. Depends on the aidd plugin, which carries the hook that checks each role's writes and denies approvals and merges; without it the roles only follow their instructions.",
+  "author": {
+    "name": "Van Hoang"
+  },
+  "homepage": "https://github.com/thaithienvanid/aidd",
+  "repository": "https://github.com/thaithienvanid/aidd",
+  "license": "Apache-2.0",
+  "keywords": [
+    "aidd",
+    "agents",
+    "subagents",
+    "roles",
+    "spec-driven"
+  ]
+}

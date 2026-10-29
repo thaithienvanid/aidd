@@ -1,0 +1,33 @@
+{
+  "summary": "The Approver approved an earlier head; the branch was then rebased onto a newer base with a byte-identical diff and no new committer, and the tests re-ran green on the new head: the approval carries (Gerrit's trivial rebase), with a warning that names both heads.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/reviews/0/commit_sha",
+      "value": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+    },
+    {
+      "op": "set",
+      "path": "/approval_equivalents",
+      "value": {
+        "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3": {
+          "base_sha": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1",
+          "identical_diff": true,
+          "base_descends": true,
+          "new_committers": []
+        }
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [
+      "merge_approval"
+    ],
+    "findings": [
+      "warn merge_approval.carried"
+    ]
+  }
+}

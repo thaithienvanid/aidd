@@ -1,0 +1,22 @@
+{
+  "summary": "No command covers A2: with nobody reviewing the tests before the code, every Acceptance item needs one, so the Spec is invalid.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1SPEC-230.md",
+      "old": "covers: [A1, A2]",
+      "new": "covers: [A1]"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec.invalid"
+    ]
+  }
+}

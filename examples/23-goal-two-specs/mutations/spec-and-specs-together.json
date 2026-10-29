@@ -1,0 +1,22 @@
+{
+  "summary": "A block names both `spec` and a goal's `specs`: one or the other.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "specs: [",
+      "new": "spec: specs/SPEC-220.md\nspecs: ["
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "change_request"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail change_request.invalid"
+    ]
+  }
+}

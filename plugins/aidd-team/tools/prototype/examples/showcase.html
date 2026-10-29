@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en" data-aidd-prototype="1">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="aidd-spec" content="the showcase">
+<title>Find a sitter: prototype for the showcase</title>
+<!--
+  The prototype tool's showcase: a complete example design, to learn the format from. A design artifact: frozen at Spec approval with the Spec, compared with
+  the built UI screen by screen and state by state in Review, and never imported by product code. One self-contained
+  file per Spec or flow (`aidd new design-spec --prototype` writes specs/<ID>/design/prototype.html): no network, no build step,
+  show it with `aidd prototype`. The Content-Security-Policy above blocks every remote load; keep it. The design spec
+  (`aidd new design-spec`) holds what a prototype cannot show. A prototype is interactive; a mockup is a static picture, and
+  a rough direction is an exploration's, before a person picks one (`aidd explore`).
+
+  This file is the design alone: everything inside <template id="product">, its tokens, its styles, its chrome, and
+  its screens, with its example data in the fixtures block. aidd-team's prototype tool shows it in the prototype viewer
+  (`aidd prototype <this file>`): the review column, device frames, the Board with every screen in every state, System
+  with the tokens and components, build details, and full screen. Each screen renders in its own frame, so its styles reach
+  only the screens, as they will in the built UI. The viewer is never copied here, so every fix to it reaches this
+  file, and Spec approval freezes only the design.
+
+  - Screens: one <section data-screen="<id>" data-title="..."> each, in flow order; the first is where the flow starts.
+    The three here (sign in, a list, a detail) are an example: replace them with the Spec's screens, by the names its
+    design spec's Screen inventory uses. data-parent names the screen the back affordance returns to; data-initial the
+    state a screen opens in. The review column and the Board are built from the sections, so they always list every screen.
+  - Components: name each reusable part with data-component="<name>", and its variant with data-variant="<variant>"
+    (a button, a card, a message, a field). The System view lists each with its variants, a live specimen, and the
+    screens that use it; the developer builds one component per name, with a story per variant and state. A list
+    repeats one item template: <ul data-list="<fixtures key>" data-item-template="<name>"> and, once in the screen,
+    <template data-item-template="<name>">, with data-field on the parts the fixtures fill.
+  - Navigation: an element with data-go="<screen>" or data-go="<screen>/<state>" moves to it and adds a history entry,
+    so the browser's back button, and the back affordance, return. The same screens render on every frame: iOS and
+    Android frames show a platform tab bar (Human Interface Guidelines, Material 3) and a back affordance; web frames
+    show header navigation. Each frame is its own document, so media queries and @container frame follow the frame's
+    width, and the product's styles read the platform from :root[data-platform="ios"].
+  - Deep links: #<screen>/<state>?theme=dark&frame=ios&round=2 in the viewer's address opens that view, and every
+    switch updates it. Each key is optional: theme light or dark (else the system's), frame 320, 768, 1024 (the
+    default), 1440, fill (full width), ios, android, desktop (1280 by 800), or desktop-1440, round 2 or more,
+    panels both, screens, inspector, or none, view canvas or system, feedback=1, the checks text=200, dir=rtl,
+    and safe=1, and zoom=actual for the frame
+    at its real size (else fitted to the window, as screenshots must not be). The same keys in the page's own
+    query (?theme=dark, ?round=2) still work; the fragment wins. Screenshots and tests open a
+    view by its link: <screen>-<state>-<target>-<theme>.png is the viewer's #<screen>/<state>?theme=<theme>&frame=<target>&zoom=actual.
+  - Tokens: every custom property lives in the one style block with the id tokens, the output of design/build.mjs
+    (design/tokens.css, then design/themes/*.css): paste the repository's in its place, and never invent a value it
+    lacks. The product's styles only read them with var(), by the build's names (--color-surface, --radius-control).
+  - Fixtures: every piece of data lives in the one JSON script block with the id fixtures; the screens read it, so a
+    longer name or an empty list is one edit away. Text goes in with textContent, never as markup.
+  - States: empty, loading, partial, error, offline, permission denied, success (the loaded, ideal view), first run:
+    each screen has the ones it can be in, as <div data-state> children (a child without data-state shows in every
+    state), reachable with one click, keys 1-8, or the deep link. A state a screen cannot have is left out, and the
+    design spec says why. A screen adds its own by name, such as no-results (a search found nothing, not first use),
+    submitting, validation-error, not-found, session-expired, or confirm-<action>; the review column lists them after the
+    eight.
+  - Safe areas: on a phone the system bars sit over the screen. Pad the chrome by
+    max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px)) (and -bottom), so the viewer's values and the
+    built app's env() both hold; Checks, Safe areas, in the toolbar shows them. Use 100dvh, never 100vh.
+  - Frames: 320, 768, 1024, and 1440 CSS px in a browser window, or its full width, iOS and Android phones, and a
+    desktop app's window at 1280 or 1440, to check each breakpoint and platform. The Board shows every screen in every state, at the frame's size. Full screen (F,
+    or the button; Esc leaves) shows the screen alone and still clickable: a web frame fills the screen, a phone fits it.
+  - Theme: light and dark (project.defaults.dark_mode). The prototype follows the system's prefers-color-scheme until
+    the Theme control picks one (?theme=dark keeps it); check contrast, and take each screenshot, in both.
+  - Feedback: Add a note (or ?feedback=1, and ?round=2 for the round) turns on feedback mode: click an
+    element in the prototype, or pick it in the list, type a note, and add it; a numbered pin marks it. Download
+    gives the round as feedback-round-N.json, {"round": N, "items": [{"id", "screen", "state", "testid", "index",
+    "box", "note", "link", ...}]}, to save in the design folder; index names which of the elements sharing a
+    data-testid; Copy the JSON and Copy as a prompt give the same. The notes stay in this browser (localStorage), per
+    design and round, and are never sent anywhere.
+  - data-testid on every interactive element, in lowercase words joined by hyphens: the hook the verifier's tests
+    select on, inside the frame with the id frame; keep the names when the UI is built (iOS accessibilityIdentifier
+    and Android testTag use the same names). proto-* ids are the viewer's own controls.
+  - Real copy and realistic data, never filler text. Keyboard-operable, labelled, WCAG 2.2 AA contrast, and targets of
+    at least 24 by 24 px.
+
+  The plan for this design, written before its code. Every design writes its own, from its own people and its own
+  design system, and the review checks the built UI against it. This one shows the form; it is never a default to copy.
+  - Who: a pet owner in Kreuzberg, deciding whether to trust a person with their dog or cat. They choose a person, so
+    the person leads every screen.
+  - Principles: people first, so each sitter is a row led by their photo and their name. Rows on a white page, not
+    floating cards, so the eye runs down the people. A hairline separates them, and nothing casts a shadow. One accent
+    marks what you can do and where you are. Each state has one drawing, or none.
+  - Color roles, light and dark, keep each value in the tokens block. Surface is white, not cream. Surface-sunken is
+    the gray-green well behind notices, skeletons, and an empty photo slot. Border is the hairline, and border-strong a
+    field's edge, at 3:1. Text and text-muted are the ink and its quieter voice, at 4.5:1 or more on every surface.
+    Accent is park green, for actions, links, and the current tab. Highlight is amber, for the rating star alone, and
+    danger is for errors alone. A warning is a notice in ink on the sunken well, so amber keeps its one meaning.
+  - Type: the system sans for reading, and the system serif (New York, Georgia, or Noto Serif) for names and titles,
+    so a name reads as a person, not a field. No web font, because the page loads nothing. Numbers are tabular.
+  - Layout: one column, 60rem at most. A row is the photo, then the name, what they take, the rating, and the
+    distance; then when they are free; the price comes last, at the row's end. A narrow row, or larger text, moves the
+    time under the name, and then the price under the time. The profile sets the person beside the booking card, and
+    stacks them on a phone. Phones take their platform's chrome: a large title on iOS, a tab bar, and a back affordance.
+  - Photo slots: the built UI shows each sitter's own photo. Here a drawing stands in, never a stock face, and its alt
+    text says so. The format fills text only, so a sitter's fixture names its drawing by the one photo-N field it
+    holds, and that field's text is the alt text.
+-->
+<style>body { margin: 2rem auto; max-width: 62ch; padding: 0 1rem; font: 16px/1.5 system-ui, sans-serif; }</style>
+</head>
+<body>
+<p>The prototype tool's showcase: <a href="#" data-testid="proto-spec-link">a pet-sitting app</a>, every state and pattern a design can show. Open it with <code>aidd prototype --example</code>. It is a way to learn the format, never a start: a new design starts from the skeleton, with your own design system.</p>
+<template id="product">
+<style id="tokens">
+/* Generated from design/tokens.json by design/build.mjs: never edit by hand. */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+  --radius-control: 10px;
+  --radius-surface: 16px;
+  --radius-photo: 20%;
+  --radius-pill: 999px;
+  --size-target-min: 24px;
+  --size-control: 48px;
+  --size-content-max: 60rem;
+  --size-photo-compact: 3.5rem;
+  --size-photo: 4.75rem;
+  --size-photo-large: 8.5rem;
+  --size-tab-bar: 4.3125rem;
+  --font-family-sans: system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-family-serif: ui-serif, "New York", Georgia, "Noto Serif", serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-size-caption: 0.8125rem;
+  --font-size-small: 0.875rem;
+  --font-size-body: 1rem;
+  --font-size-heading: 1.5rem;
+  --font-size-title: 2.25rem;
+  --font-tracking-normal: 0px;
+  --font-tracking-tight: -0.015em;
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-shimmer: 1400ms;
+  --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --typography-body: 400 1rem/1.5 system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --typography-name: 600 1.3125rem/1.2 ui-serif, "New York", Georgia, "Noto Serif", serif;
+  --typography-title: 600 2.25rem/1.1 ui-serif, "New York", Georgia, "Noto Serif", serif;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-shimmer: 0ms;
+  }
+}
+/* The stand-in drawings' colors: the prototype's own, the same in both themes, as a photo is. The built UI shows each
+   sitter's photo and reads none of them. */
+:root {
+  --color-portrait-shade: rgb(0 0 0 / 0.14);
+  --color-portrait-1-backdrop: #f1d8c3;
+  --color-portrait-1-skin: #e8b892;
+  --color-portrait-1-hair: #1d1a1a;
+  --color-portrait-1-clothes: #2f5d50;
+  --color-portrait-2-backdrop: #d3e1ed;
+  --color-portrait-2-skin: #c98e64;
+  --color-portrait-2-hair: #3a2a20;
+  --color-portrait-2-clothes: #8a4b2a;
+  --color-portrait-3-backdrop: #e4d9ef;
+  --color-portrait-3-skin: #7a4a2e;
+  --color-portrait-3-hair: #24160f;
+  --color-portrait-3-clothes: #c4962a;
+  --color-portrait-4-backdrop: #d9eadd;
+  --color-portrait-4-skin: #f0c9a8;
+  --color-portrait-4-hair: #c9a15a;
+  --color-portrait-4-clothes: #3b4a6b;
+}
+/* Generated from design/tokens.json by design/build.mjs: never edit by hand. */
+:root,
+:root[data-theme="light"] {
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f3f4f1;
+  --color-border: #e3e5e2;
+  --color-border-strong: #7d847f;
+  --color-text: #1a1c1b;
+  --color-text-muted: #59605b;
+  --color-accent: #1e5e49;
+  --color-accent-strong: #154536;
+  --color-accent-subtle: #e3efe9;
+  --color-on-accent: #ffffff;
+  --color-highlight: #a65a00;
+  --color-danger: #b42318;
+  --color-danger-subtle: #fdecea;
+  --color-focus: #1e5e49;
+  color-scheme: light;
+}
+/* Generated from design/tokens.json by design/build.mjs: never edit by hand. */
+:root[data-theme="dark"] {
+  --color-surface: #121413;
+  --color-surface-raised: #181b19;
+  --color-surface-sunken: #1d201e;
+  --color-border: #2b2f2c;
+  --color-border-strong: #757c77;
+  --color-text: #eceeec;
+  --color-text-muted: #a5aca7;
+  --color-accent: #86d0b2;
+  --color-accent-strong: #a9e0c9;
+  --color-accent-subtle: #17332a;
+  --color-on-accent: #0b1f17;
+  --color-highlight: #f2b25c;
+  --color-danger: #f7a39b;
+  --color-danger-subtle: #3a1c19;
+  --color-focus: #86d0b2;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-surface: #121413;
+    --color-surface-raised: #181b19;
+    --color-surface-sunken: #1d201e;
+    --color-border: #2b2f2c;
+    --color-border-strong: #757c77;
+    --color-text: #eceeec;
+    --color-text-muted: #a5aca7;
+    --color-accent: #86d0b2;
+    --color-accent-strong: #a9e0c9;
+    --color-accent-subtle: #17332a;
+    --color-on-accent: #0b1f17;
+    --color-highlight: #f2b25c;
+    --color-danger: #f7a39b;
+    --color-danger-subtle: #3a1c19;
+    --color-focus: #86d0b2;
+    color-scheme: dark;
+  }
+}
+</style>
+<style id="styles">
+  /* The product's styles: they reach only the frames. They read the tokens with var(), by the build's names, and
+     follow the frame's root element: data-platform (web, ios, android) and data-theme. Sizes are in rem and em, so
+     text at 200% grows the layout with it, and sides are logical (inline, block), so right to left mirrors it. */
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100dvh; font: var(--typography-body); font-variant-numeric: tabular-nums; background: var(--color-surface); color: var(--color-text); container: frame / inline-size; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  ::selection { background: var(--color-accent-subtle); color: var(--color-text); }
+  [hidden] { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+  button, input { font: inherit; color: inherit; }
+  svg.icon { width: 1.25em; height: 1.25em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-android { display: none; }
+  /* Data keeps its own direction, so an English name or a price reads right in a right-to-left layout. */
+  [data-field], [data-text] { unicode-bidi: plaintext; }
+
+  /* Product chrome. Web: a header with the product's mark and its navigation, the current tab underlined, over one
+     centered column. iOS and Android: a top bar with the back affordance, and a tab bar at the bottom. */
+  .device { display: grid; min-height: 100dvh; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto 1fr; grid-template-areas: "brand nav" "bar bar" "main main"; }
+  .brand { grid-area: brand; margin: 0; display: flex; align-items: center; gap: 0.5rem; min-width: 0; padding-block: var(--space-3); padding-inline: max(var(--space-3), calc((100cqi - var(--size-content-max)) / 2)) var(--space-3); border-block-end: 1px solid var(--color-border); font: var(--typography-name); letter-spacing: var(--font-tracking-tight); }
+  .logo { width: 1.5rem; height: 1.5rem; flex: none; fill: var(--color-accent); }
+  .tabs { grid-area: nav; display: flex; flex-wrap: wrap; gap: 0 var(--space-4); padding-inline: var(--space-3) max(var(--space-3), calc((100cqi - var(--size-content-max)) / 2)); border-block-end: 1px solid var(--color-border); }
+  .tabs button { position: relative; display: inline-flex; align-items: center; gap: var(--space-2); min-height: 2.75rem; padding: 0; border: 0; background: none; color: var(--color-text-muted); font-weight: var(--font-weight-medium); cursor: pointer; transition: color var(--duration-fast) var(--easing-standard); }
+  .tabs button:hover, .tabs button[aria-current="page"] { color: var(--color-text); }
+  .tabs button[aria-current="page"] { font-weight: var(--font-weight-semibold); }
+  :root[data-platform="web"] .tabs button[aria-current="page"]::after { content: ""; position: absolute; inset-inline: 0; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--color-accent); }
+  .appbar { grid-area: bar; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding-block: var(--space-5) 0; padding-inline: max(var(--space-3), calc((100cqi - var(--size-content-max)) / 2)); min-width: 0; }
+  .appbar h1 { margin: 0; font: var(--typography-title); letter-spacing: var(--font-tracking-tight); overflow-wrap: anywhere; text-wrap: balance; }
+  .back { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 2.75rem; max-width: 100%; padding-block: 0; padding-inline: 0 var(--space-2); border: 0; background: none; color: var(--color-accent); font-weight: var(--font-weight-medium); cursor: pointer; }
+  .back span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .back:hover span { text-decoration: underline; text-underline-offset: 0.2em; }
+  :root[dir="rtl"] .back svg { transform: scaleX(-1); }
+  /* On the web, a child screen's own heading names it (a sitter's name), so the screen's title stays for screen readers only. */
+  :root[data-platform="web"] .appbar:has(> .back:not([hidden])) h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  :root:is([data-platform="ios"], [data-platform="android"]) .device { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto; grid-template-areas: "bar" "main" "nav"; }
+  :root:is([data-platform="ios"], [data-platform="android"]) .brand { display: none; }
+  :root:is([data-platform="ios"], [data-platform="android"]) .appbar { position: sticky; top: 0; z-index: 2; flex-wrap: nowrap; min-height: 44px; padding: calc(max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px)) + var(--space-2)) var(--space-3) var(--space-2); background: color-mix(in srgb, var(--color-surface) 88%, transparent); backdrop-filter: saturate(1.6) blur(18px); border-block-end: 1px solid var(--color-border); }
+  :root:is([data-platform="ios"], [data-platform="android"]) .tabs { position: sticky; bottom: 0; z-index: 2; flex-wrap: nowrap; justify-content: space-around; gap: 0; padding: var(--space-1) 0 calc(max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px)) + var(--space-1)); background: color-mix(in srgb, var(--color-surface) 88%, transparent); backdrop-filter: saturate(1.6) blur(18px); border-block-start: 1px solid var(--color-border); border-block-end: 0; }
+  /* The tab bar keeps one height, so a bar above it, such as the profile's booking bar, sits clear of it. */
+  :root:is([data-platform="ios"], [data-platform="android"]) .tabs { min-height: calc(var(--size-tab-bar) + max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px))); }
+  :root:is([data-platform="ios"], [data-platform="android"]) .tabs button { flex-direction: column; gap: 2px; min-width: 4.5rem; padding: var(--space-1) var(--space-2); font-size: 0.6875rem; border-radius: var(--radius-control); }
+  :root:is([data-platform="ios"], [data-platform="android"]) .tabs svg.icon { width: 1.625rem; height: 1.625rem; }
+  :root:is([data-platform="ios"], [data-platform="android"]) main { padding-block-start: var(--space-3); }
+  :root[data-platform="ios"] .appbar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  :root[data-platform="ios"] .appbar .back { grid-column: 1; justify-self: start; }
+  :root[data-platform="ios"] .appbar h1 { grid-column: 2; font: 600 1.0625rem/1.3 var(--font-family-serif); letter-spacing: 0; text-align: center; }
+  /* iOS: a top-level screen, with no back affordance, opens under a large title that scrolls away with it (Human Interface Guidelines). */
+  :root[data-platform="ios"] .appbar:has(> .back[hidden]) { position: static; display: block; padding-block-end: var(--space-3); border-block-end-color: transparent; }
+  :root[data-platform="ios"] .appbar:has(> .back[hidden]) h1 { font: 600 2rem/1.15 var(--font-family-serif); letter-spacing: var(--font-tracking-tight); text-align: start; }
+  /* Once the large title has scrolled away, the bar's material stays behind the status bar. */
+  :root[data-platform="ios"] .device:has(.appbar > .back[hidden])::before { content: ""; grid-area: bar; align-self: start; position: sticky; top: 0; z-index: 3; height: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px)); background: color-mix(in srgb, var(--color-surface) 88%, transparent); backdrop-filter: saturate(1.6) blur(18px); }
+  :root[data-platform="ios"] .tabs button[aria-current="page"] { color: var(--color-accent); }
+  :root[data-platform="android"] .appbar { min-height: 64px; }
+  :root[data-platform="android"] .appbar h1 { font: 600 1.375rem/1.3 var(--font-family-serif); letter-spacing: 0; }
+  :root[data-platform="android"] .back { min-width: 48px; min-height: 48px; justify-content: center; padding: 0; color: var(--color-text); }
+  :root[data-platform="android"] .back span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  :root[data-platform="android"] .icon-ios { display: none; }
+  :root[data-platform="android"] .icon-android { display: block; }
+  :root[data-platform="android"] .tabs button[aria-current="page"] svg { background: var(--color-accent-subtle); color: var(--color-accent-strong); border-radius: var(--radius-pill); width: 1.5rem; padding: 0.25rem 1.25rem; box-sizing: content-box; }
+  @container frame (max-width: 29.9375rem) {
+    :root[data-platform="web"] .device { grid-template-columns: minmax(0, 1fr); grid-template-areas: "brand" "nav" "bar" "main"; grid-template-rows: auto auto auto 1fr; }
+    :root[data-platform="web"] .brand { border-block-end: 0; padding-block-end: 0; }
+    :root[data-platform="web"] .tabs { padding-inline: var(--space-3); }
+    :root[data-platform="web"] .appbar { padding-block-start: var(--space-4); }
+    :root[data-platform="web"] .appbar h1 { font-size: 1.875rem; }
+  }
+
+  /* Screens and their states: one of each shows at a time. */
+  main { grid-area: main; padding-block: var(--space-3) var(--space-6); padding-inline: max(var(--space-3), calc((100cqi - var(--size-content-max)) / 2)); min-width: 0; }
+  main:focus, #screen-title:focus { outline: none; }
+  section[data-screen], section[data-screen] > [data-state] { display: none; }
+  section[data-screen].shown, section[data-screen] > [data-state].shown { display: block; }
+  main :is(h2, h3) { margin: var(--space-4) 0 var(--space-2); font-family: var(--font-family-serif); font-weight: var(--font-weight-semibold); line-height: 1.2; letter-spacing: var(--font-tracking-tight); text-wrap: balance; }
+  main h2 { font-size: var(--font-size-heading); }
+  main h3 { font-size: 1.1875rem; }
+  main p { margin: 0 0 var(--space-3); max-width: 62ch; text-wrap: pretty; }
+  .muted { color: var(--color-text-muted); }
+  .lede { display: flex; align-items: center; gap: var(--space-2); margin-block-end: var(--space-4); color: var(--color-text-muted); }
+  .lede .icon { color: var(--color-accent); width: 1.125em; height: 1.125em; }
+
+  /* Messages: an icon and a tinted well, so color is never the only cue. An error is red; a warning is a notice in ink. */
+  .message { display: flex; align-items: flex-start; gap: 0.625rem; margin: 0 0 var(--space-4); padding: 0.75rem 1rem; border-radius: var(--radius-control); font-size: 0.9375rem; max-width: 62ch; }
+  .message .icon { margin-block-start: 0.125em; }
+  .message-error { background: var(--color-danger-subtle); color: var(--color-danger); }
+  .message-warning { background: var(--color-surface-sunken); color: var(--color-text); }
+  .status { display: inline-flex; align-items: center; gap: 0.625rem; color: var(--color-text-muted); }
+  .spinner { width: 1.125em; height: 1.125em; border-radius: 50%; border: 2px solid var(--color-accent-subtle); border-block-start-color: var(--color-accent); animation: spin 800ms linear infinite; }
+  @keyframes spin { to { transform: rotate(1turn); } }
+  @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+
+  /* An empty, first-run, or permission state takes the rows' place: its one drawing where a photo would sit, then what
+     happened and the way on. */
+  .spot { display: grid; grid-template-columns: var(--size-photo) minmax(0, 1fr); gap: var(--space-3) 1.25rem; align-items: start; padding-block: var(--space-4); border-block: 1px solid var(--color-border); }
+  .spot h2 { margin-block: 0.125rem var(--space-2); }
+  .spot p { color: var(--color-text-muted); max-width: 46ch; }
+  .spot-art { display: grid; place-items: center; width: var(--size-photo); aspect-ratio: 1; border-radius: var(--radius-photo); background: var(--color-accent-subtle); color: var(--color-accent); }
+  .spot-art svg { width: 60%; height: 60%; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  @container frame (max-width: 29.9375rem) {
+    .spot { grid-template-columns: minmax(0, 1fr); }
+    .spot-art { width: var(--size-photo-compact); }
+  }
+
+  /* Buttons: one primary action per view. */
+  .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--size-control); padding: 0.375rem 1.25rem; border-radius: var(--radius-control); font-weight: var(--font-weight-semibold); text-align: center; cursor: pointer; transition: background-color var(--duration-fast) var(--easing-standard), transform var(--duration-fast) var(--easing-standard); }
+  .button:active { transform: scale(0.98); }
+  .button-primary { border: 0; background: var(--color-accent); color: var(--color-on-accent); }
+  .button-primary:hover { background: var(--color-accent-strong); }
+  .button-secondary { border: 1px solid var(--color-border-strong); background: var(--color-surface); color: var(--color-text); }
+  .button-secondary:hover { background: var(--color-surface-sunken); }
+  .button-block { width: 100%; }
+
+  /* Sign in: one form, centered on the web. */
+  section[data-screen="sign-in"] { max-width: 26rem; margin-inline: auto; }
+  :root[data-platform="web"] .device:has([data-screen="sign-in"].shown) .appbar { justify-content: center; text-align: center; }
+  :root[data-platform="web"] section[data-screen="sign-in"] > [data-state] > p:not(.message) { text-align: center; margin-inline: auto; }
+  .form { display: grid; gap: 1.125rem; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-surface); background: var(--color-surface-raised); }
+  .field { display: grid; gap: 0.375rem; }
+  .field label { font-size: var(--font-size-small); font-weight: var(--font-weight-semibold); }
+  .field input { width: 100%; min-width: 0; min-height: var(--size-control); padding: 0 0.875rem; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); transition: border-color var(--duration-fast) var(--easing-standard); }
+  .field input:hover { border-color: var(--color-text-muted); }
+  .form .button { margin-block-start: var(--space-1); }
+
+  /* The sitters: a row each, led by the person, between hairlines. The name is the row's one control, and its click
+     area covers the row. Each row is a container, so a narrow frame, or larger text, folds it. */
+  .rows { list-style: none; margin: 0 0 var(--space-4); padding: 0; border-block-start: 1px solid var(--color-border); }
+  .rows > li { container: row / inline-size; border-block-end: 1px solid var(--color-border); }
+  .row { position: relative; display: grid; grid-template-columns: var(--size-photo-compact) minmax(0, 1fr) auto; grid-template-areas: "photo who price" "photo when when"; gap: 0.375rem 0.875rem; align-items: start; padding-block: var(--space-3); }
+  .row .photo { grid-area: photo; width: var(--size-photo-compact); }
+  .who { grid-area: who; min-width: 0; }
+  .name { margin: 0; font: var(--typography-name); letter-spacing: var(--font-tracking-tight); overflow-wrap: anywhere; }
+  .name button { padding: 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-align: start; cursor: pointer; }
+  .name button::after { content: ""; position: absolute; inset: 0; }
+  .name button:focus-visible { outline: none; }
+  .row:has(.name button:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: 4px; }
+  .row:hover .name button { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  .takes { margin: 0.125rem 0 0.25rem; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.125rem 0.875rem; margin: 0; color: var(--color-text-muted); font-size: var(--font-size-small); }
+  .rating { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--color-text); font-weight: var(--font-weight-medium); }
+  .distance { display: inline-flex; align-items: center; gap: 0.25rem; white-space: nowrap; }
+  .distance .icon { width: 1em; height: 1em; }
+  .rating .star { width: 1em; height: 1em; fill: var(--color-highlight); stroke: none; }
+  .when { grid-area: when; display: flex; align-items: flex-start; gap: 0.375rem; margin: 0; color: var(--color-text-muted); font-size: var(--font-size-small); }
+  .when .icon { width: 1.125em; height: 1.125em; margin-block-start: 0.125em; }
+  .when-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .price { grid-area: price; margin: 0; line-height: 1.2; text-align: end; white-space: nowrap; }
+  .price strong { display: block; font-size: 1.25rem; font-weight: var(--font-weight-bold); }
+  .price span { color: var(--color-text-muted); font-size: var(--font-size-caption); }
+  /* A wide row gives the time and the price their own columns. */
+  @container row (min-width: 40rem) {
+    .row { grid-template-columns: var(--size-photo) minmax(0, 1fr) minmax(8rem, 13rem) minmax(4.5rem, auto); grid-template-areas: "photo who when price"; gap: 0 1.5rem; padding-block: 1.25rem; }
+    .row .photo { width: var(--size-photo); }
+    .when { display: block; padding-block-start: 0.3rem; }
+    .when .icon { display: none; }
+    .when-label { position: static; display: block; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal; color: var(--color-text); font-size: var(--font-size-caption); font-weight: var(--font-weight-semibold); }
+    .price { padding-block-start: 0.125rem; }
+    .price strong { font-size: 1.375rem; }
+  }
+  /* A narrow row, or large text, puts the price under the time. */
+  @container row (max-width: 22rem) {
+    .row { grid-template-columns: var(--size-photo-compact) minmax(0, 1fr); grid-template-areas: "photo who" "photo when" "photo price"; }
+    .price { text-align: start; }
+    .price strong { display: inline; font-size: 1.0625rem; }
+  }
+  /* Narrower still, the photo sits above the name. */
+  @container row (max-width: 15rem) {
+    .row { grid-template-columns: minmax(0, 1fr); grid-template-areas: "photo" "who" "when" "price"; }
+  }
+
+  /* A photo slot. The built UI shows the sitter's own photo, and here a drawing stands in. The format fills text only,
+     so the sitter's fixture names its drawing by the one photo-N field it holds, and that field's text is the alt text. */
+  .photo { display: block; width: var(--size-photo); aspect-ratio: 1; border-radius: var(--radius-photo); overflow: hidden; background: var(--color-surface-sunken); }
+  .photo svg { display: block; width: 100%; height: 100%; }
+  .photo[data-variant="large"] { width: var(--size-photo-large); }
+  .look { display: none; }
+  .photo:has(> [data-field="photo-1"]:not(:empty)) .look-1, .photo:has(> [data-field="photo-2"]:not(:empty)) .look-2, .photo:has(> [data-field="photo-3"]:not(:empty)) .look-3, .photo:has(> [data-field="photo-4"]:not(:empty)) .look-4 { display: inline; }
+  .look .shade { fill: var(--color-portrait-shade); }
+  .look-1 .backdrop { fill: var(--color-portrait-1-backdrop); } .look-1 .skin { fill: var(--color-portrait-1-skin); } .look-1 .hair { fill: var(--color-portrait-1-hair); } .look-1 .clothes { fill: var(--color-portrait-1-clothes); }
+  .look-2 .backdrop { fill: var(--color-portrait-2-backdrop); } .look-2 .skin { fill: var(--color-portrait-2-skin); } .look-2 .hair { fill: var(--color-portrait-2-hair); } .look-2 .clothes { fill: var(--color-portrait-2-clothes); }
+  .look-3 .backdrop { fill: var(--color-portrait-3-backdrop); } .look-3 .skin { fill: var(--color-portrait-3-skin); } .look-3 .hair { fill: var(--color-portrait-3-hair); } .look-3 .clothes { fill: var(--color-portrait-3-clothes); }
+  .look-4 .backdrop { fill: var(--color-portrait-4-backdrop); } .look-4 .skin { fill: var(--color-portrait-4-skin); } .look-4 .hair { fill: var(--color-portrait-4-hair); } .look-4 .clothes { fill: var(--color-portrait-4-clothes); }
+
+  /* Loading: the shapes of the rows to come, with a slow shimmer. */
+  .skeleton { display: grid; grid-template-columns: var(--size-photo-compact) minmax(0, 1fr); gap: 0.625rem 0.875rem; align-items: center; padding-block: var(--space-3); }
+  .skeleton span { display: block; height: 0.75rem; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--color-surface-sunken) 0%, var(--color-border) 50%, var(--color-surface-sunken) 100%) 0 0 / 200% 100%; animation: shimmer var(--duration-shimmer) ease-in-out infinite; }
+  .skeleton span:first-child { grid-row: span 2; height: auto; aspect-ratio: 1; border-radius: var(--radius-photo); }
+  .skeleton span:nth-child(2) { width: 45%; height: 1rem; }
+  .skeleton span:nth-child(3) { width: 75%; }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+  /* The sitter's profile: the person and what they say, beside the booking card; stacked on a phone. */
+  .profile { display: grid; gap: var(--space-3); justify-items: start; margin-block-end: var(--space-4); }
+  .profile .photo { order: -1; width: var(--size-photo-large); }
+  .profile h2 { margin: 0 0 0.375rem; font-size: 2rem; line-height: 1.1; overflow-wrap: anywhere; }
+  .profile p { margin: 0; }
+  .about { padding-block-start: var(--space-4); border-block-start: 1px solid var(--color-border); }
+  .about h3 { margin-block-start: 0; }
+  .booking { display: grid; gap: var(--space-3); margin-block-start: var(--space-4); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-surface); background: var(--color-surface-raised); }
+  .booking-price { display: flex; align-items: baseline; gap: 0.375rem; margin: 0; }
+  .booking-price strong { font-size: 1.75rem; font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-tight); }
+  .booking-price span { color: var(--color-text-muted); }
+  .facts { display: grid; gap: 0.875rem; margin: 0; padding-block: var(--space-3); border-block: 1px solid var(--color-border); }
+  .facts div { display: grid; gap: 0.125rem; }
+  .facts dt { display: flex; align-items: center; gap: 0.5rem; font-size: var(--font-size-small); color: var(--color-text-muted); }
+  .facts dd { margin: 0; padding-inline-start: calc(1.25em + 0.5rem); font-weight: var(--font-weight-medium); }
+  .booking .actions, .booking-bar { display: grid; gap: var(--space-3); }
+  .skeleton-profile { grid-template-columns: minmax(0, var(--size-photo-large)) minmax(0, 1fr); }
+
+  /* One column: the price and the request stay in a bar above the tab bar, so the next step is in view (HIG: the tab
+     bar stays visible on a pushed screen). The page scrolls its end clear of the bar. */
+  @container frame (max-width: 53.9375rem) {
+    .booking { display: contents; }
+    :root:is([data-platform="ios"], [data-platform="android"]) .booking-bar { bottom: calc(var(--size-tab-bar) + max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px))); }
+    .booking-bar { position: sticky; bottom: 0; z-index: 1; grid-template-columns: auto minmax(0, 1fr); align-items: center; margin: var(--space-4) calc(-1 * var(--space-3)) var(--space-3); padding: var(--space-2) var(--space-3); background: color-mix(in srgb, var(--color-surface) 88%, transparent); backdrop-filter: saturate(1.6) blur(18px); border-block: 1px solid var(--color-border); }
+  }
+  @container frame (min-width: 37.5rem) {
+    .skeleton { grid-template-columns: var(--size-photo) minmax(0, 1fr); padding-block: 1.25rem; }
+    .skeleton-profile { grid-template-columns: var(--size-photo-large) minmax(0, 1fr); }
+    .profile { grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: var(--space-4); }
+    .profile h2 { font-size: var(--font-size-title); }
+  }
+  @container frame (min-width: 54rem) {
+    .detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(17rem, 21rem); gap: var(--space-6); align-items: start; }
+    .booking { position: sticky; top: var(--space-4); margin-block-start: 0; }
+  }
+</style>
+<div class="device">
+  <p class="brand"><svg class="logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="15.5" rx="5" ry="4.2"/><circle cx="5.6" cy="10" r="2.1"/><circle cx="9.4" cy="6.3" r="2.1"/><circle cx="14.6" cy="6.3" r="2.1"/><circle cx="18.4" cy="10" r="2.1"/></svg><span data-text="product"></span></p>
+  <nav class="tabs" aria-label="Main">
+    <button type="button" data-go="sitters" data-component="tab" data-testid="app-tab-sitters"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span>Sitters</span></button>
+    <button type="button" data-go="sign-in" data-component="tab" data-testid="app-tab-account"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>Account</span></button>
+  </nav>
+  <div class="appbar" data-component="app-bar">
+    <button type="button" class="back" data-back data-testid="app-back" hidden><svg class="icon icon-ios" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg><svg class="icon icon-android" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 12H4m6-6-6 6 6 6"/></svg><span id="back-label">Back</span></button>
+    <h1 id="screen-title" tabindex="-1"></h1>
+  </div>
+  <main id="main" tabindex="-1">
+    <section data-screen="sign-in" data-title="Sign in" data-initial="empty">
+      <div data-state="empty" data-testid="signin-empty">
+        <p class="muted">Sign in to book a sitter, message them, and see your bookings.</p>
+      </div>
+      <div data-state="loading" data-testid="signin-loading" aria-busy="true">
+        <p class="status" role="status"><span class="spinner" aria-hidden="true"></span>Signing you in…</p>
+      </div>
+      <div data-state="error" data-testid="signin-error">
+        <p class="message message-error" role="alert" data-component="inline-message" data-variant="error"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg><span>That email and password don't match an account. Check them, or reset your password.</span></p>
+      </div>
+      <div data-state="offline" data-testid="signin-offline">
+        <p class="message message-warning" data-component="inline-message" data-variant="warning"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M9.5 5.2A15 15 0 0 1 22 8.8M5 12.5a10 10 0 0 1 4-2.2M15.3 10.6A10 10 0 0 1 19 12.5M8.5 16a5 5 0 0 1 7 0M12 19.5h.01M3 3l18 18"/></svg><span>You're offline. Signing in needs a connection; the sitters you saved are still on this device.</span></p>
+        <p><button type="button" class="button button-secondary" data-component="button" data-variant="secondary" data-go="sitters/offline" data-testid="signin-saved">See saved sitters</button></p>
+      </div>
+      <div class="form">
+        <div class="field" data-component="text-field"><label for="signin-email">Email</label><input id="signin-email" type="email" autocomplete="email" data-testid="signin-email"></div>
+        <div class="field" data-component="text-field" data-variant="password"><label for="signin-password">Password</label><input id="signin-password" type="password" autocomplete="current-password" data-testid="signin-password"></div>
+        <button type="button" class="button button-primary button-block" data-component="button" data-variant="primary" data-go="sitters/success" data-testid="signin-submit">Sign in</button>
+      </div>
+    </section>
+    <section data-screen="sitters" data-title="Sitters near you" data-initial="success">
+      <p class="lede"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span><span data-text="area"></span>, within 5 km</span></p>
+      <div data-state="empty" data-testid="sitters-empty">
+        <div class="spot">
+          <span class="spot-art" aria-hidden="true"><svg viewBox="0 0 48 48" focusable="false"><circle cx="21" cy="21" r="12"/><path d="m30 30 9 9"/><path d="M16 22.5c1.5 2 3.2 3 5 3s3.5-1 5-3"/><circle cx="17.5" cy="18" r="0.5"/><circle cx="24.5" cy="18" r="0.5"/></svg></span>
+          <div>
+            <h2>No sitters within 5 km yet</h2>
+            <p>New sitters join every week. Widen the search, or we'll tell you when someone nearby joins.</p>
+            <div class="actions"><button type="button" class="button button-primary" data-component="button" data-variant="primary" data-go="sitters/success" data-testid="sitters-widen">Search within 15 km</button></div>
+          </div>
+        </div>
+      </div>
+      <div data-state="loading" data-testid="sitters-loading" aria-busy="true">
+        <p class="sr-only" role="status">Finding sitters near <span data-text="area"></span>…</p>
+        <ul class="rows" aria-hidden="true"><li class="skeleton" data-component="skeleton"><span></span><span></span><span></span></li><li class="skeleton" data-component="skeleton"><span></span><span></span><span></span></li><li class="skeleton" data-component="skeleton"><span></span><span></span><span></span></li><li class="skeleton" data-component="skeleton"><span></span><span></span><span></span></li></ul>
+      </div>
+      <div data-state="partial" data-testid="sitters-partial">
+        <p class="message message-warning" data-component="inline-message" data-variant="warning"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg><span>Showing 2 of 4 sitters. The other 2 didn't load.</span></p>
+        <ul class="rows" data-list="sitters" data-limit="2" data-item-template="sitter-card" data-item-go="sitter"></ul>
+        <button type="button" class="button button-secondary" data-component="button" data-variant="secondary" data-go="sitters/success" data-testid="sitters-load-rest">Load the other 2</button>
+      </div>
+      <div data-state="error" data-testid="sitters-error">
+        <p class="message message-error" role="alert" data-component="inline-message" data-variant="error"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg><span>We couldn't load sitters. Check your connection, then try again.</span></p>
+        <button type="button" class="button button-primary" data-component="button" data-variant="primary" data-go="sitters/loading" data-testid="sitters-retry">Try again</button>
+      </div>
+      <div data-state="offline" data-testid="sitters-offline">
+        <p class="message message-warning" data-component="inline-message" data-variant="warning"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M9.5 5.2A15 15 0 0 1 22 8.8M5 12.5a10 10 0 0 1 4-2.2M15.3 10.6A10 10 0 0 1 19 12.5M8.5 16a5 5 0 0 1 7 0M12 19.5h.01M3 3l18 18"/></svg><span>You're offline. These are the sitters you saved; their availability may be out of date.</span></p>
+        <ul class="rows" data-list="sitters" data-limit="2" data-item-template="sitter-card" data-item-go="sitter"></ul>
+      </div>
+      <div data-state="permission-denied" data-testid="sitters-permission-denied">
+        <div class="spot">
+          <span class="spot-art" aria-hidden="true"><svg viewBox="0 0 48 48" focusable="false"><path d="M24 42s-13-11.2-13-21a13 13 0 0 1 26 0c0 9.8-13 21-13 21z"/><circle cx="24" cy="21" r="4.5"/><path d="M8 8l32 32"/></svg></span>
+          <div>
+            <h2>Turn on location to see sitters near you</h2>
+            <p><span data-text="product"></span> uses your location only to sort sitters by distance, and never shares it. You can search by postcode instead.</p>
+            <div class="actions">
+              <button type="button" class="button button-primary" data-component="button" data-variant="primary" data-testid="sitters-open-settings">Open Settings</button>
+              <button type="button" class="button button-secondary" data-component="button" data-variant="secondary" data-go="sitters/success" data-testid="sitters-postcode">Search by postcode</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-state="success" data-testid="sitters-success">
+        <ul class="rows" data-list="sitters" data-item-template="sitter-card" data-item-go="sitter"></ul>
+      </div>
+      <div data-state="first-run" data-testid="sitters-first-run">
+        <div class="spot">
+          <span class="spot-art" aria-hidden="true"><svg viewBox="0 0 48 48" focusable="false"><ellipse cx="24" cy="31.5" rx="9.5" ry="7.5"/><circle cx="11.5" cy="20.5" r="4"/><circle cx="19" cy="11.5" r="4"/><circle cx="29" cy="11.5" r="4"/><circle cx="36.5" cy="20.5" r="4"/></svg></span>
+          <div>
+            <h2>Welcome to <span data-text="product"></span></h2>
+            <p>Tell us about your pet, and we'll show sitters who have looked after one like them.</p>
+            <div class="actions"><button type="button" class="button button-primary" data-component="button" data-variant="primary" data-go="sitters/success" data-testid="sitters-add-pet">Add your pet</button></div>
+          </div>
+        </div>
+      </div>
+      <template data-item-template="sitter-card">
+        <li><div class="row" data-component="sitter-card"><div class="who"><h2 class="name"><button type="button" data-testid="sitter-card"><span data-field="name"></span></button></h2><p class="takes" data-field="pets"></p><p class="meta"><span class="rating"><svg class="icon star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3.5 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><span data-field="rating"></span></span><span class="distance"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span data-field="distance"></span></span></p></div><span class="photo" data-component="avatar"><svg viewBox="0 0 80 80" aria-hidden="true" focusable="false"><g class="look look-4"><rect class="backdrop" width="80" height="80"/><path class="clothes" d="M12 80c0-17 13-26 28-26s28 9 28 26z"/><rect class="skin" x="35" y="42" width="10" height="13" rx="4"/><path class="shade" d="M35 44h10v6c-3 2-7 2-10 0z"/><circle class="skin" cx="40" cy="34" r="12"/><path class="hair" d="M27.5 33c-1-11 6-17 14-16 8 1 12 6 11 14-6-7-15-8-21-3z"/></g><g class="look look-3"><rect class="backdrop" width="80" height="80"/><path class="clothes" d="M12 80c0-17 13-26 28-26s28 9 28 26z"/><circle class="hair" cx="40" cy="29" r="19"/><rect class="skin" x="35" y="43" width="10" height="12" rx="4"/><path class="shade" d="M35 45h10v6c-3 2-7 2-10 0z"/><circle class="skin" cx="40" cy="35" r="12"/><path class="hair" d="M28 31c3-6 8-8 12-8s9 2 12 8c-1-9-6-13-12-13s-11 4-12 13z"/></g><g class="look look-2"><rect class="backdrop" width="80" height="80"/><path class="clothes" d="M12 80c0-17 13-26 28-26s28 9 28 26z"/><rect class="skin" x="35" y="43" width="10" height="12" rx="4"/><path class="shade" d="M35 44h10v6c-3 2-7 2-10 0z"/><circle class="skin" cx="40" cy="34" r="12.5"/><path class="hair" d="M28 39c1 7 6 10 12 10s11-3 12-10c-2 3-6 4-12 4s-10-1-12-4zM27.5 32c0-10 6-15 13-15 8 0 13 5 12 14-5-6-15-7-25 1z"/></g><g class="look look-1"><rect class="backdrop" width="80" height="80"/><path class="hair" d="M25 46c-2-18 5-30 15-30s17 12 15 30h-5l-1-12c-5-5-13-5-18 0l-1 12z"/><path class="clothes" d="M12 80c0-17 13-26 28-26s28 9 28 26z"/><rect class="skin" x="35" y="43" width="10" height="12" rx="4"/><path class="shade" d="M35 44h10v6c-3 2-7 2-10 0z"/><circle class="skin" cx="40" cy="34" r="12"/><path class="hair" d="M28 33c0-11 6-16 12-16 7 0 13 5 12 15-6-6-16-7-24 1z"/></g></svg><span class="sr-only" data-field="photo-1"></span><span class="sr-only" data-field="photo-2"></span><span class="sr-only" data-field="photo-3"></span><span class="sr-only" data-field="photo-4"></span></span><p class="when"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg><span class="when-label">Available</span> <span data-field="available"></span></p><p class="price"><strong data-field="price"></strong> <span>an hour</span></p></div></li>
+      </template>
+    </section>
+    <section data-screen="sitter" data-title="Sitter profile" data-parent="sitters" data-initial="success" data-item="sitters">
+      <div data-state="loading" data-testid="sitter-loading" aria-busy="true">
+        <p class="sr-only" role="status">Loading the profile…</p>
+        <div class="skeleton skeleton-profile" data-component="skeleton"><span></span><span></span><span></span></div>
+      </div>
+      <div data-state="error" data-testid="sitter-error">
+        <p class="message message-error" role="alert" data-component="inline-message" data-variant="error"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg><span>This profile didn't load. Try again, or go back to the list.</span></p>
+        <button type="button" class="button button-primary" data-component="button" data-variant="primary" data-go="sitter/success" data-testid="sitter-retry">Try again</button>
+      </div>
+      <div data-state="success" data-testid="sitter-success">
+        <div class="detail">
+          <div>
+            <div class="profile" data-component="profile-header">
+              <div>
+                <h2 data-field="name"></h2>
+                <p class="meta"><span class="rating"><svg class="icon star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3.5 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><span data-field="rating"></span></span><span class="distance"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span data-field="distance"></span></span></p>
+              </div>
+              <span class="photo" data-component="avatar" data-variant="large"><svg viewBox="0 0 80 80" aria-hidden="true" focusable="false"><g class="look look-4"><rect class="backdrop" width="80" height="80"/><path class="clothes" d="M12 80c0-17 13-26 28-26s28 9 28 26z"/><rect class="skin" x="35" y="42" width="10" height="13" rx="4"/><path class="shade" d="M35 44h10v6c-3 2-7 2-10 0z"/><circle class="skin" cx="40" cy="34" r="12"/><path class="hair" d="M27.5 33c-1-11 6-17 14-16 8 1 12 6 11 14-6-7-15-8-21-3z"/></g><g class="look look-3"><rect class="backdrop" width="80" height="80"/><path class="clothes" d="M12 80c0-17 13-26 28-26s28 9 28 26z"/><circle class="hair" cx="40" cy="29" r="19"/><rect class="skin" x="35" y="43" width="10" height="12" rx="4"/><path class="shade" d="M35 45h10v6c-3 2-7 2-10 0z"/><circle class="skin" cx="40" cy="35" r="12"/><path class="hair" d="M28 31c3-6 8-8 12-8s9 2 12 8c-1-9-6-13-12-13s-11 4-12 13z"/></g><g class="look look-2"><rect class="backdrop" width="80" height="80"/><path class="clothes" d="M12 80c0-17 13-26 28-26s28 9 28 26z"/><rect class="skin" x="35" y="43" width="10" height="12" rx="4"/><path class="shade" d="M35 44h10v6c-3 2-7 2-10 0z"/><circle class="skin" cx="40" cy="34" r="12.5"/><path class="hair" d="M28 39c1 7 6 10 12 10s11-3 12-10c-2 3-6 4-12 4s-10-1-12-4zM27.5 32c0-10 6-15 13-15 8 0 13 5 12 14-5-6-15-7-25 1z"/></g><g class="look look-1"><rect class="backdrop" width="80" height="80"/><path class="hair" d="M25 46c-2-18 5-30 15-30s17 12 15 30h-5l-1-12c-5-5-13-5-18 0l-1 12z"/><path class="clothes" d="M12 80c0-17 13-26 28-26s28 9 28 26z"/><rect class="skin" x="35" y="43" width="10" height="12" rx="4"/><path class="shade" d="M35 44h10v6c-3 2-7 2-10 0z"/><circle class="skin" cx="40" cy="34" r="12"/><path class="hair" d="M28 33c0-11 6-16 12-16 7 0 13 5 12 15-6-6-16-7-24 1z"/></g></svg><span class="sr-only" data-field="photo-1"></span><span class="sr-only" data-field="photo-2"></span><span class="sr-only" data-field="photo-3"></span><span class="sr-only" data-field="photo-4"></span></span>
+            </div>
+            <div class="about">
+              <h3>About <span data-field="first"></span></h3>
+              <p data-field="about"></p>
+            </div>
+          </div>
+          <div class="booking" data-component="booking-card">
+            <div class="booking-bar">
+              <p class="booking-price"><strong data-field="price"></strong><span>an hour</span></p>
+              <button type="button" class="button button-primary" data-component="button" data-variant="primary" data-testid="sitter-request">Request a booking</button>
+            </div>
+            <dl class="facts" data-component="fact-list">
+              <div><dt><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="16" rx="4.6" ry="3.8"/><circle cx="5.6" cy="10.4" r="2"/><circle cx="9.6" cy="5.8" r="2"/><circle cx="14.4" cy="5.8" r="2"/><circle cx="18.4" cy="10.4" r="2"/></svg>Looks after</dt><dd data-field="pets"></dd></div>
+              <div><dt><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>Available</dt><dd data-field="available"></dd></div>
+            </dl>
+            <div class="actions">
+              <button type="button" class="button button-secondary" data-component="button" data-variant="secondary" data-testid="sitter-message"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5h16v10H9.5L5 19.5v-4H4z"/></svg><span>Message <span data-field="first"></span></span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</template>
+<script type="application/json" id="fixtures">
+{
+  "product": "Sit & Stay",
+  "area": "Kreuzberg, Berlin",
+  "sitters": [
+    {"name": "Mai Nguyen", "first": "Mai", "photo-1": "A drawing in place of Mai Nguyen's photo", "price": "€18", "distance": "1.2 km away", "rating": "4.9 · 132 reviews", "about": "I grew up with two border collies and have looked after neighbours' dogs and cats for six years. I work from home, so your pet is never alone for more than an hour.", "pets": "Dogs up to 30 kg, cats, rabbits", "available": "Weekdays after 17:00, and weekends"},
+    {"name": "Tomás Herrera", "first": "Tomás", "photo-2": "A drawing in place of Tomás Herrera's photo", "price": "€15", "distance": "2.8 km away", "rating": "4.7 · 41 reviews", "about": "Vet nurse on weekdays, so I can give medication and spot when something is off. I have a fenced garden.", "pets": "Dogs, cats, older pets", "available": "Weekends only"},
+    {"name": "Amara Okafor-Lindqvist Castellanos", "first": "Amara", "photo-3": "A drawing in place of Amara Okafor-Lindqvist Castellanos's photo", "price": "€22", "distance": "3.4 km away", "rating": "5.0 · 9 reviews", "about": "Former dog-walking business owner. Long walks in Tempelhofer Feld twice a day, with photos after each one.", "pets": "Large dogs, puppies", "available": "Every day, 08:00 to 20:00"},
+    {"name": "Jonas Weber", "first": "Jonas", "photo-4": "A drawing in place of Jonas Weber's photo", "price": "€12", "distance": "4.9 km away", "rating": "New · no reviews yet", "about": "Student living close to Görlitzer Park. Happy to feed and play with cats while you travel.", "pets": "Cats", "available": "Mornings and evenings"}
+  ]
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "aidd-cli",
+  "description": "Optional: the aidd command on the PATH of Claude Code's Bash tool, so the agent and you type `aidd` with no other install. It runs the CLI from its own copy of aidd's source and data, with Python 3.11 or later, or uv. It is a plugin of its own because claude.ai and Cowork do not install a plugin that has a bin/ folder, so the aidd plugin stays installable there. Not on Windows, where git checks the links it is made of out as text.",
+  "author": {
+    "name": "Van Hoang"
+  },
+  "homepage": "https://github.com/thaithienvanid/aidd",
+  "repository": "https://github.com/thaithienvanid/aidd",
+  "license": "Apache-2.0",
+  "keywords": [
+    "aidd",
+    "cli"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "Standard dependency bump",
+  "summary": "A bot's patch bump that matches a configured standard change merges on green tests with no human."
+}

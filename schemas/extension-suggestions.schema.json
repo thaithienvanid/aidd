@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:extension-suggestions",
+  "title": "Extension suggestions",
+  "description": "What `aidd extensions suggest --json` prints: the stacks found in the repository, the extensions that fit them and the team's roles, and each role's toolsets. Each is a starting point a team verifies, pins, and installs through a change; aidd installs nothing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["stacks", "suggestions", "toolsets"],
+  "$defs": {
+    "capabilities": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "What the extension can do on the machine, such as network, writes_repo, runs_commands, reads_secrets, or telemetry."
+    }
+  },
+  "properties": {
+    "stacks": { "type": "array", "items": { "type": "string" }, "description": "The stacks the repository's manifests name, sorted." },
+    "suggestions": {
+      "type": "array",
+      "description": "The extensions that fit the stacks and the roles, each once.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "tier", "capabilities", "roles", "adds"],
+        "properties": {
+          "name": { "type": "string", "description": "The extension's name, as the team registry lists it." },
+          "tier": { "type": "string", "description": "Who stands behind it: official, vendor, maintainer, or community." },
+          "maturity": { "type": "string", "description": "How proven it is, such as established or emerging." },
+          "capabilities": { "$ref": "#/$defs/capabilities" },
+          "pin": { "type": "string", "description": "The version a team installs, and the commit or digest that names it." },
+          "license": { "type": "string", "description": "Its license, such as MIT or Apache-2.0." },
+          "install": { "type": "string", "description": "The one command that installs it, which aidd prints and never runs." },
+          "roles": { "type": "array", "items": { "type": "string" }, "description": "The roles it extends." },
+          "adds": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "What it adds to each role it extends, by role."
+          }
+        }
+      }
+    },
+    "toolsets": {
+      "type": "array",
+      "description": "Each role's named toolsets, picked by enabling their extensions in the project, never by a config key.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "toolset", "default", "uses", "extensions", "parts"],
+        "properties": {
+          "role": { "type": "string", "description": "The role the toolset belongs to." },
+          "toolset": { "type": "string", "description": "The toolset's name, such as ai-design or browser-review." },
+          "default": { "type": "string", "description": "What the role uses when the project enabled none of its toolsets." },
+          "uses": { "type": "string", "description": "What the role works with in this toolset, and when it passes." },
+          "extensions": { "type": "array", "items": { "type": "string" }, "description": "The names of the extensions the toolset installs." },
+          "test_command": { "type": "string", "description": "The Spec test command the toolset adds, when it adds one." },
+          "parts": {
+            "type": "array",
+            "description": "Each extension of the toolset, with what a team needs to verify and pin it.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "tier", "capabilities"],
+              "properties": {
+                "name": { "type": "string", "description": "The extension's name." },
+                "tier": { "type": "string", "description": "Who stands behind it." },
+                "maturity": { "type": "string", "description": "How proven it is." },
+                "capabilities": { "$ref": "#/$defs/capabilities" },
+                "pin": { "type": "string", "description": "The version to install, and what names it." },
+                "license": { "type": "string", "description": "Its license." },
+                "install": { "type": "string", "description": "The one command that installs it, which aidd prints and never runs." },
+                "source": { "type": "string", "description": "Where it comes from: its repository or its page." },
+                "telemetry_opt_out": { "type": "boolean", "description": "True when its telemetry can be turned off." }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

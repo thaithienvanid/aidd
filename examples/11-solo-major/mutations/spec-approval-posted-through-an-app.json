@@ -1,0 +1,24 @@
+{
+  "summary": "The /aidd approve-spec line was posted through a GitHub App acting for the owner. It never counts as their Spec approval, and the gate says why.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/comments/0/via_app",
+      "value": true
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [
+      "spec_approval"
+    ],
+    "findings": [
+      "pending spec_approval.missing",
+      "warn spec_approval.via_app"
+    ]
+  }
+}

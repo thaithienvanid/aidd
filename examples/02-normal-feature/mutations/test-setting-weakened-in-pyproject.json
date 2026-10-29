@@ -1,0 +1,43 @@
+{
+  "summary": "The change narrows pytest's addopts in pyproject.toml to skip the rate-limit tests. tests.files does not freeze `pyproject.toml#tool.pytest`, so Spec approval did not cover it and the weaker run would pass unseen. (The manifest sits outside the Task's scope, so scope fails in both cases; only the test-section warning differs.)",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "pyproject.toml",
+        "previous_path": null,
+        "additions": 1,
+        "deletions": 1
+      }
+    },
+    {
+      "op": "set",
+      "path": "/base_files",
+      "value": {
+        "pyproject.toml": "[tool.poetry.dependencies]\nrequests = \"2.32.0\"\n\n[tool.pytest.ini_options]\naddopts = \"-q\"\n"
+      }
+    },
+    {
+      "op": "set",
+      "path": "/head_files/pyproject.toml",
+      "value": "[tool.poetry.dependencies]\nrequests = \"2.32.0\"\n\n[tool.pytest.ini_options]\naddopts = \"-q -k 'not rate_limit'\"\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "scope"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "route",
+      "tests"
+    ],
+    "findings": [
+      "fail scope.outside",
+      "warn route.undeclared_dimensions",
+      "warn tests.setup_unfrozen"
+    ]
+  }
+}

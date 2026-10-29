@@ -1,0 +1,43 @@
+{
+  "summary": "A Spec-backed normal change with no risk dimension that also edits .worktreeinclude, a protected path, is raised to major and waits for the specialist approval. Only the protected path made it major, so it runs nothing new to watch and needs no observe block.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "scope_exclude_paths: [.worktreeinclude]\nowners:\n"
+    },
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": ".worktreeinclude",
+        "previous_path": null,
+        "additions": 1,
+        "deletions": 0
+      }
+    },
+    {
+      "op": "replace_text",
+      "path": "/head_files/specs~1SPEC-220.md",
+      "old": "  dimensions: [availability]\n",
+      "new": "  dimensions: []\n"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval",
+      "specialist_approval"
+    ],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "pending spec_approval.missing",
+      "pending specialist_approval.missing",
+      "warn route.raised_to_major"
+    ]
+  }
+}

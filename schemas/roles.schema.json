@@ -1,0 +1,1782 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:roles",
+  "title": "aidd-team roles",
+  "description": "The delivery team's roles, the loop they follow, the handoffs between them, and the domain packs they load. The guard reads `writes` and `in_scope`; `aidd gen-docs` renders the rest into the agent files, the docs, and one skill per domain pack.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "description",
+    "order",
+    "loop",
+    "roles",
+    "domains",
+    "standards",
+    "practices"
+  ],
+  "$defs": {
+    "step": {
+      "enum": [
+        "Plan",
+        "Specify",
+        "Implement",
+        "Verify",
+        "Review",
+        "Publish",
+        "Roll out",
+        "Learn"
+      ],
+      "description": "A loop step (docs/METHOD.md §5). Spec approval and Merge approval are the human approvals between steps, not steps."
+    },
+    "loop_point": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/step"
+        },
+        {
+          "enum": [
+            "Spec approval",
+            "Merge approval"
+          ]
+        }
+      ],
+      "description": "A loop step, or one of the two human approvals between steps."
+    },
+    "lane": {
+      "$ref": "urn:aidd:1:common#/$defs/lane"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "standard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "description": "One standard, practice, or regulation, kept once in the top-level `standards` object. `edition` names the version or year of a document and then `source` is required. `checked` is when someone last confirmed the entry against its source, and then `source`, `checked_by`, and `evidence` (what they read, where) are required, so a date is never a bare assertion. A practice with no versioned document or canonical page has no source to check against: it carries `reviewed` instead of `checked`, and its context in `notes`. Every entry has exactly one of the two dates; `aidd eval standards` fails on a checked entry without its source and evidence, and on either date older than its review cadence: `review_every_days` when the entry sets it, else 90 days for an emerging entry and 365 for an established one; and on an entry whose `review_due` has passed.",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/text"
+        },
+        "edition": {
+          "$ref": "#/$defs/text",
+          "description": "The version, year, or release applied, and nothing else: `5.0.0`, `ISO/IEC 25010:2023`, `Regulation (EU) 2016/679`. Its history (what it replaced, a correction, the next draft) goes in `notes`, which a pack never renders."
+        },
+        "published": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$",
+          "description": "When that edition was published (YYYY-MM-DD, or YYYY-MM when the source gives only a month)."
+        },
+        "notes": {
+          "$ref": "#/$defs/text",
+          "description": "Context for a person: application dates, the next draft, a caveat. Machine-checked only for a renumbering: `renumbered from <year>` followed by `<OLD> to <NEW>` pairs (`LLM06 to LLM03`) makes `aidd eval standards` fail on any other entry whose source or evidence URL still cites an old ID of that year (`llm062025`)."
+        },
+        "source": {
+          "type": "string",
+          "pattern": "^https://",
+          "description": "Where the current edition is published."
+        },
+        "maturity": {
+          "$ref": "#/$defs/maturity"
+        },
+        "checked": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date",
+          "description": "The date the edition was last confirmed current and its source found neither archived nor deprecated (YYYY-MM-DD)."
+        },
+        "reviewed": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date",
+          "description": "For a practice with no source to check: when someone last re-read the practice as the registry states it and found it still how the discipline works (YYYY-MM-DD). Held to the same year as `checked`."
+        },
+        "checked_by": {
+          "$ref": "#/$defs/text",
+          "description": "Who confirmed the edition on `checked`: a person's handle, or `agent:<harness>/<model>` for an agent's check."
+        },
+        "review_every_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1825,
+          "description": "How many days after `checked` (or `reviewed`) the entry is due for review again. Absent: 90 for an emerging entry, 365 for an established one. Set it shorter for a source that changes often."
+        },
+        "review_due": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "A dated obligation's next review: the day by which someone re-reads the source because it changes on a known calendar (a store's yearly minimum SDK or target API level). `aidd eval standards` fails once it has passed; the reviewer sets the next one."
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "edition"
+            ]
+          },
+          "then": {
+            "required": [
+              "source"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "checked_by"
+            ]
+          },
+          "then": {
+            "required": [
+              "evidence"
+            ]
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "required": [
+                "checked"
+              ]
+            },
+            {
+              "required": [
+                "reviewed"
+              ]
+            }
+          ]
+        },
+        {
+          "if": {
+            "required": [
+              "checked"
+            ]
+          },
+          "then": {
+            "required": [
+              "source",
+              "checked_by",
+              "evidence"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "reviewed"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "edition"
+                  ]
+                },
+                {
+                  "required": [
+                    "checked_by"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "quote",
+        "retrieved"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^https://",
+          "description": "The page that was read: a document or release page, never a bare homepage (the URL has a path)."
+        },
+        "quote": {
+          "$ref": "#/$defs/text",
+          "description": "One full sentence copied from that page (eight words or more, ending in `.`, `!`, or `?`), never the page title, that shows the edition or date; for an extension, it may instead be the line that shows the pinned release, tag, commit, or endpoint. Anything less proves only that a page loaded, so `aidd eval standards` counts the entry as unconfirmed."
+        },
+        "retrieved": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date"
+        }
+      },
+      "description": "What the checker saw. Required with `checked_by`, so a date is never a bare assertion. Only evidence that meets `url` and `quote` confirms a date on its own; the other entries sharing one `checked` date are a bulk edit, and more than 20 of them fail `aidd eval standards`."
+    },
+    "maturity": {
+      "enum": [
+        "established",
+        "emerging"
+      ],
+      "description": "established (the default when absent): years of wide adoption under an authoritative maintainer. emerging: a draft, a first edition, a pre-1.0 release, a community-maintained extension, or a practice adopted by few; applied only when the change clearly needs it, and said in the Spec."
+    },
+    "open_choices": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "description": "The decisions this pack or practice skill leaves to the team, each with aidd's default answer. An opinionated standard fills one (`fills: [\"<pack or skill>:<id>\"]`), so it cannot overlap the pack. `aidd gen-docs` renders them into the skill, or into its `references/open-choices.md` when the skill is preloaded or near its cap. The method (routes, approvals, the gate, Conventional Commits, `Assisted-by:`) is never an open choice.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "question",
+          "default",
+          "options"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "Stable within the pack or skill, such as `linter`."
+          },
+          "question": {
+            "$ref": "#/$defs/text",
+            "description": "The decision, as a question."
+          },
+          "default": {
+            "$ref": "#/$defs/text",
+            "description": "aidd's default answer, used until a standard fills the choice."
+          },
+          "options": {
+            "type": "array",
+            "minItems": 2,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/text"
+            },
+            "description": "Valid answers by name. A library standard may pick another, with its why."
+          }
+        }
+      }
+    },
+    "standard_ref": {
+      "description": "A standard a role or pack applies: the id of an entry in `standards`, or the id with `as`, the narrower way this role applies it.",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "as"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            },
+            "as": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        }
+      ]
+    },
+    "contract_item": {
+      "description": "One loop-contract rule: its text, or the text with `applies_to`, the roles or loop steps it binds. A rule without `applies_to` binds every role; with it, only a role named there or working in a step named there, and only those roles' agent files carry it.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/text"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "rule",
+            "applies_to"
+          ],
+          "properties": {
+            "rule": {
+              "$ref": "#/$defs/text"
+            },
+            "applies_to": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/step"
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z-]*$"
+                  }
+                ]
+              },
+              "description": "Role keys or loop steps."
+            }
+          }
+        }
+      ]
+    },
+    "license_allowed": {
+      "enum": [
+        "0BSD",
+        "Apache-2.0",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "ISC",
+        "MIT"
+      ],
+      "description": "Licenses compatible with shipping inside an Apache-2.0 project and with commercial use."
+    },
+    "step_reads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "read",
+          "why"
+        ],
+        "properties": {
+          "read": {
+            "enum": [
+              "tests",
+              "acceptance",
+              "test_command",
+              "evidence",
+              "diff",
+              "gate_command",
+              "threat_models"
+            ],
+            "description": "What the pack names: the test files, the Acceptance, the `aidd test` command, the evidence, the diff stat command, the `aidd gate` command, or the linked threat models."
+          },
+          "why": {
+            "type": "string",
+            "minLength": 1,
+            "description": "One line: why the step reads it."
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$parts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+\\.json$"
+      },
+      "description": "The keys held in their own files beside this one, each file holding that key's value: `standards` in industry-standards.json, `domains` in packs.json. aidd reads the registry as one object, so this schema validates it with the parts in place."
+    },
+    "description": {
+      "$ref": "#/$defs/text"
+    },
+    "order": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z-]*$"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Role keys in the order docs list them. Every key in `roles` appears once."
+    },
+    "loop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "steps",
+        "entry",
+        "lanes",
+        "contract",
+        "shared_rules",
+        "handoffs",
+        "flows",
+        "decision_rights",
+        "loops",
+        "artifacts",
+        "documents",
+        "lead"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "description": "The loop contract's version (semver). A change that removes, adds, or reorders a step, an approval, or a lane is a major change and bumps the major number; a rewording that changes no duty bumps the patch. Gate events record it as `loop_version`."
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "entry": {
+          "$ref": "#/$defs/text",
+          "description": "How a change's route, and so its lane, is set and checked before the first edit (docs/METHOD.md §5 and §6)."
+        },
+        "lanes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fast",
+            "spec",
+            "emergency"
+          ],
+          "properties": {
+            "fast": {
+              "$ref": "#/$defs/text"
+            },
+            "spec": {
+              "$ref": "#/$defs/text"
+            },
+            "emergency": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        },
+        "contract": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contract_item"
+          },
+          "minItems": 1,
+          "description": "Rules the roles keep, each rendered into the agent file of every role it applies to (every role, unless the rule names `applies_to`)."
+        },
+        "shared_rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contract_item"
+          },
+          "minItems": 1,
+          "maxItems": 10,
+          "description": "The aidd skill's hard rules in brief, which every agent file carries so a role that does not preload the skill still keeps them: each binds every role, or with `applies_to` only the roles or steps it names (the write-area rule for the roles that write, the retry rule for Implement)."
+        },
+        "documents": {
+          "type": "object",
+          "description": "Who writes each document kind `aidd new` makes, whether Spec approval freezes it, and where it lives: one owner per kind. The owner's write area holds the kind's `{docs:<kind>}` placeholder and its home (except a kind `changed_only_in_a_task`, which only a Task's scope opens), no other role's holds that placeholder, and `living` matches the kinds `aidd new` links with `frozen: false` (a test checks each).",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "owner",
+              "lifecycle",
+              "home",
+              "scope"
+            ],
+            "properties": {
+              "owner": {
+                "type": "string",
+                "description": "The role that writes and keeps it: a key of `roles`."
+              },
+              "lifecycle": {
+                "enum": [
+                  "frozen",
+                  "living"
+                ],
+                "description": "frozen: approved with the Spec by hash and never edited after; living: revised by later changes and only checked to exist."
+              },
+              "home": {
+                "$ref": "#/$defs/text",
+                "description": "Where `aidd new` writes it."
+              },
+              "scope": {
+                "enum": [
+                  "product",
+                  "change"
+                ],
+                "description": "product: one body of work the role keeps across changes, such as the architecture overview or the product prototype; change: a file that belongs to one Spec."
+              },
+              "feeds": {
+                "type": "string",
+                "description": "For a change-scoped kind, the product-level kind it updates: when a change alters this kind's files and leaves that kind's files as they were, `aidd validate` warns, so the same change brings the product-level work in line."
+              },
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "The files that make the kind up, as globs from the repository's top: `{docs}` is the docs folder, `{specs}` the Specs folder, and `<ID>` the Spec's id. The same-change check reads them."
+              },
+              "changed_only_in_a_task": {
+                "type": "boolean",
+                "description": "For a product-level kind the product ships, such as the design tokens: its files change only inside a Task's scope, written after Spec approval by the Task's assignee, such as the owner when a person assigns it by name. Its owner decides what it says, and never edits it as living work while a Spec is a draft."
+              },
+              "opened_by": {
+                "type": "string",
+                "description": "For a product-level kind with a page, the command that writes and opens it, as `aidd list --json` names it under `living`, such as `aidd prototype`."
+              },
+              "read_by": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true,
+                "description": "Besides its owner, the roles `aidd context` hands this product-level work to, so a role that builds or checks against it reads it: keys of `roles`."
+              }
+            }
+          }
+        },
+        "artifacts": {
+          "type": "object",
+          "description": "What crosses between roles, by id: each handoff names the artifacts it hands on, and each role the artifacts it reads. `kind` says where it lives: a section of the Spec, a path, a PR/MR comment the author posts, or a human or platform source no role writes.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "where",
+              "kind"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/text",
+                "description": "A short name, as an agent file lists it."
+              },
+              "where": {
+                "$ref": "#/$defs/text",
+                "description": "The Spec section, the path, or the comment it lives in."
+              },
+              "kind": {
+                "enum": [
+                  "spec-section",
+                  "path",
+                  "pr-comment",
+                  "human",
+                  "platform"
+                ]
+              }
+            }
+          }
+        },
+        "handoffs": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Who hands what to whom: a file (`through`) plus the handoff note the contract requires (`note` names what the note adds). `to` may name a human party, such as the author at a gate.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "from",
+              "to",
+              "through",
+              "note",
+              "artifact"
+            ],
+            "properties": {
+              "from": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z-]*$"
+                },
+                "description": "Role keys."
+              },
+              "to": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/text"
+                },
+                "description": "Role keys, or a human party."
+              },
+              "through": {
+                "$ref": "#/$defs/text",
+                "description": "The file or output the next party reads."
+              },
+              "artifact": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z-]*$"
+                },
+                "description": "The ids in `loop.artifacts` this handoff hands on: a Spec section, a path, or a PR/MR comment, never text returned in chat alone."
+              },
+              "note": {
+                "$ref": "#/$defs/text",
+                "description": "What the handoff note adds beyond the file."
+              }
+            }
+          }
+        },
+        "step_reads": {
+          "type": "object",
+          "description": "What each loop step reads beyond the Spec summary, its Tasks, and its linked docs, with why: `aidd context` adds them for the steps a step code's flows run, or with no step code, for the role's own steps. One owner, so the pack and the docs never disagree.",
+          "additionalProperties": false,
+          "properties": {
+            "Plan": {
+              "$ref": "#/$defs/step_reads"
+            },
+            "Specify": {
+              "$ref": "#/$defs/step_reads"
+            },
+            "Implement": {
+              "$ref": "#/$defs/step_reads"
+            },
+            "Verify": {
+              "$ref": "#/$defs/step_reads"
+            },
+            "Review": {
+              "$ref": "#/$defs/step_reads"
+            },
+            "Publish": {
+              "$ref": "#/$defs/step_reads"
+            },
+            "Roll out": {
+              "$ref": "#/$defs/step_reads"
+            },
+            "Learn": {
+              "$ref": "#/$defs/step_reads"
+            }
+          }
+        },
+        "flows": {
+          "type": "array",
+          "minItems": 1,
+          "description": "One entry per team command: which roles it runs, in which order (each inner list runs in parallel), and where it stops for a human. The commands are tested against it.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "command",
+              "when",
+              "steps",
+              "lanes",
+              "runs",
+              "stops_at",
+              "starts_on"
+            ],
+            "properties": {
+              "command": {
+                "type": "string",
+                "pattern": "^[a-z][a-z-]*$"
+              },
+              "when": {
+                "$ref": "#/$defs/text",
+                "description": "When a person picks this command: one sentence of at most 25 words, in plain words, with no full stop. `docs/TEAM.md` lists it in the command table."
+              },
+              "steps": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/step"
+                }
+              },
+              "lanes": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/lane"
+                }
+              },
+              "runs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z-]*$"
+                  }
+                },
+                "description": "Groups in order; the roles of one group run in parallel."
+              },
+              "stops_at": {
+                "$ref": "#/$defs/text"
+              },
+              "starts_on": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z_]+(\\.[a-z_]+)*$"
+                },
+                "description": "The step codes this flow starts on when `aidd autopilot next` picks the next step: each agent step code names exactly one flow, and a person's step names none. Empty: a person starts the flow by name."
+              }
+            }
+          }
+        },
+        "decision_rights": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "loop",
+              "decision",
+              "decided_by",
+              "evidence",
+              "undo",
+              "escalates_when"
+            ],
+            "properties": {
+              "loop": {
+                "enum": [
+                  "outer",
+                  "inner"
+                ],
+                "description": "The loop the decision belongs to: a person's (outer) or the team's (inner)."
+              },
+              "decision": {
+                "$ref": "#/$defs/text",
+                "description": "What is decided."
+              },
+              "decided_by": {
+                "$ref": "#/$defs/text",
+                "description": "Who decides it. An inner decision is never an approval."
+              },
+              "evidence": {
+                "$ref": "#/$defs/text",
+                "description": "What the decision rests on."
+              },
+              "undo": {
+                "$ref": "#/$defs/text",
+                "description": "How it is taken back."
+              },
+              "escalates_when": {
+                "$ref": "#/$defs/text",
+                "description": "When an inner decision goes to a person instead; a dash for a person's own."
+              }
+            }
+          },
+          "description": "Who decides what, in the order of the loop: the person's decisions (the outer loop), then the team's (the inner loop), which rest on evidence alone and never on another agent's approval."
+        },
+        "loops": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "outer",
+            "inner",
+            "boundary",
+            "outer_steps",
+            "inner_steps",
+            "gates",
+            "feedback"
+          ],
+          "description": "The two loops the method runs. The inner loop is autonomous agentic execution: an agent iterates inside a frozen contract until it is green or blocked. The outer loop is human strategy and governance: it decides what is worth doing, whether work may start, whether it may merge, and whether the process changes. Every step belongs to exactly one of them, and the gates are the only points where control passes between the two.",
+          "properties": {
+            "outer": {
+              "$ref": "#/$defs/text",
+              "description": "What the outer loop is and who runs it."
+            },
+            "inner": {
+              "$ref": "#/$defs/text",
+              "description": "What the inner loop is and what bounds it."
+            },
+            "boundary": {
+              "$ref": "#/$defs/text",
+              "description": "What crosses between the loops, and what never does."
+            },
+            "outer_steps": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/step"
+              },
+              "description": "The loop steps a human owns the decision for."
+            },
+            "inner_steps": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/step"
+              },
+              "description": "The loop steps an agent executes autonomously."
+            },
+            "gates": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/text"
+              },
+              "description": "The human approvals between the two loops, in order."
+            },
+            "feedback": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "from",
+                  "to",
+                  "when",
+                  "note"
+                ],
+                "properties": {
+                  "from": {
+                    "$ref": "#/$defs/loop_point"
+                  },
+                  "to": {
+                    "$ref": "#/$defs/loop_point"
+                  },
+                  "when": {
+                    "$ref": "#/$defs/text",
+                    "description": "The edge's label in the loop diagram: what sends the work back."
+                  },
+                  "note": {
+                    "$ref": "#/$defs/text",
+                    "description": "What happens on that path, in a sentence."
+                  }
+                }
+              },
+              "description": "The paths on which a human decision or a production signal sends work back to an earlier point. The loop diagram draws them as dashed edges."
+            }
+          }
+        },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "standard",
+            "processes"
+          ],
+          "description": "Every process of a software life cycle standard, and what covers it: the agents alone, the agents with a person deciding, or humans.",
+          "properties": {
+            "standard": {
+              "type": "string",
+              "minLength": 1
+            },
+            "processes": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "group",
+                  "process",
+                  "coverage",
+                  "by",
+                  "how"
+                ],
+                "properties": {
+                  "group": {
+                    "type": "string"
+                  },
+                  "process": {
+                    "type": "string"
+                  },
+                  "coverage": {
+                    "enum": [
+                      "agents",
+                      "agents, a person decides",
+                      "humans"
+                    ]
+                  },
+                  "by": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "how": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "lead": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/text"
+          },
+          "description": "Rules for the session that runs a team command (the lead): it routes, hands over file paths, launches a group at once, names each role's model, starts fresh, and revises in one write. `aidd gen-docs` renders them into every command as the `roles:lead` block, where MODELS becomes each tier's model per harness."
+        },
+        "autopilot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command",
+            "when",
+            "stops_at"
+          ],
+          "properties": {
+            "command": {
+              "const": "autopilot"
+            },
+            "when": {
+              "$ref": "#/$defs/text",
+              "description": "When a person picks it: one sentence of at most 25 words, in plain words, with no full stop."
+            },
+            "stops_at": {
+              "$ref": "#/$defs/text"
+            }
+          },
+          "description": "The `/aidd-team:autopilot` command: no flow of its own, it runs the flow `aidd autopilot next` names each turn and stops at every person's decision. `docs/TEAM.md` lists it after the flows."
+        }
+      }
+    },
+    "standards": {
+      "type": "object",
+      "description": "Every standard the team applies, once, keyed by id. Roles, domain packs, and practice skills reference the ids, so one edition and one checked date serve them all.",
+      "additionalProperties": {
+        "$ref": "#/$defs/standard"
+      }
+    },
+    "roles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "steps",
+          "lanes",
+          "starts_when",
+          "done_when",
+          "industry",
+          "does",
+          "standards",
+          "writes",
+          "in_scope",
+          "hands_off",
+          "tier",
+          "extends",
+          "practices",
+          "tier_reason",
+          "preload",
+          "reads",
+          "max_turns"
+        ],
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/step"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "lanes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/lane"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "starts_when": {
+            "$ref": "#/$defs/text",
+            "description": "When the role may start; before it holds, the role stops and hands back."
+          },
+          "done_when": {
+            "$ref": "#/$defs/text",
+            "description": "The role's exit condition."
+          },
+          "industry": {
+            "$ref": "#/$defs/text",
+            "description": "The job titles the role maps to."
+          },
+          "does": {
+            "$ref": "#/$defs/text"
+          },
+          "standards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/standard_ref"
+            },
+            "minItems": 5,
+            "description": "Industry standards the role applies, by id in `standards`."
+          },
+          "reads": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z-]*$"
+            },
+            "description": "The artifacts the role acts on, by id in `loop.artifacts`. Each is handed to it by another role or comes from a person or the platform, and every handoff's artifacts are read by each role it goes to."
+          },
+          "writes": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "{specs_dir}",
+                    "{spec}",
+                    "{tests}",
+                    "{design}",
+                    "{explorations}",
+                    "{docs}",
+                    "{docs:tech-spec}",
+                    "{docs:test-plan}",
+                    "{docs:design-spec}",
+                    "{docs:adr}",
+                    "{docs:threat-model}",
+                    "{docs:authz}",
+                    "{docs:api}",
+                    "{docs:runbook}",
+                    "{docs:slo}",
+                    "{docs:compliance}",
+                    "{docs:analytics}",
+                    "{docs:migration}",
+                    "{docs:acceptance}",
+                    "{docs:data-map}",
+                    "{docs:vendors}",
+                    "{docs:other}",
+                    "{scope}",
+                    "{scope:assigned}",
+                    "{living}"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ]
+            },
+            "description": "The role's write area: placeholders or globs. `{docs:<kind>}` is the frozen docs of that kind the active Spec links: the role writes them until Spec approval, and nobody after. The guard checks it, as a guide: it denies an edit or an obvious shell write outside the area, and the gate's scope rule decides. Empty means read-only."
+          },
+          "hands_off": {
+            "$ref": "#/$defs/text"
+          },
+          "in_scope": {
+            "type": "boolean",
+            "description": "True for roles whose edits are part of the change: they also stay inside the scope of their Tasks."
+          },
+          "toolset_default": {
+            "type": "string",
+            "minLength": 1,
+            "description": "What the role uses when the project enabled none of its toolsets."
+          },
+          "toolsets": {
+            "type": "object",
+            "description": "Named bundles of this role's `extends`, each a way of working a person picks by enabling its extensions in the project (`aidd extensions suggest` lists them). The role uses what the project enabled, and with none, its own default. No config key picks one, so a role's tools come from one place.",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "uses",
+                "extensions"
+              ],
+              "properties": {
+                "uses": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "What the role works with in this toolset, in a sentence."
+                },
+                "extensions": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": "Names of this role's `extends` the toolset installs."
+                },
+                "test_command": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "The Spec test command the toolset adds, the command alone; `uses` says when it passes."
+                }
+              }
+            }
+          },
+          "extends": {
+            "type": "array",
+            "description": "Skills, plugins, MCP servers, or tools that extend the role, as starting points a team verifies, pins, and installs through a change. Each is optional and used only when the project already uses it. The list is open: any capability can be added the same way, with its `tier`.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "kind",
+                "tier",
+                "source",
+                "capabilities",
+                "adds",
+                "checked"
+              ],
+              "properties": {
+                "name": {
+                  "$ref": "#/$defs/text"
+                },
+                "kind": {
+                  "enum": [
+                    "skill",
+                    "plugin",
+                    "mcp",
+                    "tool",
+                    "harness"
+                  ]
+                },
+                "tier": {
+                  "enum": [
+                    "official",
+                    "vendor",
+                    "maintainer",
+                    "community"
+                  ],
+                  "description": "Who stands behind it. official: made by the harness vendor itself, so its source is in the vendor's own repository (Anthropic's github.com/anthropics/ or code.claude.com for Claude Code). Being listed in the vendor's official directory (`listed_in`) is not the same: a third-party entry listed there keeps its maker's tier, vendor or community, and records the listing and the directory's pinned commit. vendor: the service's own connector (GitHub's GitHub MCP). maintainer: an established tool from its own project (Semgrep, Trivy, OWASP ZAP, Vale). community: anything else, which must be `emerging`, carry an allowed `license`, and be pinned."
+                },
+                "source": {
+                  "type": "string",
+                  "pattern": "^https://"
+                },
+                "maturity": {
+                  "$ref": "#/$defs/maturity"
+                },
+                "license": {
+                  "type": "string",
+                  "pattern": "^(?:[A-Za-z0-9.+-]+|Proprietary(?: \\([a-z -]+\\))?)$",
+                  "description": "The SPDX license identifier of the pinned release, or `Proprietary` for a hosted service or closed code (`Proprietary (source-available)` when the source is readable but not licensed for reuse). Required for a tool, a plugin, or a skill; `aidd eval standards` fails without it."
+                },
+                "license_note": {
+                  "$ref": "#/$defs/text",
+                  "description": "A term a team must know before installing: a separate license for bundled content, a restriction on redistribution, or a source-available license that is not open source."
+                },
+                "pin": {
+                  "$ref": "#/$defs/text",
+                  "description": "The release, tag, or commit a team installs, so an update is a change a person reviews; a tag resolves to its commit. A hosted MCP server that only its vendor runs is pinned as `vendor-hosted <URL>`, the endpoint a team connects to. Required for a tool, a plugin, or a skill; `aidd eval standards` fails without it."
+                },
+                "install": {
+                  "type": "string",
+                  "pattern": "^(?:claude plugin install [a-z0-9][a-z0-9-]*@[a-z0-9][a-z0-9-]*|claude mcp add [a-z0-9][a-z0-9-]* -- npx -y @[a-z0-9-]+/[a-z0-9-]+@[0-9][0-9A-Za-z.-]*(?: --[a-z][a-z-]*(?: \"[-A-Za-z0-9.:;*\\[\\]]+\")?)*)$",
+                  "description": "The line a person runs to install it, from its marketplace (`claude plugin install <plugin>@<marketplace>`) or as an MCP server at its pin (`claude mcp add <name> -- npx -y <package>@<version>`, with any flags, such as the origins a browser server may reach), as `aidd extensions suggest` prints it. aidd never runs it: an install changes what the agents can do, so a person decides it, and the pin is the release they review."
+                },
+                "suggest_when": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "stacks"
+                  ],
+                  "properties": {
+                    "stacks": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": "The stacks `aidd init --dry-run` detects (`Python`, `Go`, `JavaScript/TypeScript`, ...) that make it fit."
+                    }
+                  },
+                  "description": "When `aidd extensions suggest` names it: only in a repository with one of these stacks. Without it, any repository."
+                },
+                "listed_in": {
+                  "type": "string",
+                  "pattern": "^https://",
+                  "description": "The harness vendor's official directory that lists it and pins the commit named in `pin`. A listing says the vendor reviewed and pinned it, not that the vendor made it."
+                },
+                "adds": {
+                  "$ref": "#/$defs/text",
+                  "description": "What the role can do with it."
+                },
+                "capabilities": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "enum": [
+                      "network",
+                      "writes_repo",
+                      "runs_commands",
+                      "reads_secrets",
+                      "telemetry"
+                    ]
+                  },
+                  "description": "What the extension itself can touch, as its own source and docs show, so a team sees it before installing: `network` makes network calls beyond the model API (fetches, remote MCP servers, hosted services, a browser loading pages); `writes_repo` can create, modify, or delete files in the repository, in the working tree or by committing or opening pull requests through an API; `runs_commands` executes shell commands or starts other programs (hooks, scripts, package managers, test runners, a browser, commands in a cluster); `reads_secrets` needs a credential (an API key, a token, an OAuth grant, cloud credentials) or can read secret material; `telemetry` sends usage data to its vendor beyond the requests the work needs, and `telemetry_opt_out` then says whether it can be turned off. Empty means read-only: a skill that only guides the agent, or a tool that only reads. What the agent does with its own tools while following a skill is not the skill's capability. When the source does not settle one, it is listed: the superset is the safe reading."
+                },
+                "telemetry_opt_out": {
+                  "type": "boolean",
+                  "description": "Required with `telemetry`, and only with it: whether a team can turn the telemetry off (a flag, a setting, or an environment variable the extension's docs name)."
+                },
+                "checked": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                  "format": "date",
+                  "description": "When someone last confirmed the source is current; `aidd eval standards` fails on one past its review cadence (90 days for an emerging entry, 365 for an established one)."
+                },
+                "evidence": {
+                  "$ref": "#/$defs/evidence"
+                },
+                "tool_patterns": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^mcp__[a-z0-9]+(?:[_-][a-z0-9]+)*__\\*$"
+                  },
+                  "description": "For an MCP server: the agent file's `tools:` patterns that grant its tools, the plugin's (`mcp__plugin_<plugin>_<server>__*`) and a project server's (`mcp__<server>__*`). A role's agent file gets them only when one of its toolsets names the extension."
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "required": [
+                      "tier"
+                    ],
+                    "properties": {
+                      "tier": {
+                        "const": "community"
+                      }
+                    }
+                  },
+                  "then": {
+                    "required": [
+                      "maturity",
+                      "license",
+                      "pin"
+                    ],
+                    "properties": {
+                      "maturity": {
+                        "const": "emerging"
+                      },
+                      "license": {
+                        "$ref": "#/$defs/license_allowed"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "tier"
+                    ],
+                    "properties": {
+                      "tier": {
+                        "const": "official"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "source": {
+                        "pattern": "^https://(github\\.com/anthropics/|code\\.claude\\.com/)"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "capabilities"
+                    ],
+                    "properties": {
+                      "capabilities": {
+                        "not": {
+                          "items": {
+                            "not": {
+                              "const": "telemetry"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "required": [
+                      "telemetry_opt_out"
+                    ]
+                  },
+                  "else": {
+                    "not": {
+                      "required": [
+                        "telemetry_opt_out"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "kind"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "tool",
+                          "plugin",
+                          "skill"
+                        ]
+                      }
+                    }
+                  },
+                  "then": {
+                    "required": [
+                      "license",
+                      "pin"
+                    ]
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "listed_in"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "pin"
+                    ],
+                    "properties": {
+                      "listed_in": {
+                        "const": "https://github.com/anthropics/claude-plugins-official"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "tool_patterns"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "kind": {
+                        "const": "mcp"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "practices": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z-]*$"
+            },
+            "uniqueItems": true,
+            "description": "Practice skills the role loads for its kind of work (`plugins/aidd-team/skills/<name>`), hand-written playbooks with a checked date; a Task names up to two of them in `skills`."
+          },
+          "preload": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z-]*$"
+            },
+            "uniqueItems": true,
+            "maxItems": 2,
+            "description": "Practice skills or domain packs the role uses on most runs, preloaded into its agent at startup through the agent file's `skills:` list (after the aidd skill, which only a role that writes a Spec or tests preloads). Each is one of the role's `practices` or a domain pack's `slug`. At most two, since a preloaded skill's whole text enters every run's context; a Task loads the rest by name with the `Skill` tool."
+          },
+          "tier": {
+            "enum": [
+              "reasoning",
+              "execution"
+            ],
+            "description": "What the work needs, harness-neutral. There are two tiers. `reasoning` decides or judges where a mistake is invisible to tests and no human check follows. It takes the strongest model the harness offers. `execution`, the default, builds, proposes, or runs checks where the tests, the gate, or a human catch the mistake. It takes a mid-size model. A role moves between tiers only with a `tier_reason` that says why, and on eval evidence. The Claude Code plugin maps the tier to its own `model:` frontmatter. `agents.models` can set `inherit` (the session's model), or any model by name, per tier or role. Every other harness reads the tier and picks."
+          },
+          "tier_reason": {
+            "$ref": "#/$defs/text",
+            "description": "Why this role sits in this tier, in one sentence: what its mistakes cost and what catches them."
+          },
+          "preload_core": {
+            "const": false,
+            "description": "Set to false for a role that writes a Spec or tests but loads the aidd skill by name when its step needs it, because its other steps do not. The role then keeps the aidd skill out of its preload list."
+          },
+          "writes_unfrozen": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "{tests}",
+                "{design}"
+              ]
+            },
+            "uniqueItems": true,
+            "description": "Extra areas the role writes on the fast and emergency lanes, where the verifier writes no tests first and nothing is frozen: the developer writes the regression test with the fix. On the spec lane Spec approval freezes them and they stay another role's."
+          },
+          "max_turns": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 200,
+            "description": "The most agentic turns one run of the role takes before it stops, written into the Claude Code agent file as `maxTurns`; a run that needs more hands back through its handoff note. Builders get the most."
+          },
+          "fallback": {
+            "type": "string",
+            "pattern": "^[a-z][a-z-]*$",
+            "description": "The role that does this role's work where this one is not installed (its agent file is absent): `aidd owners` says so, and the fallback's agent file names the work it covers."
+          }
+        }
+      }
+    },
+    "domains": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "slug",
+          "kind",
+          "signal",
+          "scope",
+          "standards",
+          "checklist",
+          "tests",
+          "triggers"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/$defs/text"
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z][a-z-]*$",
+            "description": "The domain pack's skill name: `aidd-team:<slug>`."
+          },
+          "kind": {
+            "enum": [
+              "business",
+              "technology"
+            ],
+            "description": "business: a domain of the product's users (payments, health, commerce), whose words and rules a team gets wrong without an expert; it carries `terms` and `invariants` (`aidd eval packs`). technology: a kind of software (web, mobile, cloud), where the standards and the checklist are enough."
+          },
+          "terms": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "term",
+                "meaning"
+              ],
+              "properties": {
+                "term": {
+                  "$ref": "#/$defs/text"
+                },
+                "meaning": {
+                  "$ref": "#/$defs/text",
+                  "description": "One sentence, and the word it is often confused with when there is one."
+                }
+              }
+            },
+            "description": "The domain's words a change most often uses wrongly, for the `## Terms` section: the domain expert checks a plan's and a Spec's words against them."
+          },
+          "invariants": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "holds",
+                "missed"
+              ],
+              "properties": {
+                "holds": {
+                  "$ref": "#/$defs/text",
+                  "description": "What is always true in the domain, whatever the product does."
+                },
+                "missed": {
+                  "$ref": "#/$defs/text",
+                  "description": "The case a plan or a Spec most often leaves out, that breaks it."
+                }
+              }
+            },
+            "description": "The `## Invariants and missed cases` section: what the domain expert's perspective card checks a plan and a Spec against."
+          },
+          "open_choices": {
+            "$ref": "#/$defs/open_choices"
+          },
+          "signal": {
+            "$ref": "#/$defs/text"
+          },
+          "triggers": {
+            "type": "array",
+            "minItems": 5,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/text"
+            },
+            "description": "Concrete nouns a change names when it touches the domain (FHIR, PHI, card data, Terraform). The pack's description leads with them, since a harness picks a skill by its description and truncates a long one."
+          },
+          "scope": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "not_when",
+              "neighbours"
+            ],
+            "properties": {
+              "not_when": {
+                "$ref": "#/$defs/text",
+                "description": "When the pack does not apply, though its nouns appear."
+              },
+              "neighbours": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z-]*$",
+                  "description": "A pack slug or a practice skill name, without the `aidd-team:` prefix."
+                },
+                "description": "The packs and practice skills a change here usually loads too."
+              }
+            },
+            "description": "The Scope section with `signal`: applies when, not when, and the neighbours, 60 words at most (`aidd eval packs`)."
+          },
+          "standards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/standard_ref"
+            },
+            "minItems": 1,
+            "maxItems": 10,
+            "description": "At most ten, each cited by a checklist row or a test (`aidd eval packs`)."
+          },
+          "obligations": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "date",
+                "what",
+                "cites"
+              ],
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                  "format": "date"
+                },
+                "what": {
+                  "$ref": "#/$defs/text"
+                },
+                "cites": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9-]*$"
+                  },
+                  "description": "The ids of the pack's own standards this row applies; `aidd eval packs` fails on an id the pack does not list, and on a pack standard no row or test cites."
+                }
+              }
+            },
+            "description": "Dated obligations, for a regulated or platform pack only: the date a duty applies from, or a deadline, from a standard the pack lists."
+          },
+          "defaults": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "description": "The product defaults (`project.defaults` keys) a change in this domain builds; rendered as one checklist row that points to `aidd-team:product-defaults`, which owns them."
+          },
+          "checklist": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "step",
+                "item",
+                "cites"
+              ],
+              "properties": {
+                "step": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/step"
+                    },
+                    {
+                      "const": "Entry"
+                    }
+                  ],
+                  "description": "A loop step, or `Entry`: before the first edit, when `aidd gate --paths` gives the route and its lane."
+                },
+                "item": {
+                  "$ref": "#/$defs/text"
+                },
+                "cites": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9-]*$"
+                  },
+                  "description": "The ids of the pack's own standards this row applies; `aidd eval packs` fails on an id the pack does not list, and on a pack standard no row or test cites."
+                }
+              }
+            },
+            "description": "What every role checks in this domain, before the first edit and by loop step: one to four rows a step, each citing a standard. The product defaults are one generated row (`defaults`), never a row each."
+          },
+          "tests": {
+            "type": "array",
+            "minItems": 0,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "proves",
+                "how"
+              ],
+              "properties": {
+                "name": {
+                  "$ref": "#/$defs/text"
+                },
+                "proves": {
+                  "$ref": "#/$defs/text"
+                },
+                "how": {
+                  "$ref": "#/$defs/text"
+                },
+                "maturity": {
+                  "$ref": "#/$defs/maturity"
+                },
+                "cites": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9-]*$"
+                  },
+                  "description": "The ids of the pack's own standards this test proves."
+                }
+              }
+            },
+            "description": "The pack's own test commands for the Spec's `tests.commands`: a best practice the gate runs, not prose; at most eight, each name unique across every pack and practice skill. A test another skill owns is a pointer in `tests_elsewhere`, never a copy.",
+            "maxItems": 8
+          },
+          "tests_elsewhere": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "owner",
+                "tests"
+              ],
+              "properties": {
+                "owner": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z-]*$",
+                  "description": "A pack slug or a practice skill name, without the `aidd-team:` prefix."
+                },
+                "tests": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "#/$defs/text"
+                  }
+                }
+              }
+            },
+            "description": "Test commands this domain needs that another pack or practice skill owns, by that owner's test names (`aidd eval packs` checks each exists there)."
+          },
+          "owned_elsewhere": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "what",
+                "owner"
+              ],
+              "properties": {
+                "what": {
+                  "$ref": "#/$defs/text"
+                },
+                "owner": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z-]*$",
+                  "description": "A pack slug or a practice skill name, without the `aidd-team:` prefix."
+                }
+              }
+            },
+            "description": "Topics another skill owns: a pointer here, never a second copy."
+          },
+          "references": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "path",
+                "holds"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "pattern": "^references/[a-z0-9-]+\\.md$",
+                  "description": "A file in the pack's own `references/` folder, written by hand: the pack stays self-contained."
+                },
+                "holds": {
+                  "$ref": "#/$defs/text"
+                }
+              }
+            },
+            "description": "At most two decision guides too long for the generated checklist, in hand-written files next to the pack's SKILL.md (1,500 estimated tokens each at most), which lists each one and what it holds.",
+            "maxItems": 2
+          }
+        }
+      }
+    },
+    "practices": {
+      "type": "object",
+      "description": "The practice skills' registry data, keyed by skill name: the standards each applies, rendered into its SKILL.md's Standards section by `aidd gen-docs`, so `aidd eval standards` checks every edition a skill names.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "standards"
+        ],
+        "properties": {
+          "standards": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "$ref": "#/$defs/standard_ref"
+            }
+          },
+          "open_choices": {
+            "$ref": "#/$defs/open_choices"
+          }
+        }
+      }
+    }
+  }
+}

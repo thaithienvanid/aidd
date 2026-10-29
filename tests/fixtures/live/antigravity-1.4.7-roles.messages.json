@@ -1,0 +1,364 @@
+{
+ "3607902c-11e0-4ee3-9519-51e6868751f0": [
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "2727a6df-5929-4794-a995-7068a72a2c06",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "3607902c-11e0-4ee3-9519-51e6868751f0",
+    "renderDetails": {
+     "messageTitle": "Message from Parent Agent"
+    },
+    "sender": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+      "stepIndex": 14,
+      "toolCall": {
+       "argumentsJson": "{\"Prompt\": \"<prompt>\", \"Role\": \"AIDD Verifier for SPEC-1\", \"TypeName\": \"aidd-verifier\"}",
+       "id": "call_5079421",
+       "name": "invoke_subagent"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:29:49.990193Z"
+   },
+   "name": "2727a6df-5929-4794-a995-7068a72a2c06.json"
+  },
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "479421b6-b86e-41f4-bf7b-abe74a615f7e",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "3607902c-11e0-4ee3-9519-51e6868751f0",
+    "renderDetails": {
+     "messageTitle": "Message from Parent Agent"
+    },
+    "sender": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+      "stepIndex": 22,
+      "toolCall": {
+       "argumentsJson": "{\"Message\": \"<prompt>\", \"Recipient\": \"3607902c-11e0-4ee3-9519-51e6868751f0\"}",
+       "id": "call_3312765",
+       "name": "send_message"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:32:15.145475Z"
+   },
+   "name": "479421b6-b86e-41f4-bf7b-abe74a615f7e.json"
+  },
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "a73565f9-1089-444c-962e-7949ecb57981",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "3607902c-11e0-4ee3-9519-51e6868751f0",
+    "renderDetails": {
+     "messageTitle": "Message from Parent Agent"
+    },
+    "sender": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+      "stepIndex": 35,
+      "toolCall": {
+       "argumentsJson": "{\"Message\": \"<prompt>\", \"Recipient\": \"3607902c-11e0-4ee3-9519-51e6868751f0\"}",
+       "id": "call_3290732",
+       "name": "send_message"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:34:32.104480Z"
+   },
+   "name": "a73565f9-1089-444c-962e-7949ecb57981.json"
+  }
+ ],
+ "830f4976-a33f-4795-9091-3bbda33e144c": [
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "7a5d8ddf-8828-40be-8b0c-b38e4c15b020",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "830f4976-a33f-4795-9091-3bbda33e144c",
+    "renderDetails": {
+     "messageTitle": "Message from Parent Agent"
+    },
+    "sender": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+      "stepIndex": 56,
+      "toolCall": {
+       "argumentsJson": "{\"Prompt\": \"<prompt>\", \"Role\": \"AIDD Reviewer for SPEC-1\", \"TypeName\": \"aidd-reviewer\"}",
+       "id": "call_3038581",
+       "name": "invoke_subagent"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:37:19.786604Z"
+   },
+   "name": "7a5d8ddf-8828-40be-8b0c-b38e4c15b020.json"
+  }
+ ],
+ "a4595677-79fc-419d-ab87-61e0b75ac392": [
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "5b5f8670-fa77-4636-b1bf-563697881643",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "a4595677-79fc-419d-ab87-61e0b75ac392",
+    "renderDetails": {
+     "messageTitle": "Message from Parent Agent"
+    },
+    "sender": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+      "stepIndex": 55,
+      "toolCall": {
+       "argumentsJson": "{\"Prompt\": \"<prompt>\", \"Role\": \"AIDD Verifier for SPEC-1 Review\", \"TypeName\": \"aidd-verifier\"}",
+       "id": "call_3038488",
+       "name": "invoke_subagent"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:37:17.526494Z"
+   },
+   "name": "5b5f8670-fa77-4636-b1bf-563697881643.json"
+  }
+ ],
+ "c2c84493-2b04-43ee-86b2-cfd651e4f202": [
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "bde78314-e720-4816-88fe-bdbd5af49cd5",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "renderDetails": {
+     "messageTitle": "Message from AIDD Verifier for SPEC-1 (aidd-verifier)"
+    },
+    "sender": "3607902c-11e0-4ee3-9519-51e6868751f0",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "3607902c-11e0-4ee3-9519-51e6868751f0",
+      "stepIndex": 20,
+      "toolCall": {
+       "argumentsJson": "{\"Message\": \"<prompt>\", \"Recipient\": \"c2c84493-2b04-43ee-86b2-cfd651e4f202\"}",
+       "id": "call_2868985",
+       "name": "send_message"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:30:59.662842Z"
+   },
+   "name": "bde78314-e720-4816-88fe-bdbd5af49cd5.json"
+  },
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "f1c4a7eb-0c38-417c-9e37-588620ead3cd",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "renderDetails": {
+     "messageTitle": "Message from AIDD Architect for SPEC-1 (aidd-architect)"
+    },
+    "sender": "c68f5d9d-d4a4-43cc-b193-b96c22e86319",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "c68f5d9d-d4a4-43cc-b193-b96c22e86319",
+      "stepIndex": 24,
+      "toolCall": {
+       "argumentsJson": "{\"Message\": \"<prompt>\", \"Recipient\": \"c2c84493-2b04-43ee-86b2-cfd651e4f202\"}",
+       "id": "call_3262317",
+       "name": "send_message"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:31:48.876281Z"
+   },
+   "name": "f1c4a7eb-0c38-417c-9e37-588620ead3cd.json"
+  },
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "2d806abf-162e-4329-8c85-9d1821089210",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "renderDetails": {
+     "messageTitle": "Message from AIDD Verifier for SPEC-1 (aidd-verifier)"
+    },
+    "sender": "3607902c-11e0-4ee3-9519-51e6868751f0",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "3607902c-11e0-4ee3-9519-51e6868751f0",
+      "stepIndex": 35,
+      "toolCall": {
+       "argumentsJson": "{\"Message\": \"<prompt>\", \"Recipient\": \"c2c84493-2b04-43ee-86b2-cfd651e4f202\"}",
+       "id": "call_3266564",
+       "name": "send_message"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:33:23.406788Z"
+   },
+   "name": "2d806abf-162e-4329-8c85-9d1821089210.json"
+  },
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "6f84fccc-8c53-4eb9-b7be-4a28ef80a57f",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "renderDetails": {
+     "messageTitle": "Message from AIDD Verifier for SPEC-1 (aidd-verifier)"
+    },
+    "sender": "3607902c-11e0-4ee3-9519-51e6868751f0",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "3607902c-11e0-4ee3-9519-51e6868751f0",
+      "stepIndex": 43,
+      "toolCall": {
+       "argumentsJson": "{\"Message\": \"<prompt>\", \"Recipient\": \"c2c84493-2b04-43ee-86b2-cfd651e4f202\"}",
+       "id": "call_3220206",
+       "name": "send_message"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:34:56.382035Z"
+   },
+   "name": "6f84fccc-8c53-4eb9-b7be-4a28ef80a57f.json"
+  },
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "803ee983-ed9a-4b89-b9b2-17b3441d1335",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "renderDetails": {
+     "messageTitle": "Message from AIDD Developer for SPEC-1-T1 (aidd-developer)"
+    },
+    "sender": "efa6b355-bf3c-4e84-b9a5-021e4ea7546c",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "efa6b355-bf3c-4e84-b9a5-021e4ea7546c",
+      "stepIndex": 14,
+      "toolCall": {
+       "argumentsJson": "{\"Message\": \"<prompt>\", \"Recipient\": \"c2c84493-2b04-43ee-86b2-cfd651e4f202\"}",
+       "id": "call_3004548",
+       "name": "send_message"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:36:25.495756Z"
+   },
+   "name": "803ee983-ed9a-4b89-b9b2-17b3441d1335.json"
+  },
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "16f51224-6115-45e1-baad-9856b98e6327",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "renderDetails": {
+     "messageTitle": "Message from AIDD Verifier for SPEC-1 Review (aidd-verifier)"
+    },
+    "sender": "a4595677-79fc-419d-ab87-61e0b75ac392",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "a4595677-79fc-419d-ab87-61e0b75ac392",
+      "stepIndex": 12,
+      "toolCall": {
+       "argumentsJson": "{\"Message\": \"<prompt>\", \"Recipient\": \"c2c84493-2b04-43ee-86b2-cfd651e4f202\"}",
+       "id": "call_2752440",
+       "name": "send_message"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:37:55.350584Z"
+   },
+   "name": "16f51224-6115-45e1-baad-9856b98e6327.json"
+  },
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "6d6647a6-273a-4a42-b536-999aec73dea5",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "renderDetails": {
+     "messageTitle": "Message from AIDD Reviewer for SPEC-1 (aidd-reviewer)"
+    },
+    "sender": "830f4976-a33f-4795-9091-3bbda33e144c",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "830f4976-a33f-4795-9091-3bbda33e144c",
+      "stepIndex": 14,
+      "toolCall": {
+       "argumentsJson": "{\"Message\": \"<prompt>\", \"Recipient\": \"c2c84493-2b04-43ee-86b2-cfd651e4f202\"}",
+       "id": "call_2951185",
+       "name": "send_message"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:38:23.918736Z"
+   },
+   "name": "6d6647a6-273a-4a42-b536-999aec73dea5.json"
+  }
+ ],
+ "c68f5d9d-d4a4-43cc-b193-b96c22e86319": [
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "f2fefc3e-cf44-4bb0-891b-de801db531d1",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "c68f5d9d-d4a4-43cc-b193-b96c22e86319",
+    "renderDetails": {
+     "messageTitle": "Message from Parent Agent"
+    },
+    "sender": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+      "stepIndex": 13,
+      "toolCall": {
+       "argumentsJson": "{\"Prompt\": \"<prompt>\", \"Role\": \"AIDD Architect for SPEC-1\", \"TypeName\": \"aidd-architect\"}",
+       "id": "call_5079328",
+       "name": "invoke_subagent"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:29:47.346667Z"
+   },
+   "name": "f2fefc3e-cf44-4bb0-891b-de801db531d1.json"
+  }
+ ],
+ "efa6b355-bf3c-4e84-b9a5-021e4ea7546c": [
+  {
+   "message": {
+    "content": "<prompt>",
+    "id": "56640576-ea5d-4e27-b679-c1b4ef7671f6",
+    "priority": "MESSAGE_PRIORITY_HIGH",
+    "recipient": "efa6b355-bf3c-4e84-b9a5-021e4ea7546c",
+    "renderDetails": {
+     "messageTitle": "Message from Parent Agent"
+    },
+    "sender": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+    "sourceMetadata": {
+     "tool": {
+      "conversationId": "c2c84493-2b04-43ee-86b2-cfd651e4f202",
+      "stepIndex": 41,
+      "toolCall": {
+       "argumentsJson": "{\"Prompt\": \"<prompt>\", \"Role\": \"AIDD Developer for SPEC-1-T1\", \"TypeName\": \"aidd-developer\"}",
+       "id": "call_4618251",
+       "name": "invoke_subagent"
+      }
+     }
+    },
+    "timestamp": "2026-10-27T06:35:31.427206Z"
+   },
+   "name": "56640576-ea5d-4e27-b679-c1b4ef7671f6.json"
+  }
+ ]
+}

@@ -1,0 +1,76 @@
+{
+  "name": "aidd",
+  "owner": {
+    "name": "Van Hoang"
+  },
+  "metadata": {
+    "description": "aidd: the toolkit for AI-Driven Development (AIDD), one loop from intent to production with change control at its core: agents do the work, and humans decide what lands and what leaves the machine. A skill, an MCP server, agent hooks, and an optional delivery team of agent roles."
+  },
+  "plugins": [
+    {
+      "name": "aidd",
+      "source": "./",
+      "description": "AIDD, one loop from intent to production with change control at its core: one skill, the aidd verifier as MCP tools, a guard hook, and session hooks.",
+      "relevance": {
+        "topic": "AIDD",
+        "signals": {
+          "cli": [
+            "aidd"
+          ],
+          "filesRead": [
+            "**/.aidd/config.yaml"
+          ]
+        }
+      }
+    },
+    {
+      "name": "aidd-cli",
+      "source": "./plugins/aidd-cli",
+      "description": "Optional: the aidd command on the PATH of Claude Code's Bash tool, with no other install. A plugin of its own, because claude.ai and Cowork do not install a plugin that has a bin/ folder.",
+      "relevance": {
+        "topic": "the aidd command in Claude Code",
+        "signals": {
+          "filesRead": [
+            "**/.aidd/config.yaml"
+          ]
+        }
+      }
+    },
+    {
+      "name": "aidd-team",
+      "source": "./plugins/aidd-team",
+      "description": "Optional: run the aidd loop as a delivery team of agent roles, each applying its discipline's industry standards, with a domain pack per domain and practice skills per kind of work, every standard carrying a checked date (or a reviewed date for a practice), and an edition and source where the document has one. Ships one command per team flow, from onboarding a repository, writing a proposal, or building an MVP, to a quick fix, a rollout, and the retrospective. Needs the aidd plugin.",
+      "dependencies": [
+        "aidd"
+      ],
+      "relevance": {
+        "topic": "an AIDD delivery team",
+        "signals": {
+          "filesRead": [
+            "**/.aidd/config.yaml",
+            "**/.claude/agents/aidd-*.md"
+          ]
+        }
+      }
+    },
+    {
+      "name": "aidd-mods",
+      "source": "./plugins/aidd-mods",
+      "description": "Optional, experimental: /aidd status, approve, land, publish, merge, update, and install, answered in Claude Code with no model turn. /aidd status opens a side pane with your next decision, the shape of the work, this branch's work, the flow, and the autopilot run. Type \"approve SPEC-1\" and it is approved, without a terminal. Nothing it draws reaches the model. Needs Claude Code 2.1.295 or later and the aidd plugin.",
+      "dependencies": [
+        "aidd"
+      ],
+      "relevance": {
+        "topic": "aidd status in Claude Code",
+        "signals": {
+          "cli": [
+            "aidd"
+          ],
+          "filesRead": [
+            "**/.aidd/config.yaml"
+          ]
+        }
+      }
+    }
+  ]
+}

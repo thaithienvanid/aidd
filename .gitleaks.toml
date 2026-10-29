@@ -1,0 +1,16 @@
+# gitleaks: the default rules, and one exception. The redaction tests feed the guard fake credentials, so
+# that the guard's log never keeps a real one. The exception covers only those values, only in that file.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "The fake credentials of the guard's redaction tests"
+condition = "AND"
+paths = ['''^tests/test_robustness\.py$''']
+regexes = ['''^(alice:s3cretpw|k3y-value)$''']
+
+[[allowlists]]
+description = "The fake key of the PreCompact snapshot's redaction test"
+condition = "AND"
+paths = ['''^tests/test_prompt_and_compact_hooks\.py$''']
+regexes = ['''^abcdEFGH1234$''']

@@ -1,0 +1,22 @@
+{
+  "summary": "Once the config binds a finance pool, security no longer stands in: the change waits for finance.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "tests:\n",
+      "new": "    finance: [\"@fin-bob\"]\ntests:\n"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "specialist_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending specialist_approval.missing"
+    ]
+  }
+}

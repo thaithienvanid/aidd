@@ -1,0 +1,31 @@
+{
+  "summary": "A work item in the diff whose front matter does not parse fails, though the block names another Spec: it could be a Spec, so it is never read as none.",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "specs/EPIC-9.md",
+        "previous_path": null,
+        "additions": 4,
+        "deletions": 0
+      }
+    },
+    {
+      "op": "set",
+      "path": "/head_files/specs~1EPIC-9.md",
+      "value": "---\nkind: epic\nid: EPIC-9\nstatus: \"a\"\nstatus: \"b\"\n---\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "spec"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail spec.unparsable"
+    ]
+  }
+}

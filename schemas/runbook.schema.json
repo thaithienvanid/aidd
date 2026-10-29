@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:runbook",
+  "title": "Runbook",
+  "description": "An operational procedure for one service, written before it is needed and tested on a schedule. It lives in docs/runbooks/<id>.md; `aidd doctor` warns when `tested_on` is older than `docs.max_runbook_age_days`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aidd_version",
+    "kind",
+    "id",
+    "title",
+    "service",
+    "owner_team",
+    "status"
+  ],
+  "properties": {
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version"
+    },
+    "kind": {
+      "const": "runbook",
+      "description": "Object kind. Always `runbook`."
+    },
+    "id": {
+      "$ref": "urn:aidd:1:common#/$defs/id"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "One line: what the procedure does, such as \"Fail over the orders database\"."
+    },
+    "service": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The service or system the runbook operates."
+    },
+    "owner_team": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The team that keeps the runbook current and answers its escalation."
+    },
+    "tested_on": {
+      "$ref": "urn:aidd:1:common#/$defs/date",
+      "description": "The day a person last ran the procedure end to end, in a drill or for real. Absent means never tested."
+    },
+    "restore": {
+      "type": "boolean",
+      "description": "True when the procedure restores a stateful service's data from its backups (disaster recovery). `aidd doctor` then asks for `rto` and `rpo` and treats `tested_on` as the last restore drill, which it warns about when older than `docs.max_runbook_age_days`."
+    },
+    "rto": {
+      "type": "string",
+      "pattern": "^\\d+(m|h|d)$",
+      "description": "Recovery time objective: the longest the service may be down before the restore completes: a number and a unit (m, h, or d), such as 4h."
+    },
+    "rpo": {
+      "type": "string",
+      "pattern": "^\\d+(m|h|d)$",
+      "description": "Recovery point objective: the most data, as time before the failure, the restore may lose: a number and a unit (m, h, or d), such as 15m."
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "active",
+        "retired"
+      ],
+      "description": "draft: written, not yet trusted. active: the procedure on-call follows. retired: kept for history; `aidd doctor` no longer checks its age."
+    }
+  }
+}

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: refine-proposes-never-applies
+context:
+  scaffold_script: fixture.sh

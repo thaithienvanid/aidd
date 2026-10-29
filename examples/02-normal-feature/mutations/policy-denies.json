@@ -1,0 +1,24 @@
+{
+  "summary": "The organization's Policy denies the change: Policy is part of the decision, not advice.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/policy",
+      "value": {
+        "result": "deny",
+        "detail": "change freeze"
+      }
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "policy"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail policy.deny"
+    ]
+  }
+}

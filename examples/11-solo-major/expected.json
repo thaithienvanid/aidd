@@ -1,0 +1,9 @@
+{
+  "decision": "pass",
+  "failed_rules": [],
+  "pending_rules": [],
+  "warn_rules": [],
+  "findings": [],
+  "title": "Solo major change",
+  "summary": "A solo developer lands a migration: self-approval is recorded as waived_solo."
+}

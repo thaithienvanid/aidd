@@ -1,0 +1,29 @@
+{
+  "summary": "A typo fix in docs/customers/profile.md stays minor: docs and Markdown are excluded from baseline:personal-data.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/change/body",
+      "value": "Fix a typo in the customer profile guide.\n\n```yaml aidd\nroute: minor\ntype: docs\nconfidence: high\nscope: [docs/customers/profile.md]\nrollback: Revert the PR.\nassisted_by: [claude-code/claude-opus-5-5]\nrisk:\n  summary: A typo in a guide.\n  dimensions: []\n  reversible: true\n```\n"
+    },
+    {
+      "op": "set",
+      "path": "/files",
+      "value": [
+        {
+          "path": "docs/customers/profile.md",
+          "previous_path": null,
+          "additions": 1,
+          "deletions": 1
+        }
+      ]
+    }
+  ],
+  "expected": {
+    "decision": "pass",
+    "failed_rules": [],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": []
+  }
+}

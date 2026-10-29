@@ -1,0 +1,29 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+# Every cloud stack carries the cost guards (cost/*). No cost/arm64-first: Container Apps runs only x86-64.
+name: dotnet-azure
+description: "An HTTP API in C# on Azure Container Apps with a managed PostgreSQL, for a .NET team that wants its bill to follow use."
+extends: dotnet-api
+standards:
+  - azure/container-apps
+  - azure/budgets
+  - azure/log-retention
+  - postgres/managed-postgres
+  - iac/opentofu
+  - cost/preview-env-ttl
+  - cost/llm-spend-caps
+  - cost/pr-cost-delta-threshold
+  - cost/policy-caps
+  - cost/kill-switch
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt:
+      - Azure Container Apps
+      - Azure Database for PostgreSQL
+      - Azure Monitor Log Analytics
+      - Cost Management budgets
+      - OpenTofu
+      - TFLint
+      - Infracost
+      - Conftest

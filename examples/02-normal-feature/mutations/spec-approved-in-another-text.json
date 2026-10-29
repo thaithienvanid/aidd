@@ -1,0 +1,42 @@
+{
+  "summary": "The approval names a commit where the Spec read otherwise than at head: the person approved another text, so it does not count.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "identities:\n",
+      "new": "gates:\n  spec_approval_proof: require\nidentities:\n"
+    },
+    {
+      "op": "replace_text",
+      "path": "/comments/0/body",
+      "old": "5bec000000000000000000000000000000000001",
+      "new": "5555555555555555555555555555555555555555"
+    },
+    {
+      "op": "set",
+      "path": "/approval_commits",
+      "value": {
+        "5555555555555555555555555555555555555555": {
+          "ancestor": false,
+          "paths": [
+            "specs/SPEC-220.md"
+          ],
+          "spec_hash": "ffffffffffffffffffffffffffffffff"
+        }
+      }
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending spec_approval.commit_required",
+      "pending spec_approval.missing"
+    ]
+  }
+}

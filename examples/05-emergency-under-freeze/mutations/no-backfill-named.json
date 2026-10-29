@@ -1,0 +1,22 @@
+{
+  "summary": "An inline emergency names its backfill Spec.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "backfill: specs/INC-481.md\nrisk:\n",
+      "new": "risk:\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "change_request"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail change_request.invalid"
+    ]
+  }
+}

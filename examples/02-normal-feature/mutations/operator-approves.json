@@ -1,0 +1,21 @@
+{
+  "summary": "The author cannot approve their own change.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/reviews/0/user",
+      "value": "alice"
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "merge_approval"
+    ],
+    "warn_rules": [],
+    "findings": [
+      "pending merge_approval.missing"
+    ]
+  }
+}

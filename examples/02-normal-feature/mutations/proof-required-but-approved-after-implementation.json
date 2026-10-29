@@ -1,0 +1,35 @@
+{
+  "summary": "When the config requires proof, a Spec approval of a commit that already held implementation does not count.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/base_config",
+      "old": "owners:\n",
+      "new": "gates:\n  spec_approval_proof: require\nowners:\n"
+    },
+    {
+      "op": "set",
+      "path": "/approval_commits/5bec000000000000000000000000000000000001/paths",
+      "value": [
+        "specs/SPEC-220.md",
+        "tests/checkout/test_rate_limit.py",
+        "src/checkout/rate_limit/limiter.py"
+      ]
+    }
+  ],
+  "expected": {
+    "decision": "pending",
+    "failed_rules": [],
+    "pending_rules": [
+      "spec_approval"
+    ],
+    "warn_rules": [
+      "spec_approval"
+    ],
+    "findings": [
+      "pending spec_approval.commit_required",
+      "pending spec_approval.missing",
+      "warn spec_approval.after_implementation"
+    ]
+  }
+}

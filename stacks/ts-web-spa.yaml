@@ -1,0 +1,17 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: ts-web-spa
+description: "A TypeScript single-page app for the browser, built by Vite, such as a dashboard behind sign-in."
+extends: ts-library
+standards:
+  - typescript/tanstack-router
+  - typescript/tanstack-query
+  - typescript/tailwind-css
+  - typescript/shadcn-ui
+  - typescript/zod-validation
+  - typescript/testing-library
+  - typescript/playwright-e2e
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt: [React, Vite, TanStack Router, TanStack Query, Tailwind CSS, shadcn/ui, Zod, Testing Library, Playwright]

@@ -1,0 +1,28 @@
+{
+  "summary": "The evidence names SPEC-222's command `totals`, as a one-Spec change would: a goal's run names each command for its Spec, so this proves nothing for it.",
+  "ops": [
+    {
+      "op": "set",
+      "path": "/evidence/results/3/name",
+      "value": "totals"
+    },
+    {
+      "op": "set",
+      "path": "/evidence/results/4/name",
+      "value": "totals"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "red_green",
+      "tests"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail red_green.no_red_run",
+      "fail tests.no_result"
+    ]
+  }
+}

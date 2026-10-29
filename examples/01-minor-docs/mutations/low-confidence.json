@@ -1,0 +1,24 @@
+{
+  "summary": "The author is not confident of the change: collect the missing facts first, whatever the route.",
+  "ops": [
+    {
+      "op": "replace_text",
+      "path": "/change/body",
+      "old": "confidence: high\n",
+      "new": "confidence: low\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "confidence",
+      "route"
+    ],
+    "pending_rules": [],
+    "warn_rules": [],
+    "findings": [
+      "fail confidence.low",
+      "fail route.too_low"
+    ]
+  }
+}

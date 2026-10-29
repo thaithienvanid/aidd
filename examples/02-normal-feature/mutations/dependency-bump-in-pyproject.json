@@ -1,0 +1,41 @@
+{
+  "summary": "The change bumps a dependency in pyproject.toml and leaves its test sections as they were: nothing about the tests changed, so the gate says nothing about them. (The manifest sits outside the Task's scope, so scope fails in both cases; only the test-section warning differs.)",
+  "ops": [
+    {
+      "op": "append",
+      "path": "/files",
+      "value": {
+        "path": "pyproject.toml",
+        "previous_path": null,
+        "additions": 1,
+        "deletions": 1
+      }
+    },
+    {
+      "op": "set",
+      "path": "/base_files",
+      "value": {
+        "pyproject.toml": "[tool.poetry.dependencies]\nrequests = \"2.32.0\"\n\n[tool.pytest.ini_options]\naddopts = \"-q\"\n"
+      }
+    },
+    {
+      "op": "set",
+      "path": "/head_files/pyproject.toml",
+      "value": "[tool.poetry.dependencies]\nrequests = \"2.32.4\"\n\n[tool.pytest.ini_options]\naddopts = \"-q\"\n"
+    }
+  ],
+  "expected": {
+    "decision": "fail",
+    "failed_rules": [
+      "scope"
+    ],
+    "pending_rules": [],
+    "warn_rules": [
+      "route"
+    ],
+    "findings": [
+      "fail scope.outside",
+      "warn route.undeclared_dimensions"
+    ]
+  }
+}
