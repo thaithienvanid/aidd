@@ -1,0 +1,69 @@
+# aidd
+
+> aidd: the AI-Driven Development toolkit. Agents do the work, and you decide the risky steps. AIDD is the method: every change runs one loop, Plan, Specify, Spec approval, Implement and Verify until green, Review, Merge approval, Merge, Roll out, and Learn. aidd is the toolkit that runs it. It's a dependency-free Python CLI, a self-contained agent skill, the `aidd-team` plugin of agent roles, the `aidd-cli` plugin, and a standards library. aidd advises and enforces nothing. An agent acts by a risk rule's level: `allow` (act), `report` (act, then say what it did), or `ask` (wait for the person's yes, then act). The hard stops are the harness's own ask rules, which `aidd init` writes, and the platform's branch protection.
+
+Install it in a project by following the install steps, or ask a coding agent to: "Install thaithienvanid/aidd and apply it to this project."
+
+## Concepts
+
+- Action: what an agent may do, named `resource.verb`, such as `pr.open`, `git.push.force`, or `deploy.run`. Each has a description, shell command patterns, and examples that no pattern catches, which the agent judges.
+- Area: a named set of path globs, such as `payments` or `personal_data`. An area may raise a change's route, so an edit in `payments` makes the change major.
+- Risk rule: `{action, area?, branch?, role?, level}`. The most specific rule that matches wins, then the higher level. `schemas/risks.json` holds the built-in rules, and a config's `risks` adds or replaces them. `aidd risk --list` shows every effective rule and where it came from.
+- Level: `allow`, `report`, or `ask`, lowest to highest. With no rule matching, the level is `allow`.
+- Route: advice from `aidd risk --paths` on how much control a change needs: `minor`, `normal`, `major`, or `emergency`. The author may declare higher.
+- Lane: how the work runs, from the route: the fast lane (minor, no Spec), the spec lane (normal and major), or the emergency lane (repair first, the Spec after).
+- Spec approval: the agent asks "Approve SPEC-3?" with what it covers. On the person's yes, it sets the Spec's `status: approved`, `approved_by`, and `approved_at`, and commits it with an `Approved-by` trailer. It is a note the agent wrote, not proof. After it, editing the Spec's tests or Acceptance is `spec.revise`, which asks again.
+- Merge approval: the agent asks before it merges to the default branch. On a platform under the `team` profile, it is the platform's PR review: the agent opens the PR and stops there.
+- Local trunk: the default branch on this machine, when no platform holds the shared one. The agent asks before it merges or pushes there.
+- Profile: `solo` or `team`, a set of rule overrides and the routes that ask for Spec approval. `solo` asks for Spec approval on major changes only; `team` on normal and major.
+- Harness ask rule: a harness's own ask setting, such as Claude Code's `permissions.ask`, that `aidd init` writes from each `ask` rule's command patterns. A command pattern is a net, not a control.
+- Session override: a person lowers a rule for one session ("don't ask about pushes today"). It goes into the config only when they say so.
+- Headless run: a run in CI, a cloud session, or on a schedule. There an `ask` means stop and hand back with a handoff note, because silence is never a yes.
+- Evidence: what `aidd test` writes, the exit codes of the project's tests bound to the head commit, green on the head and red on the base for new behavior. A summary is never evidence.
+- Dirty tree: a working tree with uncommitted changes, or untracked files no `.gitignore` ignores. Tests that ran in one prove nothing about the head.
+- Inner loop and outer loop: the team runs the inner loop (the work), and the person runs the outer loop (the decisions at each ask).
+- Lead and builder: the lead is the session that runs the team, and places each role. A builder writes a Task's change: the person or agent role the Task's assignee names, usually the developer.
+- Role placement: where a role runs for a step. The lead plays it, starts it as a subagent, or gives it a session of its own.
+- Rework: `/aidd-team:rework` answers each failed report, review comment, and failing check on the same branch.
+- Big goal and small goal: an ask bigger than one Spec is a big goal (an Initiative) of small goals (Epics), each two weeks or less.
+- Roll out: the step after Merge: the deploy, the release, and the observe window.
+- Product-level work: a body of work a role keeps across changes, such as the architecture overview or the product prototype. Each change that alters a kind feeding it brings it in line.
+- Product prototype: the product designer's product-level work in `docs/design/app/`, the whole product clickable, with the navigation defined once in `sitemap.json`. `aidd new product-prototype` starts it, and `aidd prototype` assembles and checks it.
+- Prototype tool: aidd-team's built-in tool, `plugins/aidd-team/tools/prototype/`, which shows a design in the prototype viewer, checks it, and reads its component contract. It runs without aidd; `aidd prototype` runs it.
+- Fidelity pass: screenshots of a screen read for defects before a person sees it, sized to the change. A small fix's author takes a quick pass; the product designer takes a full one for a new screen.
+- Toolset: a named bundle of a role's extensions in the team registry, such as the product designer's `ai-design`, picked by enabling its parts in the project.
+- Enabled: an extension the repository's own committed settings turn on, never a machine-wide install; a role uses a service or a toolset only when it is enabled.
+- Runbook: a living doc with `type: runbook`, one service's operational procedure in `docs/runbooks/` (`aidd new runbook`), tested on a schedule; `aidd doctor` warns when its `tested_on` is stale.
+- Deprecation calendar: each Spec's `deprecations` (what, announced, sunset, replacement, consumers); the Spec that removes one lists it in `removes_deprecations`. A passed sunset warns in `aidd validate` and shows in `aidd status`.
+- Support period: `project.compliance.support_period.ends`, the last month of security updates, which the `cra` compliance target needs.
+- Vulnerability policy: `docs/security/vulnerability-policy.md` (`aidd new vulnerability-policy`), on ISO/IEC 29147 and 30111; with the `cra` target, `aidd doctor` checks the repository's `security.txt` and its `Expires`.
+- Release cooldown: the days a new release waits before a project's update bot moves its lockfile to it, 3 after a patch and 7 after a minor or a major. A security release skips the wait.
+- Cost estimate: what a change will cost to run, in its Spec, at today's load and at 10x; `aidd validate` checks it against the project's budget.
+- DORA metrics and DORA (EU) 2022/2554: one name, two things. The DORA metrics measure software delivery; DORA (EU) 2022/2554 is the EU's Digital Operational Resilience Act for financial entities. Say which one you mean.
+
+## Install
+
+- [llms-install.md](https://raw.githubusercontent.com/thaithienvanid/aidd/main/llms-install.md): the install steps for coding agents (install the CLI, `aidd init`, `aidd doctor`, commit, hand back)
+- [docs/GUIDE.md](https://github.com/thaithienvanid/aidd/blob/main/docs/GUIDE.md): install, the first change, the risk rules, every harness, troubleshooting, and the FAQ
+
+## Use
+
+- [AGENTS.md](https://github.com/thaithienvanid/aidd/blob/main/AGENTS.md): what an agent reads first in a repository that uses aidd
+- [.agents/skills/aidd/SKILL.md](https://github.com/thaithienvanid/aidd/blob/main/.agents/skills/aidd/SKILL.md): the skill: get the route with `aidd risk --paths` before the first edit, follow the loop, and ask at each `ask`
+- [docs/CLI.md](https://github.com/thaithienvanid/aidd/blob/main/docs/CLI.md): every command and flag
+- [docs/CONFIG.md](https://github.com/thaithienvanid/aidd/blob/main/docs/CONFIG.md): every key of `.aidd/config.yaml`, the risk rules among them
+- [docs/TEAM.md](https://github.com/thaithienvanid/aidd/blob/main/docs/TEAM.md): the delivery team: roles, packs, practice skills, handoffs, cost
+- [docs/TEAM-REFERENCE.md](https://github.com/thaithienvanid/aidd/blob/main/docs/TEAM-REFERENCE.md): the team's reference tables: standards per role, practice skills, extensions, life cycle coverage, model tiers
+
+## Understand
+
+- [README.md](https://github.com/thaithienvanid/aidd/blob/main/README.md): what it is and why
+- [docs/METHOD.md](https://github.com/thaithienvanid/aidd/blob/main/docs/METHOD.md): the method, normative: the loop, the routes, the risk rules, and the profiles
+- [docs/GLOSSARY.md](https://github.com/thaithienvanid/aidd/blob/main/docs/GLOSSARY.md): every term, one meaning each
+- [docs/ARCHITECTURE.md](https://github.com/thaithienvanid/aidd/blob/main/docs/ARCHITECTURE.md): the repository: what each part is, how the parts fit, and where each kind of change goes
+- [SECURITY.md](https://github.com/thaithienvanid/aidd/blob/main/SECURITY.md): what aidd does not do, the trust model, and every place aidd connects
+
+## Optional
+
+- [docs/STANDARDS.md](https://github.com/thaithienvanid/aidd/blob/main/docs/STANDARDS.md): the library of opinionated standards and stacks, one default for each open choice
+- [plugins/README.md](https://github.com/thaithienvanid/aidd/blob/main/plugins/README.md): how to add a plugin, a skill, a pack, or a role

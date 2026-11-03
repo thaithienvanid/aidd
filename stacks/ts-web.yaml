@@ -1,0 +1,16 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: ts-web
+description: "A TypeScript web app, its pages and its server, for the browser."
+extends: ts-library
+standards:
+  - typescript/nextjs-app-router
+  - typescript/tailwind-css
+  - typescript/shadcn-ui
+  - typescript/zod-validation
+  - typescript/testing-library
+  - typescript/playwright-e2e
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt: [Next.js, React, Tailwind CSS, shadcn/ui, Zod, Testing Library, Playwright]

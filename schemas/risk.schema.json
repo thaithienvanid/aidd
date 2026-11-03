@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:risk",
+  "title": "aidd risk --json",
+  "description": "aidd's advice, in one of four shapes: the route for planned paths (`--paths`), the level of a command (`--command`) or an action (`--action`), or every rule in force (`--list`). It is advice: aidd enforces nothing. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "required": ["schema_version"],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    }
+  },
+  "oneOf": [
+    {"$ref": "#/$defs/paths"},
+    {"$ref": "#/$defs/command"},
+    {"$ref": "#/$defs/action"},
+    {"$ref": "#/$defs/list"}
+  ],
+  "$defs": {
+    "level": {"enum": ["allow", "report", "ask"], "description": "allow: act. report: act, then say what was done. ask: wait for the person's yes, then act."},
+    "route": {"enum": ["minor", "normal", "major", "emergency"]},
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "paths", "route", "lane", "reasons", "dimensions", "areas", "edit", "spec_approval", "specialists", "step", "hints"],
+      "description": "`aidd risk --paths`: the least route for the planned paths, and what to do first.",
+      "properties": {
+        "schema_version": {"const": "1"},
+        "paths": {"type": "array", "items": {"type": "string"}, "description": "The planned paths, as given."},
+        "route": {"$ref": "#/$defs/route", "description": "The least route the paths need; the author may declare higher."},
+        "lane": {"enum": ["fast", "spec", "emergency"], "description": "The lane the route takes."},
+        "reasons": {"type": "array", "items": {"type": "string"}, "description": "Why the route is what it is, one line each."},
+        "dimensions": {"type": "array", "items": {"type": "string"}, "description": "The risk dimensions the areas hit carry."},
+        "areas": {
+          "type": "array",
+          "description": "Each area the paths hit, with the paths in it.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["area", "paths"],
+            "properties": {"area": {"type": "string"}, "paths": {"type": "array", "items": {"type": "string"}}}
+          }
+        },
+        "edit": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "rule"],
+          "description": "The level of `code.edit` on these paths, and the rule that decided it.",
+          "properties": {"level": {"$ref": "#/$defs/level"}, "rule": {"type": ["string", "null"]}}
+        },
+        "spec_approval": {"$ref": "#/$defs/level", "description": "Whether the agent asks for Spec approval on this route."},
+        "specialists": {
+          "type": "array",
+          "description": "The specialist pools the dimensions call for, with the people `owners.specialists` names.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pool", "people"],
+            "properties": {"pool": {"type": "string"}, "people": {"type": "array", "items": {"type": "string"}}}
+          }
+        },
+        "step": {"type": "string", "description": "The first step, in a sentence."},
+        "hints": {"type": "array", "items": {"type": "string"}, "description": "Advice that does not change the route."},
+        "project": {"type": "object", "description": "The project's constraints for these paths: the radar, the hosting, the budget, and the rules that apply, each with its waiver."}
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "command", "level", "actions"],
+      "description": "`aidd risk --command`: each action the command line matches, and the highest level among them.",
+      "properties": {
+        "schema_version": {"const": "1"},
+        "command": {"type": "string", "description": "The command line, as given."},
+        "level": {"$ref": "#/$defs/level", "description": "The highest level of the actions it matches; allow when it matches none."},
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["action", "command", "branch", "level", "rule"],
+            "properties": {
+              "action": {"type": "string", "description": "The action, as `resource.verb`, such as `git.push.force`."},
+              "command": {"type": "string", "description": "The simple command in the line that matched."},
+              "branch": {"type": ["string", "null"], "description": "own, default, or shared, when the action names a branch."},
+              "level": {"$ref": "#/$defs/level"},
+              "rule": {"type": ["string", "null"], "description": "The rule that decided the level."}
+            }
+          }
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "action", "level", "rule", "known"],
+      "description": "`aidd risk --action`: the level of one action.",
+      "properties": {
+        "schema_version": {"const": "1"},
+        "action": {"type": "string"},
+        "level": {"$ref": "#/$defs/level"},
+        "rule": {"type": ["string", "null"], "description": "The rule that decided the level, or null when none matches."},
+        "known": {"type": "boolean", "description": "Whether aidd knows the action."}
+      }
+    },
+    "list": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "rules", "areas", "actions", "ignored"],
+      "description": "`aidd risk --list`: every rule in force, where each comes from, and the areas and actions.",
+      "properties": {
+        "schema_version": {"const": "1"},
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["action", "area", "branch", "role", "level", "source", "locked"],
+            "properties": {
+              "action": {"type": "string"},
+              "area": {"type": ["string", "null"]},
+              "branch": {"type": ["string", "null"]},
+              "role": {"type": ["string", "null"]},
+              "level": {"$ref": "#/$defs/level"},
+              "source": {"type": "string", "description": "built-in, profile, preset, or config."},
+              "locked": {"type": "boolean", "description": "Whether a parent config locked it, so a child cannot change its level."}
+            }
+          }
+        },
+        "areas": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["paths", "route"],
+            "properties": {"paths": {"type": "integer", "description": "How many globs it has."}, "route": {"$ref": "#/$defs/route"}}
+          }
+        },
+        "actions": {"type": "array", "items": {"type": "string"}},
+        "ignored": {"type": "array", "items": {"type": "string"}, "description": "Config changes a locked rule set aside, one line each."}
+      }
+    }
+  }
+}

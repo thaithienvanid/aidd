@@ -1,0 +1,11 @@
+# zizmor configuration for the adopter templates in templates/github (CI runs them offline:
+# `zizmor --offline --config .github/zizmor-templates.yml templates/github/aidd-*.yml`).
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        # The templates reference aidd by its release tag, on the line after an `aidd-pin:` comment.
+        # That tag is the placeholder `aidd init` rewrites to the release commit SHA in the files it
+        # writes, so adopters run a SHA pin. Every other action must stay pinned by SHA.
+        "thaithienvanid/*": ref-pin
+        "*": hash-pin

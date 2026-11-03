@@ -1,0 +1,17 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: cpp-cmake
+description: "A C++ library or program built with CMake presets and Ninja, with vcpkg dependencies, and GoogleTest run under sanitizers."
+standards:
+  - cpp/language-standard
+  - cpp/cmake-presets
+  - cpp/vcpkg
+  - cpp/clang-format
+  - cpp/clang-tidy
+  - cpp/googletest
+  - cpp/sanitizers
+  - cpp/coverage
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt: [C++20, CMake, Ninja, vcpkg, clang-format, clang-tidy, GoogleTest, AddressSanitizer, UndefinedBehaviorSanitizer, gcovr]

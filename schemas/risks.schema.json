@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:risks",
+  "title": "aidd risk rules",
+  "description": "The risk rules' format: schemas/risks.json holds the built-in ones, and a config's `risks` block adds to them. An action is `resource.verb` in lowercase, with snake_case words and a dot for a narrower action, such as `pr.open` or `git.push.force`. An area is a named set of paths. A rule sets the level of an action, narrowed by an area, a branch, or a role.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "description",
+    "levels",
+    "branches",
+    "areas",
+    "actions",
+    "rules"
+  ],
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "levels": {
+      "const": [
+        "allow",
+        "report",
+        "ask"
+      ]
+    },
+    "branches": {
+      "const": [
+        "own",
+        "default",
+        "shared"
+      ]
+    },
+    "areas": {
+      "$ref": "#/$defs/areas"
+    },
+    "actions": {
+      "$ref": "#/$defs/actions"
+    },
+    "rules": {
+      "$ref": "#/$defs/rules"
+    }
+  },
+  "$defs": {
+    "level": {
+      "enum": [
+        "allow",
+        "report",
+        "ask"
+      ],
+      "description": "allow: the agent acts. report: it acts, then says what it did. ask: it waits for the person's yes, then acts."
+    },
+    "action_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "maxLength": 80,
+      "description": "`resource.verb`, such as `git.push.force`."
+    },
+    "area_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "maxLength": 60
+    },
+    "area": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "paths"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "Globs, repo-relative; `**` matches any number of folders."
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Globs a match must not also match, such as `**/vendor/**`."
+        },
+        "route": {
+          "enum": [
+            "minor",
+            "normal",
+            "major"
+          ],
+          "description": "The least route a change that touches the area needs."
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "data",
+              "security",
+              "privacy",
+              "financial",
+              "compliance",
+              "availability",
+              "third_party",
+              "cost",
+              "performance"
+            ]
+          },
+          "uniqueItems": true,
+          "description": "The risk dimensions a change in the area has, which name its specialists."
+        }
+      }
+    },
+    "areas": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/area_id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/area"
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Shell command patterns: `*` matches any run of characters, and a pattern matches the whole command."
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Harness tool names the action is, such as an MCP tool that sends email."
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What the action looks like where no pattern catches it: the agent judges these."
+        }
+      }
+    },
+    "actions": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/action_id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/action"
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "level"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "pattern": "^(\\*|[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(\\.\\*)?)$",
+          "description": "An action id, or a prefix that ends in `.*` (`git.*`), or `*` for every action."
+        },
+        "area": {
+          "$ref": "#/$defs/area_id"
+        },
+        "branch": {
+          "enum": [
+            "own",
+            "default",
+            "shared"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z-]*$"
+        },
+        "level": {
+          "$ref": "#/$defs/level"
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "In an `extends` parent such as an org preset: a child's rule with the same selector keeps this level."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why the rule exists, which `aidd risk` shows."
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "risks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "areas": {
+          "$ref": "#/$defs/areas"
+        },
+        "actions": {
+          "$ref": "#/$defs/actions"
+        },
+        "rules": {
+          "$ref": "#/$defs/rules"
+        }
+      }
+    }
+  }
+}

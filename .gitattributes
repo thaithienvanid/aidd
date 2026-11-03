@@ -1,0 +1,18 @@
+# Every checkout has LF line endings, Windows included: the agent files have a byte budget, and the tests compare
+# generated text and file sizes byte for byte. Git for Windows' core.autocrlf would otherwise check out CRLF.
+* text=auto eol=lf
+
+# Binary, never converted (none is tracked today; these keep a future one intact).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.whl binary
+*.pyz binary
+*.woff binary
+*.woff2 binary

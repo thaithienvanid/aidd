@@ -1,0 +1,24 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: dotnet-api
+description: "An HTTP API in C# on ASP.NET Core, for a .NET team."
+standards:
+  - dotnet/dotnet-lts
+  - dotnet/central-package-management
+  - dotnet/dotnet-format
+  - dotnet/analyzers-nullable
+  - dotnet/xunit-v3
+  - dotnet/minimal-apis
+  - dotnet/ef-core-migrations
+  - dotnet/ef-core
+  - dotnet/testcontainers
+  - dotnet/slnx-central-packages
+  - dotnet/archunitnet
+  - dotnet/benchmarkdotnet
+  - tooling/hurl
+  - tooling/k6
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt: [".NET", "C#", ASP.NET Core, xUnit.net, Entity Framework Core, Testcontainers, BenchmarkDotNet, Hurl, k6]
+    trial: [ArchUnitNET]

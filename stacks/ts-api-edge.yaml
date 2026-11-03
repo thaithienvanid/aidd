@@ -1,0 +1,22 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: ts-api-edge
+description: "A TypeScript API that runs at the edge, on Cloudflare Workers."
+extends: ts-library
+standards:
+  - typescript/hono-api
+  - typescript/zod-validation
+  - typescript/drizzle-orm
+  - cloudflare/workers-compute
+  - cloudflare/d1-or-hyperdrive
+  - cloudflare/d1-migrations
+  - cloudflare/wrangler
+  - typescript/pnpm-turborepo-workspace
+  - typescript/dependency-cruiser
+  - tooling/hurl
+  - tooling/k6
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt: [Hono, Zod, Cloudflare Workers, Cloudflare D1, Wrangler, Turborepo, dependency-cruiser, Hurl, k6]
+    trial: [Drizzle ORM]

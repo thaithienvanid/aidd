@@ -1,0 +1,23 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+# It extends ts-library and lists ts-api's standards itself, because a stack extends one other stack, one level deep.
+name: ts-ai
+description: "An AI agent service in TypeScript on Node.js with an HTTP API, retrieval over PostgreSQL, evals, traces, and durable workflows."
+extends: ts-library
+standards:
+  - typescript/fastify-api
+  - typescript/zod-validation
+  - typescript/prisma-orm
+  - typescript/atlas-migrations
+  - typescript/pnpm-turborepo-workspace
+  - typescript/dependency-cruiser
+  - typescript/ai-sdk
+  - postgres/pgvector
+  - typescript/promptfoo-evals
+  - ai/langfuse-traces
+  - typescript/temporal-workflows
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt: [Fastify, Zod, Prisma, PostgreSQL, pgvector, Atlas, Turborepo, dependency-cruiser, Temporal]
+    trial: [AI SDK, promptfoo, Langfuse]

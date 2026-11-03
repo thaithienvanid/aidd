@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:status",
+  "title": "aidd status --json",
+  "description": "The open work: each Spec, Epic, Initiative, and proposal with its stored status and its next step, then what is past due. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "items",
+    "due"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "items": {
+      "type": "array",
+      "description": "The open work items, started first, then urgent ones, then by id.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "title",
+          "path",
+          "status",
+          "group"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The item's id, such as `SPEC-3`."
+          },
+          "type": {
+            "enum": [
+              "spec",
+              "epic",
+              "initiative",
+              "proposal"
+            ],
+            "description": "The kind of work item."
+          },
+          "title": {
+            "type": "string",
+            "description": "The item's title."
+          },
+          "path": {
+            "type": "string",
+            "description": "The item's file, relative to the repository's top."
+          },
+          "status": {
+            "type": "string",
+            "description": "The status the item's front matter stores, or an Epic's or Initiative's status from its children."
+          },
+          "group": {
+            "enum": [
+              "backlog",
+              "unstarted",
+              "started",
+              "completed",
+              "cancelled"
+            ],
+            "description": "The status group, from the schemas' `x-groups`."
+          },
+          "route": {
+            "enum": [
+              "minor",
+              "normal",
+              "major",
+              "emergency"
+            ],
+            "description": "The route the item declares."
+          },
+          "progress": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "finished",
+              "of"
+            ],
+            "description": "An Epic's or Initiative's children: how many finished, of how many.",
+            "properties": {
+              "finished": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "of": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "next": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      }
+    },
+    "due": {
+      "type": "array",
+      "description": "What is past due: a feature flag past its `cleanup_due`, a deprecation past its sunset.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "what",
+          "next"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The work item that names it."
+          },
+          "what": {
+            "type": "string",
+            "description": "What is due, in a sentence."
+          },
+          "next": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      }
+    },
+    "unreadable": {
+      "type": "array",
+      "description": "A work item whose front matter does not parse, with the reason: still open work, which `aidd validate` names in full.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "error"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "next": {
+      "$ref": "#/$defs/step",
+      "description": "With nothing open: what to do next."
+    }
+  },
+  "$defs": {
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "who",
+        "what"
+      ],
+      "description": "A next step: its stable code, who takes it, and what it is.",
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z_]+(\\.[a-z_]+)?$",
+          "description": "A stable code, such as `spec.approval`, that a script may match on."
+        },
+        "who": {
+          "enum": [
+            "agent",
+            "person"
+          ],
+          "description": "Who takes the step: an agent, or a person."
+        },
+        "what": {
+          "type": "string",
+          "description": "The step, in a sentence."
+        }
+      }
+    }
+  }
+}

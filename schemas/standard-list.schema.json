@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:standard-list",
+  "title": "aidd standard list --json",
+  "description": "The choices the domain packs and practice skills leave open, each with aidd's default answer, and aidd's library of opinionated standards that fill them. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "open_choices", "standards"],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "open_choices": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/choice" },
+      "description": "Every open choice, by its `<pack>:<choice>` reference."
+    },
+    "standards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/standard" },
+      "description": "Every library standard, by id."
+    }
+  },
+  "$defs": {
+    "choice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "pack", "question", "default_answer", "options", "filled_by", "default_by_ecosystem"],
+      "properties": {
+        "ref": { "$ref": "urn:aidd:1:standard#/$defs/choice_ref", "description": "The choice, as `<pack>:<choice>`." },
+        "pack": { "type": "string", "description": "The domain pack or practice skill that leaves the choice open." },
+        "question": { "type": "string", "description": "The question the choice answers." },
+        "default_answer": { "type": "string", "description": "aidd's default answer, in words, until a standard fills the choice." },
+        "options": { "type": "array", "items": { "type": "string" }, "description": "The common answers." },
+        "filled_by": { "type": "array", "items": { "type": "string" }, "description": "The library standards that fill it, by id." },
+        "default_by_ecosystem": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "aidd's default library standard for the choice, by ecosystem, where the library holds several options."
+        }
+      }
+    },
+    "standard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "fills", "tool", "checked_version", "checked", "status", "default", "trust", "policy", "added"],
+      "properties": {
+        "id": { "type": "string", "description": "The standard's id, `<group>/<topic>`." },
+        "fills": { "type": "array", "items": { "type": "string" }, "description": "The open choices it answers." },
+        "tool": { "type": ["string", "null"], "description": "The tool it chooses, or null for none." },
+        "checked_version": { "type": ["string", "null"], "description": "The tool's version read on the `checked` day." },
+        "checked": { "type": ["string", "null"], "description": "The day the version or the claim was read at its source." },
+        "status": { "enum": ["active", "deprecated"], "description": "Whether a project may add it." },
+        "default": { "type": "boolean", "description": "True when it is aidd's default for its choice and ecosystem." },
+        "trust": { "type": "string", "description": "Who checked it: an agent, or a person's review." },
+        "policy": { "type": "string", "description": "The company's mark from `standards_policy`: required, excluded, replaced by another, or empty." },
+        "added": { "type": "boolean", "description": "True when this repository holds a copy." }
+      }
+    }
+  }
+}

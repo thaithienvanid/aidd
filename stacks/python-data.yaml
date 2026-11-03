@@ -1,0 +1,16 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+# It extends python-cli, because a stack extends one other stack, one level deep.
+name: python-data
+description: "A data platform in Python: sources loaded, models built and tested, and pipelines scheduled, as code in the repository. On Python 3.14, since Airflow and dlt do not run on 3.15 yet."
+extends: python-cli
+standards:
+  - python/pytest-tests
+  - data/dlt
+  - data/dbt-core
+  - data/airflow
+reviewed: "2026-10-28"
+project:
+  stack:
+    adopt: [Python 3.14, pytest, dbt Core, SQLFluff, Apache Airflow]
+    trial: [dlt]

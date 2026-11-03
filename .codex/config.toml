@@ -1,0 +1,5 @@
+# >>> aidd: the aidd MCP server. `aidd init` writes this block, and `aidd uninstall` removes it.
+[mcp_servers.aidd]
+command = "sh"
+args = ["-c", "exec \"$HOME\"/.aidd/bin/aidd mcp"]
+# <<< aidd

@@ -1,0 +1,18 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: ts-api
+description: "A TypeScript HTTP server on Node.js, with a managed PostgreSQL database."
+extends: ts-library
+standards:
+  - typescript/fastify-api
+  - typescript/zod-validation
+  - typescript/prisma-orm
+  - typescript/atlas-migrations
+  - typescript/pnpm-turborepo-workspace
+  - typescript/dependency-cruiser
+  - tooling/hurl
+  - tooling/k6
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt: [Fastify, Zod, Prisma, PostgreSQL, Atlas, Turborepo, dependency-cruiser, Hurl, k6]

@@ -1,0 +1,23 @@
+{
+  "$comment": "The product prototype's sitemap, which the product designer keeps (`aidd new product-prototype`, or the prototype tool's `new-product`). It defines the navigation once: every screen draws it from here, in this order, so no two screens disagree. `navigation` lists each item's label and the <flow>:<screen> it opens; `flows` lists each flow's id (its file is flows/<id>.html) and title; `fixtures` holds the example data every screen shows through data-text and data-list. The prototype tool (`aidd prototype`) shows and checks it.",
+  "format": 1,
+  "product": "{{product}}",
+  "platforms": [
+    "web"
+  ],
+  "navigation": [
+    {
+      "label": "Start",
+      "go": "start:start"
+    }
+  ],
+  "flows": [
+    {
+      "id": "start",
+      "title": "Start"
+    }
+  ],
+  "fixtures": {
+    "product": "{{product}}"
+  }
+}

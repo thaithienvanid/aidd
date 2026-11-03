@@ -1,0 +1,17 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: rust-library
+description: "A Rust library crate published on crates.io."
+standards:
+  - rust/msrv
+  - rust/cargo-lockfile
+  - rust/rustfmt
+  - rust/clippy
+  - rust/cargo-nextest
+  - rust/cargo-deny
+  - rust/cargo-semver-checks
+  - rust/criterion
+reviewed: "2026-10-22"
+project:
+  stack:
+    adopt: [Rust, Cargo, cargo-nextest, cargo-deny, cargo-semver-checks, Criterion.rs]

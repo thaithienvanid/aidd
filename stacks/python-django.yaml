@@ -1,0 +1,10 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: python-django
+description: "A web service and its API in Python, on Django."
+extends: python-cli
+standards: [python/pytest-tests, python/python-version, python/django]
+reviewed: "2026-10-16"
+project:
+  stack:
+    adopt: [pytest, Django, Django REST framework]

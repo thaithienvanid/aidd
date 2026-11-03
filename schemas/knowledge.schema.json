@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:knowledge",
+  "title": "aidd eval standards --online --json",
+  "description": "The standards check: each registry entry's evidence URL fetched again, and whether the sentence quoted as evidence is still on the page. It reads the registry and never edits it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "checked_on",
+    "limits",
+    "counts",
+    "results"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "checked_on": {
+      "$ref": "urn:aidd:1:common#/$defs/date",
+      "description": "The day the pages were fetched."
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timeout_seconds",
+        "max_seconds",
+        "max_bytes",
+        "concurrency"
+      ],
+      "description": "The bounds the run kept: each request's timeout, the whole run's time cap, the most bytes read from one page, and the most requests in flight (one or two; requests to one host are always one at a time).",
+      "properties": {
+        "timeout_seconds": {
+          "type": "number",
+          "minimum": 0.001,
+          "description": "Each request's timeout, in seconds (--timeout)."
+        },
+        "max_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "description": "The whole run's time cap, in seconds (--max-seconds); an entry not fetched by then is unreachable."
+        },
+        "max_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The most bytes read from one page (--max-bytes)."
+        },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2,
+          "description": "The most requests in flight (--concurrency, one or two)."
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "moved",
+        "missing",
+        "unreachable"
+      ],
+      "description": "How many entries ended in each status.",
+      "properties": {
+        "ok": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Entries whose quote is still on the page."
+        },
+        "moved": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Entries whose address no longer serves the page."
+        },
+        "missing": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Entries whose page loads without the quote."
+        },
+        "unreachable": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Entries with no answer to judge."
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "description": "One row per entry with evidence, in registry order.",
+      "items": {
+        "$ref": "#/$defs/result"
+      }
+    },
+    "releases": {
+      "type": "array",
+      "description": "The release-feed check: one row per library standard whose tool has a feed (PyPI, npm, crates.io, Maven Central, NuGet, the Go module proxy, GitHub releases, go.dev, nodejs.org, the .NET release index, Adoptium, or python.org), in id order.",
+      "items": {
+        "$ref": "#/$defs/release"
+      }
+    }
+  },
+  "$defs": {
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "tool", "registry", "url", "checked_version", "latest", "status", "reason"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "description": "The library standard's id, such as `python/ruff-lint-format`." },
+        "tool": { "type": "string", "description": "The tool it chooses." },
+        "registry": { "enum": ["pypi", "npm", "crates", "maven", "nuget", "go", "github", "go.dev", "nodejs.org", "dotnet", "adoptium", "python.org"], "description": "The feed the release was read from." },
+        "url": { "type": "string", "description": "The feed's address for the tool." },
+        "checked_version": { "type": "string", "description": "The version the standard records as checked." },
+        "latest": { "type": ["string", "null"], "description": "The newest stable release the feed named, never a pre-release; for a `latest_lts` standard, the newest LTS release where the feed marks one. Null when none was read." },
+        "status": {
+          "enum": ["ok", "newer_major", "unreachable"],
+          "description": "ok: no newer major. newer_major: a newer major release is out (before 1.0, a newer minor); read its notes and update the standard. unreachable: no answer to judge; it says nothing about the tool."
+        },
+        "reason": { "type": "string", "description": "Why, in words; empty for ok." }
+      }
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "moved",
+        "missing",
+        "unreachable"
+      ],
+      "description": "ok: the quote is on the page (after a redirect, `final_url` names the new address). moved: the address no longer serves the page (HTTP 404 or 410, or a redirect to a page without the quote); find the new address and update `evidence.url`. missing: the page loads but the quote is gone; the source may have a new edition, so re-read it. unreachable: no answer to judge (a network error, a timeout, HTTP 401, 403, 429, or 5xx, a type that is not text, a page larger than the byte limit, or the time cap); it says nothing about the standard."
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "where",
+        "url",
+        "status",
+        "http_status",
+        "final_url",
+        "reason"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The entry's id in the registry's `standards` object, or an extension's name."
+        },
+        "where": {
+          "type": "string",
+          "description": "The first role, pack, or extension that applies it."
+        },
+        "url": {
+          "type": "string",
+          "description": "The entry's `evidence.url`."
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "http_status": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "The HTTP status of the last response; null when none came."
+        },
+        "final_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The address the page was read from after redirects, when it differs from `url`; else null."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in words; empty for ok without a redirect."
+        }
+      }
+    }
+  }
+}

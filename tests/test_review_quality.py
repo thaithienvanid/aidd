@@ -1,0 +1,296 @@
+"""Review and test quality: what a finding must carry, the dismissed findings a later review leaves out, the challenge
+of each security finding, and the cards that say why a test exists and when it may go."""
+
+import json
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+from helpers import ROOT, make_repo, says
+
+from aidd.docsgen import token_caps
+from aidd.kernel import resources
+
+TEAM = ROOT / "plugins" / "aidd-team"
+TEMPLATE = resources.data_dir("templates") / "REVIEW.md"
+POLICIES = (TEMPLATE, ROOT / "REVIEW.md")
+
+
+def text(path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def command(name: str) -> str:
+    return text(TEAM / "commands" / f"{name}.md")
+
+
+def section(page: str, heading: str) -> str:
+    return page.split(f"\n## {heading}\n", 1)[1].split("\n## ", 1)[0]
+
+
+def step(page: str, number: int) -> str:
+    """The text of a numbered step of a command's own steps (after the lead rules), up to the next step."""
+    body = page.split("$ARGUMENTS", 1)[1].split(f"\n{number}. ", 1)[1]
+    return body.split(f"\n{number + 1}. ", 1)[0]
+
+
+class ConfidenceAndQuoteTests(unittest.TestCase):
+    """Every finding carries a confidence and a quote of its code; an unquoted one goes to an appendix, capped at 4."""
+
+    def test_the_review_policy_states_the_rule(self):
+        for path in POLICIES:
+            rule = section(text(path), "Confidence and quotes")
+            for must in ("confidence from 1 to 10", "`file:line`", "at most 4", "appendix", "never in the main list"):
+                self.assertIn(must, rule, f"{path}: {must}")
+
+    def test_the_review_command_merges_by_it(self):
+        merge = step(command("review"), 5)
+        for must in ("confidence (1 to 10)", "`file:line` quote", "appendix", "at most 4"):
+            self.assertIn(must, merge, must)
+
+    def test_the_fix_command_cuts_the_reviewer_report_by_it(self):
+        reviewer_step = next(ln for ln in command("fix").splitlines() if "`aidd-team:reviewer`" in ln)
+        for must in ("confidence (1 to 10)", "`file:line` quote", "appendix", "at most 4"):
+            self.assertIn(must, reviewer_step, must)
+
+
+class DismissedFindingTests(unittest.TestCase):
+    """A person's dismissal is recorded by fingerprint, read from the base branch, and left out of the next review."""
+
+    def test_the_review_policy_has_the_list_and_its_fingerprint(self):
+        for path in POLICIES:
+            dismissed = section(text(path), "Dismissing a finding")
+            for must in ("A person", "fingerprint", "path", "kind", "SHA-256", "line before it", "line number", "who", "why"):
+                self.assertIn(must, dismissed, f"{path}: {must}")
+            self.assertIn("`<file> | <kind> | <hash>`", dismissed, path)
+            self.assertIn("`git show <base>:REVIEW.md`", dismissed, path)
+            self.assertIn("never from the head", dismissed, path)
+            self.assertIn("`- <file> | <kind> | <hash> | <who> | <date> | <why>`", dismissed, path)
+            self.assertIn("16 lowercase hex characters", dismissed, path)
+            self.assertTrue(says(dismissed, "first line", "exactly", "`## Dismissed findings`"), path)
+            self.assertIn("a malformed dismissal line", dismissed, path)
+            self.assertIn("ignores every other line", dismissed, path)
+            # The list itself holds no explanation, so every other line in it is a malformed dismissal line.
+            listed = [ln for ln in section(text(path), "Dismissed findings").splitlines() if ln.strip()]
+            self.assertEqual(len(listed), 1, path)
+            self.assertRegex(listed[0], r"^<!--.*-->$", path)
+
+    def test_the_review_command_reads_the_base_branch_copy(self):
+        read = step(command("review"), 2)
+        self.assertIn("Dismissed findings", read)
+        self.assertIn("`git show <base>:REVIEW.md`", read)
+        self.assertIn("never from the head", read)
+        merge = step(command("review"), 5)
+        self.assertIn("in the exact form REVIEW.md gives", merge)
+        self.assertIn("under the first `## Dismissed findings` heading of the base branch's REVIEW.md", merge)
+        self.assertIn("a malformed dismissal line", merge)
+
+    def test_the_review_command_leaves_out_matches_and_lists_them(self):
+        page = command("review")
+        merge = step(page, 5)
+        for must in ("fingerprint", "Leave out", "List the fingerprints you left out", "how many"):
+            self.assertIn(must, merge, must)
+        self.assertIn("never add one yourself", merge, "only a person dismisses a finding")
+
+    def test_the_review_flags_a_change_to_the_list(self):
+        merge = step(command("review"), 5)
+        self.assertIn("When the diff changes `## Dismissed findings`, put that first in the report", merge)
+
+    def test_the_fix_command_does_the_same(self):
+        reviewer_step = next(ln for ln in command("fix").splitlines() if "`aidd-team:reviewer`" in ln)
+        for must in (
+            "Dismissed findings",
+            "`git show <base>:REVIEW.md`",
+            "never the head",
+            "under the first `## Dismissed findings` heading",
+            "exact form",
+            "a malformed dismissal line",
+            "List the fingerprints you left out",
+            "Flag a diff that changes that section",
+            "never add one yourself",
+            "`security/`",
+        ):
+            self.assertIn(must, reviewer_step, must)
+
+    def test_a_security_dismissal_needs_the_security_pool(self):
+        for path in POLICIES:
+            dismissed = section(text(path), "Dismissing a finding")
+            self.assertIn("starts with `security/`", dismissed, path)
+            self.assertIn("`security` pool (`owners.specialists`", dismissed, path)
+        merge = step(command("review"), 5)
+        self.assertIn("Leave out a `security/` finding only when", merge)
+        self.assertIn("a person who reviews security", merge)
+
+    def test_no_schema_change(self):
+        # The list lives in the policy file a person owns; the Spec's `decisions` field stays ADR paths.
+        spec = json.loads(text(ROOT / "schemas" / "spec.schema.json"))
+        self.assertEqual(spec["properties"]["adrs"]["items"], {"type": "string"})
+
+
+class FingerprintRecipeTests(unittest.TestCase):
+    """The one command REVIEW.md gives a person for the hash: run as written, on real files."""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.dir = Path(tmp.name)
+        recipes = {re.search(r"```sh\n(.*?)\n```", section(text(p), "Dismissing a finding"), re.S).group(1) for p in POLICIES}
+        self.assertEqual(len(recipes), 1, "the template and aidd's own REVIEW.md give one recipe")
+        self.recipe = recipes.pop()
+        self.assertTrue(self.recipe.endswith(" <file> <n>"), self.recipe)
+
+    def hash_of(self, lines: list[str], n: int) -> str:
+        f = self.dir / f"f{len(list(self.dir.iterdir()))}.py"
+        f.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        cmd = shlex.split(self.recipe.removesuffix(" <file> <n>")) + [str(f), str(n)]
+        out = subprocess.run([sys.executable if c == "python3" else c for c in cmd], capture_output=True, text=True, check=True).stdout.strip()
+        self.assertRegex(out, r"^[0-9a-f]{16}$")
+        return out
+
+    def run_recipe(self, lines: list[str], n: str) -> subprocess.CompletedProcess:
+        f = self.dir / "g.py"
+        f.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        cmd = shlex.split(self.recipe.removesuffix(" <file> <n>")) + [str(f), n]
+        return subprocess.run([sys.executable if c == "python3" else c for c in cmd], capture_output=True, text=True)
+
+    def test_a_line_number_below_1_is_refused(self):
+        for n in ("0", "-1"):
+            done = self.run_recipe(["a = 1", "b = 2"], n)
+            self.assertNotEqual(done.returncode, 0, n)
+            self.assertEqual(done.stdout, "", n)
+            self.assertIn("line number", done.stderr, n)
+            self.assertIn("1 or more", done.stderr, n)
+            self.assertNotIn("Traceback", done.stderr, n)
+
+    def test_the_same_line_in_its_context_matches(self):
+        base = self.hash_of(["def f(x):", "    return eval(x)"], 2)
+        # Moved down, and re-indented: no line number, and spaces are normalized.
+        self.assertEqual(self.hash_of(["import os", "", "def f(x):", "  return   eval(x)  "], 4), base)
+        self.assertRegex(self.hash_of(["first = 1"], 1), r"^[0-9a-f]{16}$")
+
+    def test_the_same_80_character_prefix_does_not_match(self):
+        prefix = "query = 'SELECT * FROM users WHERE id = ' + request.args['id'] + ' AND tenant = '"
+        self.assertGreaterEqual(len(prefix), 80)
+        a = self.hash_of(["def f(request):", prefix + "tenant_id"], 2)
+        b = self.hash_of(["def f(request):", prefix + "request.args['t']"], 2)
+        self.assertNotEqual(a, b)
+
+    def test_an_identical_line_in_another_context_does_not_match(self):
+        a = self.hash_of(["def public(x):", "    return eval(x)"], 2)
+        b = self.hash_of(["def admin_only(x):", "    return eval(x)"], 2)
+        self.assertNotEqual(a, b)
+
+
+@unittest.skipUnless(shutil.which("git"), "git is required")
+class DismissalGuardTests(unittest.TestCase):
+    """An agent never adds or changes a dismissal, in any shape, nor moves one under the heading the review reads."""
+
+    EXACT = "- src/app.py | missing-test | 0123456789abcdef | @me | 2026-10-07 | covered by the e2e suite"
+    VARIANTS = {
+        "the exact form": EXACT,
+        "a star": "* src/a.py | missing-test | 0123456789abcdef | @me | 2026-10-07 | why",
+        "a plus": "+ src/a.py | missing-test | 0123456789abcdef | @me | 2026-10-07 | why",
+        "no marker": "src/a.py | missing-test | 0123456789abcdef | @me | 2026-10-07 | why",
+        "a number": "1. src/a.py | missing-test | 0123456789abcdef | @me | 2026-10-07 | why",
+        "a number and a parenthesis": "2) src/a.py | missing-test | 0123456789abcdef",
+        "tabs": "-\tsrc/a.py\t|\tmissing-test\t|\t0123456789abcdef\t|\t@me",
+        "no spaces": "-src/a.py|missing-test|0123456789abcdef|@me",
+        "fullwidth bars": "- src/a.py ｜ missing-test ｜ 0123456789abcdef ｜ @me",
+        "12 hex": "- src/a.py | missing-test | 0123456789ab | @me",
+        "64 hex": "- src/a.py | missing-test | " + "a" * 64 + " | @me",
+        "upper case": "- src/a.py | missing-test | 0123456789ABCDEF | @me",
+        "a backticked hash": "- `src/a.py` | missing-test | `0123456789abcdef` | @me",
+        "a table row": "| src/a.py | missing-test | 0123456789abcdef |",
+        "a table row with the hash first": "| 0123456789abcdef | src/a.py | missing-test |",
+        "indented": "    - src/a.py | missing-test | 0123456789abcdef | @me",
+    }
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = make_repo(Path(tmp.name).resolve() / "repo", branch=None)
+        self.policy = self.root / "REVIEW.md"
+        self.assertTrue(self.policy.is_file(), "aidd init wrote the review policy")
+        self.base = self.policy.read_text(encoding="utf-8")
+
+    def listed(self, *lines: str, text: str | None = None) -> str:
+        """The policy with `lines` in the list under `## Dismissed findings`."""
+        t = self.base if text is None else text
+        return t.replace("\n## Repository notes\n", "\n" + "".join(ln + "\n" for ln in lines) + "\n## Repository notes\n", 1)
+
+    def denied(self, verdict, what):
+        self.assertEqual(verdict[0], "deny", what)
+        self.assertIn("only a person adds a dismissal", verdict[1], what)
+
+    def not_this_rule(self, verdict, what):
+        self.assertNotIn("only a person adds a dismissal", verdict[1], what)
+
+
+class SecurityChallengeTests(unittest.TestCase):
+    """Before the human security pool sees them, a second read-only pass tries to refute each finding."""
+
+    def test_the_secure_command_challenges_each_finding(self):
+        page = command("secure")
+        challenge = page.split("**Challenge", 1)[1]
+        for must in (
+            "read-only",
+            "fresh `aidd-team:security-engineer` subagent",
+            "writes no file",
+            "refute",
+            "evidence",
+            "`file:line`",
+            "Refuted",
+            "the reason",
+            "never drop",
+        ):
+            self.assertIn(must, challenge, must)
+        # The challenge comes before the person, and the person still decides.
+        self.assertLess(page.index("**Challenge"), page.index("The person who reviews security decides"))
+        # The second pass is a role the flow already runs (test_team: a command names only its flow's roles).
+        self.assertNotIn("`aidd-team:reviewer`", page)
+
+
+class TestValueCardTests(unittest.TestCase):
+    """An on-demand reference in test-design with a value card and a retirement card."""
+
+    REF = TEAM / "skills" / "test-design" / "references" / "test-value.md"
+
+    def test_the_cards(self):
+        page = text(self.REF)
+        value = section(page, "Test value card").lower()
+        for must in ("failure it prevents", "how it fails today", "cost"):
+            self.assertIn(must, value, must)
+        retire = section(page, "Retirement card").lower()
+        for must in ("evidence", "passing test", "decides", "a person"):
+            self.assertIn(must, retire, must)
+
+    def test_it_fits_the_reference_cap(self):
+        self.assertLessEqual(token_caps.estimate_tokens(text(self.REF)), token_caps.REFERENCE_TOKENS)
+
+    def test_the_review_command_points_to_it(self):
+        # The skill body is preloaded and at its budget, so the on-demand pointer lives in the review command.
+        self.assertIn("references/test-value.md", step(command("review"), 4))
+
+    def test_the_specify_command_points_the_tester_to_it(self):
+        # The verifier's preloaded skill cannot take the link, so the command that runs the verifier carries it.
+        verifier = step(command("specify"), 7)
+        self.assertIn("`aidd-team:verifier`", verifier)
+        self.assertIn("value card", verifier)
+        self.assertIn("`references/test-value.md`", verifier)
+
+
+class OneQuoteFormTests(unittest.TestCase):
+    """One form for a quote's place, `file:line`, in the policy and the commands."""
+
+    def test_no_path_line(self):
+        for page in (*POLICIES, *(TEAM / "commands" / f"{c}.md" for c in ("review", "fix", "secure"))):
+            self.assertNotIn("path:line", text(page), page)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,0 +1,45 @@
+# aidd's settings for this repository. Agents read it; aidd advises and enforces nothing.
+# Change it only when a person asks. Field reference: references/config.md.
+# Schema: config.schema.json in the aidd package. `aidd doctor` checks it.
+aidd_version: "1.0.0"
+profile: {{profile}}      # solo or team: who decides, and on which routes the agent asks for Spec approval
+
+# An org preset this config inherits from. A `path` is read from this repository and may not escape it.
+# A `url` must be https and must carry its sha256, so a moved parent is a failure, not a silent change.
+# extends: [{path: .aidd/org-preset.yaml}]
+# extends: [{url: "https://example.com/aidd-org-preset.yaml", sha256: "<64 hex>"}]
+
+owners:
+  # The `owner_team` that `aidd new` writes into a new Spec, Epic, or Initiative.
+  # default_owner_team: "@org/team"
+
+  # The people an agent asks, first to last: "@user", "@org/team", or "email:you@example.com".
+  # Empty, the agent asks whoever directs it.
+  approvers: {{approvers}}
+
+  # Specialists by pool (security, privacy, finance, compliance, data): the people an agent names
+  # when a change's risk dimension calls for them.
+{{specialists}}
+
+# The repository suite, run on every change by `aidd test`. With none, each Spec brings its own.
+# `command` is a vector, one argument per item, never a shell string. A test may also set
+# timeout_seconds (1800) and when_changed (["services/api/**"]: run only when these paths change).
+{{tests}}
+
+# The one-command local preview the verifier starts from a clean checkout of the head, to exercise
+# each Acceptance item and record screenshots, a trace, and API transcripts for people.
+{{preview}}
+
+# This repository's risk rules, on top of the built-in ones (`aidd risk --list` shows them all).
+# An area or action with a built-in's id replaces it. A rule with a built-in's selector (action,
+# area, branch, role) replaces that rule, so a level can go down as well as up. Levels: allow,
+# report (act, then say what you did), ask (wait for the person's yes). After a change, run
+# `aidd upgrade --yes` to write the new ask commands into the harness's own ask rules.
+# risks:
+#   areas:
+#     billing: {paths: ["src/billing/**"], route: major}
+#   actions:
+#     cloud.resource.create: {description: Commands that create paid cloud resources, commands: ["terraform apply*"]}
+#   rules:
+#     - {action: code.edit, area: billing, level: ask}
+#     - {action: pr.open, level: allow}

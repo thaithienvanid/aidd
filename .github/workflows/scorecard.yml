@@ -1,0 +1,44 @@
+# OpenSSF Scorecard: supply-chain posture, published to the Scorecard API and code scanning.
+name: scorecard
+
+# On each push to main, so a fixed dependency or policy clears its alert when it lands; weekly, for the posture that
+# changes outside the code, such as branch protection; and by hand. Only while the repository is public: Scorecard publishes results for public repositories only, and its code scanning upload needs GitHub Code
+# Security on a private one.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "23 5 * * 2"
+  workflow_dispatch:
+
+# publish_results limits this workflow to the shape Scorecard's API accepts: no top-level env,
+# defaults, or concurrency, and only the approved actions below.
+permissions: {}
+
+jobs:
+  analysis:
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read         # read the repository
+      security-events: write # upload the SARIF to code scanning
+      id-token: write        # publish the results to the Scorecard API (OIDC)
+      actions: read          # read workflow runs for the CI-Tests check
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: scorecard-sarif
+          path: results.sarif
+          retention-days: 5
+      - uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+        with:
+          sarif_file: results.sarif
