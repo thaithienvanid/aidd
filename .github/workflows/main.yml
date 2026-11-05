@@ -1,0 +1,58 @@
+# main: after a merge, what the pull request did not run: the suite and the browser tests on the newest Python. A pull
+# request runs the checks, the suite on 3.14, and the browser tests in ci and aidd-tests (3.15 stays off it, because its
+# standard library may change what aidd prints, as 3.15's argparse did). The ruleset requires a branch up to date with
+# main (`strict_required_status_checks_policy`), so the merged tree is the tree those runs proved and nothing else
+# repeats. If an owner turns that policy off, or lets a push reach main without a pull request, a merge can combine
+# changes no run tested together: add the `checks` job and the 3.14 suite of ci.yml here, with this workflow's push
+# trigger, before relying on it. The release requires this run on its commit (release.yml).
+name: main
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push cancels the older run on main. The release checks that this workflow passed for the tagged commit: when a
+# newer push cancelled that commit's run, re-run it before tagging (RELEASING.md).
+concurrency:
+  group: main-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  suite:
+    name: suite on Python 3.15
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          python-version: "3.15"
+      # The browser tests skip here; the next job runs them.
+      - run: python3.15 tests/run.py
+
+  # The test files that drive a real browser, beside the suite, so neither waits on the other. No coverage: the Python
+  # they reach writes the pages, which other files cover, and Chrome runs the pages' script, which coverage cannot see.
+  browser:
+    name: browser tests on Python 3.15
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          python-version: "3.15"
+          browser: "true"
+      # The browser tests drive the Chrome on the runner, headless, against a page served from 127.0.0.1 only or a file.
+      # `--browser` refuses to run without AIDD_BROWSER_TESTS=1, so this step cannot pass with every test skipped.
+      - name: The browser tests on Python 3.15, the newest
+        env:
+          AIDD_BROWSER_TESTS: "1"
+        run: python3.15 tests/run.py --browser

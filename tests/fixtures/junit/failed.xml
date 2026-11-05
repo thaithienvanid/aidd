@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="pytest" tests="4">
+    <testcase classname="tests.test_greeting" name="test_says_hello"/>
+    <testcase classname="tests.test_greeting" name="test_says_goodbye"><failure message="boom">trace</failure></testcase>
+    <testcase classname="tests.test_greeting" name="test_crashes"><error message="oops">trace</error></testcase>
+    <testcase classname="tests.test_greeting" name="test_later"><skipped/></testcase>
+  </testsuite>
+</testsuites>

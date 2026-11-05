@@ -1,0 +1,31 @@
+{
+  "id": "20261101T100100000Z-a0000002",
+  "type": "decision",
+  "at": "2026-11-01T10:01:00Z",
+  "by": "agent:claude-code/claude-opus-5-5",
+  "written_with": "cli",
+  "data": {
+    "question": {
+      "type": "choice",
+      "text": "Which layout?",
+      "options": [
+        {
+          "id": "a",
+          "label": "Cards"
+        },
+        {
+          "id": "b",
+          "label": "Table"
+        }
+      ]
+    },
+    "answer": {
+      "outcome": "accept",
+      "words": "the table",
+      "picked": [
+        "b"
+      ],
+      "by": "Ada"
+    }
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:records",
+  "title": "aidd records",
+  "description": "The record types' format (schemas/records.json), and in `$defs/record` one record: a file in `.git/aidd/records/<yyyy>/<mm>/<id>.json`, which `aidd records add` writes. A record is history, never a person's yes and never evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "description",
+    "types",
+    "$defs"
+  ],
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "types": {
+      "type": "object",
+      "description": "Each record type by its name, such as `decision`.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "description",
+          "data"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "description": "What a record of this type records."
+          },
+          "data": {
+            "type": "object",
+            "description": "The JSON Schema of the record's `data`."
+          }
+        }
+      }
+    },
+    "$defs": {
+      "type": "object",
+      "description": "The parts the types' schemas share."
+    }
+  },
+  "$defs": {
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "recorded_at",
+        "by",
+        "data"
+      ],
+      "description": "One record: an envelope of seven fields, and the facts of its type in `data`.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9]{8}T[0-9]{9}Z-[0-9a-f]{8}$",
+          "description": "The UTC time to the millisecond, then 8 random hex characters: unique, sorted by time, and the file's name."
+        },
+        "type": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "The record's type, a key of schemas/records.json's `types`, which sets the shape of `data`."
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the record was written, in UTC."
+        },
+        "by": {
+          "type": "string",
+          "pattern": "^(agent|person):[^\\s\\x00-\\x1f\\x7f-\\x9f\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069\\u061c][^\\x00-\\x1f\\x7f-\\x9f\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069\\u061c]*$",
+          "description": "Who wrote the record: `agent:<harness>/<model>`, as a commit's `Assisted-by`, or `person:<git name>`."
+        },
+        "written_with": {
+          "enum": [
+            "cli",
+            "mcp"
+          ],
+          "description": "What wrote the record: `cli`, the command `aidd records add`, or `mcp`, the MCP `record` tool. The tool runs with no prompt, so aidd never fills a decision's `answer.by` from the git name there."
+        },
+        "subject": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+          "description": "The work item the record belongs to, such as SPEC-4."
+        },
+        "data": {
+          "type": "object",
+          "description": "The facts of the record's type."
+        }
+      }
+    },
+    "added": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "record"
+      ],
+      "description": "What `aidd records add --json` prints, and what the MCP `record` tool returns.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape."
+        },
+        "record": {
+          "$ref": "#/$defs/record",
+          "description": "The record as written: its id, which names its file under .git/aidd/records/, and the facts of its type."
+        }
+      }
+    },
+    "list": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "records",
+        "pulled",
+        "partly_read",
+        "unreadable"
+      ],
+      "description": "What `aidd records --json` prints.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape."
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "The records, newest first. Each is a record of a type this aidd knows or not, in today's names: a record from an older aidd reads `recorded_at` and `yes_no`, though its file is never rewritten."
+        },
+        "pulled": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The ids of the records listed that `aidd records pull` added: another's text, never this clone's own account."
+        },
+        "partly_read": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The ids of the records listed that this aidd reads only in part: a type or a field it does not know, as a newer aidd writes, or a field it needs missing. They are kept and shown, and never counted as a person's yes or the delegate's answer."
+        },
+        "unreadable": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The files in the records folder that do not read as a record, which were skipped."
+        }
+      }
+    }
+  }
+}

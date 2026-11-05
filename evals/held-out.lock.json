@@ -1,0 +1,221 @@
+{
+  "description": "The held-out eval cases. A held-out case is read once, at a release, and never tuned against, so an edit after `first_read_on` fails a test. The shape is schemas/eval-held-out.schema.json. A run of `aidd eval routing` or `roles` sets `first_read_on` for a case it scores for the first time. To refresh the hash of a case nobody has read, copy the one the test prints.",
+  "cases": [
+    {
+      "suite": "roles",
+      "case": "r01-reviewer-planted-bug",
+      "content_sha256": "1c736f47a064e69b86d379936bc3785f457e7a3feef552b381ab302a78b39474",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r07-product-manager-scope-creep",
+      "content_sha256": "fff4bfe32c9e099d5d1424fb01c27e12fd7123b00dc66593f72b0598cadfe671",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r08-product-designer-missing-states",
+      "content_sha256": "f36710c4044101621a5906dfaa849e2137f2714c05443883d7441179cec4af8c",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r12-tech-writer-generated-block",
+      "content_sha256": "7d76695541f768f0b7aa2fe63fe093237523802808d7502cf29b0a74005a71c6",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r15-verifier-acceptance-mismatch",
+      "content_sha256": "86819aaf184fe77ddbfcacfddbf26aedbd35309fc44a9dd9dcc40403230fe28d",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r18-domain-expert-payments",
+      "content_sha256": "9a31540cba9d2b268f15755b79e2e58f3d82b8038ca769ee7eb5d37ac4897948",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r24-domain-expert-games",
+      "content_sha256": "b32ee47d5709a94b96ac06e599a614aef55701531d9ef6f7c3b9c8da59487dc0",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r29-reviewer-hardening-note",
+      "content_sha256": "a380bd3ea01077dc067a5b93014c7e1ca6d0dc85c802fbbf1154d96285e23fdc",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r40-designer-state-copy",
+      "content_sha256": "6abfdde185242f357f7d9c28a688923ffd8a21273daf084959baee9f8961ef01",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r42-tech-writer-restate-first",
+      "content_sha256": "2b1680438c8e7098d298cec76893f7f7c9a2f85ba56546938ac2daf201059e4b",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r71-verifier-ai-answers-unmeasured",
+      "content_sha256": "169f58f19d30782727a59e861abc7551ce386cf047e3372440fb6569a1b6e636",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r72-architect-new-repository-no-stack",
+      "content_sha256": "ff253a0b1a3d39ae7018b88cc253d740e9ad6b32b9dd45f2bd196cb432e819cb",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r73-sre-year-end-freeze",
+      "content_sha256": "9f7795a2f575b3a940370fad0a1aef75bbc405540413495905c24592a756210d",
+      "first_read_on": null
+    },
+    {
+      "suite": "roles",
+      "case": "r74-domain-expert-kids-reading-app",
+      "content_sha256": "7d8ba90f40a3ed3531129f418e03aa40aa24cdcda8552d934ab413a64c122303",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c05-rbac",
+      "content_sha256": "7c229a50b3d92b771bc36732fdd1c8d0f587407560bffd0cacbaabf38fc5d778",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c16-secret-rotation",
+      "content_sha256": "84ee6ee9cf65edcbf92896734a1aa600c6bd817c66826cb053e7bd1f1009a3e2",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c18-gdpr-export",
+      "content_sha256": "c11a93a8809f836636a3f5bc8497306e4fa93dbb712c070c6d125d39f9eb9343",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c21-perf-threshold",
+      "content_sha256": "4f6a543bf2cb345073bd8b5d35f597d87775f56e11c2ae98441feb61c2a666ad",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c28-crypto",
+      "content_sha256": "2fcf51bb47a6c2081314be0496fccba7a15af7ca24f4a626f06fd0425cccc56d",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c33-api-field-rename",
+      "content_sha256": "da807430b1b520cc230a9ddd1a6e2705f382093a40892ac0e1c991bf5d428e0d",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c35-test-config",
+      "content_sha256": "97c2e3966ed7b3519d6b21af6590a7c26a7725b58fc2017156760e14c0f55ed6",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c36-iam-terraform",
+      "content_sha256": "a73f7e1c73860eaeeefefcc63c1f77b9bb4af97dc477bc80abd990c333bdab5e",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c38-emergency-workflow",
+      "content_sha256": "1f690ddd17c39c2fe05a21213c0e432df5bf990c3301518ac327d9753024149c",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c48-deploy-config",
+      "content_sha256": "a2a38f8ad6fafa0f3ce7248193d1919e609cc641b537cca5d60c8fca0a689572",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c52-firebase-config",
+      "content_sha256": "751bbc10e6764d8005f7ff2200d2503a06127f22aacce0ab3b2f871ed162f80c",
+      "first_read_on": null
+    },
+    {
+      "suite": "routing",
+      "case": "c60-demo-tomorrow-cli-flag",
+      "content_sha256": "39b21b4a67815f7883868d26bee4dc466b628118db9dd727b2dd47381f336262",
+      "first_read_on": null
+    },
+    {
+      "suite": "team",
+      "case": "held-out-loads-accessible-ui-pay-button",
+      "content_sha256": "6314ca3a37830e06af104f096bcc4399fc1f753d908d967b3c45067a67bd4177",
+      "first_read_on": null
+    },
+    {
+      "suite": "team",
+      "case": "held-out-loads-cli-design-setting-precedence",
+      "content_sha256": "adfaedf83ec356af324326449d09e206c0110acab3a5cc2c6a11a2843ffff32a",
+      "first_read_on": null
+    },
+    {
+      "suite": "team",
+      "case": "held-out-loads-data-model-design-negated-boolean",
+      "content_sha256": "1d4db19e2b6d1c2fa6543e15592d588941032a970eeb60f19b7d47101b64b681",
+      "first_read_on": null
+    },
+    {
+      "suite": "team",
+      "case": "held-out-loads-debugging-short-export",
+      "content_sha256": "e411cdb1ff61a25259598d2b4800ae5f303d039b058a6706f22091b86c7f4112",
+      "first_read_on": null
+    },
+    {
+      "suite": "team",
+      "case": "held-out-loads-diagrams-upload-path",
+      "content_sha256": "bc43cb60fa520ed3d7fc2804627f39882123e364c8b9bd9bef11d89532422524",
+      "first_read_on": null
+    },
+    {
+      "suite": "team",
+      "case": "held-out-loads-maintainable-code-long-billing",
+      "content_sha256": "dd72c30fd57101bcdf9260543c1d925ddc3aaf17f5dbcf03f148893924721d41",
+      "first_read_on": null
+    },
+    {
+      "suite": "team",
+      "case": "held-out-loads-naming-last-seen",
+      "content_sha256": "eb918a74b1e37080aa8d2cfa4c56392289a2ee96d808a2f708a72d9f323f2647",
+      "first_read_on": null
+    },
+    {
+      "suite": "team",
+      "case": "held-out-loads-plain-language-suspended-email",
+      "content_sha256": "91ebe80156e7ee5d1ec74f46933984231d1b3c63302f46db556e86b78a6be3d5",
+      "first_read_on": null
+    },
+    {
+      "suite": "team",
+      "case": "held-out-loads-resilience-offline-photo",
+      "content_sha256": "ced1ad281abb7ef48685b72bb811abaccc797bd2a9352e8272e67b53c7fddc2c",
+      "first_read_on": null
+    },
+    {
+      "suite": "team",
+      "case": "held-out-loads-secure-coding-pdf-render",
+      "content_sha256": "b67c37d95f89ef2122f897283a650837662e6745c1a6d5c430259f8eec08a4f2",
+      "first_read_on": null
+    }
+  ]
+}

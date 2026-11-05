@@ -1,0 +1,8 @@
+# zizmor configuration for .github/workflows, .github/actions, and action.yml (CI: `zizmor --config .github/zizmor.yml`).
+# Every ignore carries its reason; anything new fails CI.
+rules:
+  # The workflows call the local action as `./.github/actions/setup`, after their checkout. zizmor prefers GitHub's
+  # `$/.github/actions/setup`, which needs a runner 2.336.0 or newer and which the pinned actionlint rejects as an action
+  # with no ref. Drop this ignore, and write `$/`, once actionlint reads it.
+  self-repository:
+    disable: true

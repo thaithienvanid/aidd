@@ -1,0 +1,289 @@
+# ci: what a pull request must pass before it merges. Require the `ci passed` job, which waits on the other two. The
+# suite runs on every pull request, never behind a path filter: many tests read Markdown (docs, the skill, the team), so
+# no change is documentation only. Three checks run only when a path they read changed (the `scope` step below).
+#
+# Each workflow has the one trigger its jobs need, so no job shows as skipped. Which workflow runs on which event, with
+# `push` meaning a push to main; tests/test_ci_workflows.py holds this table equal to the files. Each file's header
+# says why it exists. codeql, scorecard, evals, and release have their own headers.
+#
+#   workflow    job              events
+#   ci          checks           pull_request
+#   ci          test             pull_request
+#   ci          ci-passed        pull_request
+#   main        suite            push
+#   main        browser          push
+#   weekly      advisories       schedule, workflow_dispatch
+#   weekly      matrix           schedule, workflow_dispatch
+#   weekly      build            schedule, workflow_dispatch
+#   weekly      wheel            schedule, workflow_dispatch
+#   standards   standards        schedule, workflow_dispatch
+#   standards   standards-issue  schedule, workflow_dispatch
+#   aidd-tests  tests            pull_request, merge_group
+name: ci
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+# A newer push to the pull request cancels the older run.
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0  # the whole history, for the secret scan; HEAD^1 is the pull request's base
+      # Three checks read one folder or one kind of file, so they run only when a path they read changed. Each pattern
+      # lists what can change its check, and tests/test_ci_workflows.py holds each list to what the check reads. Every
+      # other check runs whatever changed.
+      - id: scope
+        run: |
+          changed=$(git diff --name-only HEAD^1 HEAD)
+          scope() {
+            if grep -Eq "$2" <<< "$changed"; then  # no pipe: grep -q stops early, and pipefail would read that as a failure
+              echo "$1=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "$1=false" >> "$GITHUB_OUTPUT"
+              echo "No path that can change $3 changed, so it is skipped." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          }
+          scope workflows '^(\.github/workflows/|\.github/actions/|\.github/zizmor|action\.ya?ml$|templates/github/)' 'actionlint and zizmor'
+          scope mermaid '(\.md$|^tools/mermaid/|^\.github/workflows/ci\.yml$|^\.github/actions/)' 'the Mermaid check'
+          scope plugins '^(\.claude-plugin/|\.agents/|plugins/|tools/mermaid/|\.github/workflows/ci\.yml$|\.github/actions/)' 'the plugin validation'
+      # The secret scan, as the `secrets` job of templates/github/aidd-security.yml runs it: gitleaks from its
+      # release, checked against the SHA-256 the release's checksums file lists. Steps here, not a job of their own.
+      # .gitleaks.toml keeps the default rules.
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/gitleaks.tar.gz" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "$GITLEAKS_SHA256  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP/gitleaks" gitleaks
+      # The scan takes .gitleaks.toml and .gitleaksignore from the base branch, so the change under scan cannot turn its
+      # own scan off. It names the branch by its full ref, which checkout's fetch-depth 0 fetches, so a tag cannot stand
+      # in for it; without one there, the default rules and no ignore list. gitleaks reads ./.gitleaksignore whatever
+      # --gitleaks-ignore-path names, so the scan removes it first. --ignore-gitleaks-allow ignores inline
+      # `gitleaks:allow` comments. --redact keeps a found secret out of the log; --verbose names each finding's
+      # file, line, and fingerprint.
+      - name: Secret scan of the history and the working tree (gitleaks)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          unset GITLEAKS_CONFIG GITLEAKS_CONFIG_TOML
+          conf="$RUNNER_TEMP/gitleaks/config.toml"
+          ignore="$RUNNER_TEMP/gitleaks/ignore"
+          if [ -n "$BASE_REF" ]; then
+            git show "refs/remotes/origin/$BASE_REF:.gitleaks.toml" > "$conf" 2>/dev/null || printf '[extend]\nuseDefault = true\n' > "$conf"
+            git show "refs/remotes/origin/$BASE_REF:.gitleaksignore" > "$ignore" 2>/dev/null || : > "$ignore"
+          else
+            cp .gitleaks.toml "$conf" 2>/dev/null || printf '[extend]\nuseDefault = true\n' > "$conf"
+            cp .gitleaksignore "$ignore" 2>/dev/null || : > "$ignore"
+          fi
+          rm -f .gitleaksignore
+          set -- --config "$conf" --gitleaks-ignore-path "$ignore" --ignore-gitleaks-allow --no-banner --redact --verbose
+          status=0
+          "$RUNNER_TEMP/gitleaks/gitleaks" git "$@" . || status=1
+          "$RUNNER_TEMP/gitleaks/gitleaks" dir "$@" . || status=1
+          exit "$status"
+      - uses: ./.github/actions/setup
+        with:
+          python-version: "3.12"  # stays on 3.12 with the hash-locked toolchains in .github/requirements/ (runtime jobs use 3.14)
+          cache: pip
+          cache-dependency-path: .github/requirements/lint.txt
+      # Every tool is pinned with hashes in .github/requirements/lint.txt, where Dependabot sees it.
+      # aidd's own lock files (the CI tools' hash-locked requirements and the Mermaid tool's npm lock), scanned as the
+      # `dependencies` job of templates/github/aidd-security.yml scans an adopter's: OSV-Scanner built by the runner's Go
+      # at this exact version, which the Go checksum database verifies, so no third-party action runs here.
+      - name: Dependency scan of aidd's own lock files (OSV-Scanner)
+        # OSV-Scanner reads a requirements file only when its name has "requirements" in it, so each lock is named with -L,
+        # and a lock it cannot read fails the run (tests/test_ci_workflows.py: every lock file is named).
+        run: |
+          go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.0 scan source \
+            -L requirements.txt:.github/requirements/build.txt \
+            -L requirements.txt:.github/requirements/coverage.txt \
+            -L requirements.txt:.github/requirements/lint.txt \
+            -L requirements.txt:.github/requirements/sbom.txt \
+            -L package-lock.json:tools/mermaid/package-lock.json \
+            -L package-lock.json:tools/axe/package-lock.json
+      - name: Install the lint toolchain
+        run: |
+          python -m venv "$RUNNER_TEMP/lint"
+          "$RUNNER_TEMP/lint/bin/python" -m pip install --quiet --require-hashes --no-deps -r .github/requirements/lint.txt
+          echo "$RUNNER_TEMP/lint/bin" >> "$GITHUB_PATH"
+      # actionlint does not know job.workflow_sha and job.workflow_repository yet (GitHub documents both). It does not
+      # read a composite action, which zizmor does.
+      - if: steps.scope.outputs.workflows == 'true'
+        run: actionlint -ignore 'property "workflow_(repository|sha)" is not defined' .github/workflows/*.yml templates/github/aidd-*.yml
+      # Workflows and composite actions are audited online (impostor commits, known-vulnerable actions); the adopter
+      # templates offline, with their own config: their aidd ref is the placeholder `aidd init` rewrites to a SHA.
+      - name: zizmor
+        if: steps.scope.outputs.workflows == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          zizmor --config .github/zizmor.yml .github/workflows .github/actions action.yml
+          zizmor --offline --config .github/zizmor-templates.yml templates/github/aidd-*.yml
+      - run: ruff check src tests plugins/aidd-team/tools tools
+      - run: ruff format --check src tests plugins/aidd-team/tools tools
+      - run: mypy
+      # The module boundaries in .importlinter, with Import Linter hash-locked in lint.txt: a new wrong-way import fails
+      # here, and tests/test_import_boundaries.py fails when its list of known ones grows.
+      - name: Module boundaries (Import Linter)
+        env:
+          PYTHONPATH: src
+          REQUIRE_IMPORT_LINTER: "1"
+        run: |
+          lint-imports --no-cache
+          python -m unittest discover -s tests -p test_import_boundaries.py -v
+      # The CLI from the source tree, as AGENTS.md runs it: no install, so no unpinned build backend.
+      - name: Generated docs and this repository's own Specs
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m aidd gen-docs --check
+          python -m aidd validate
+      # The schemas, the data aidd ships, real configs, and the CLI's JSON, checked with a stock JSON Schema validator
+      # (jsonschema, hash-locked in lint.txt); REQUIRE_JSONSCHEMA=1 turns the test's skip into a failure.
+      - name: A stock validator resolves the schemas and agrees with aidd's own
+        env:
+          REQUIRE_JSONSCHEMA: "1"
+        run: python -m unittest discover -s tests -p test_stock_validator.py -v
+      # aidd's YAML subset against a stock YAML reader (PyYAML, hash-locked in lint.txt): every document the subset
+      # accepts must read the same in both. REQUIRE_PYYAML=1 turns the test's skip into a failure.
+      - name: A stock YAML reader agrees with aidd's YAML subset
+        env:
+          REQUIRE_PYYAML: "1"
+        run: python -m unittest discover -s tests -p test_strict_yaml.py -v
+      - run: python -m compileall -q src tests
+      - run: sh -n install.sh
+      - run: shellcheck install.sh
+      - if: steps.scope.outputs.plugins == 'true' || steps.scope.outputs.mermaid == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "26"
+          cache: npm
+          cache-dependency-path: tools/mermaid/package-lock.json
+      # `npm ci` runs one install script, the Claude Code CLI's: it copies the native `claude` from the platform package
+      # the lock pins over the package's placeholder, with no download, so without it `claude` does not start. Mermaid
+      # and jsdom have none.
+      - name: Install the Mermaid and Claude Code tools
+        if: steps.scope.outputs.plugins == 'true' || steps.scope.outputs.mermaid == 'true'
+        run: npm ci --prefix tools/mermaid --no-audit --no-fund
+      # Claude Code then sends no telemetry or error report and never updates itself here, as SECURITY.md promises:
+      # any non-empty value of the variable turns that traffic off, as its reference says.
+      - name: The Claude Code marketplace and plugins validate
+        if: steps.scope.outputs.plugins == 'true'
+        env:
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+          CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL: "1"  # which the variable above does not cover
+        run: |
+          export PATH="$PWD/tools/mermaid/node_modules/.bin:$PATH"
+          # Every warning fails, such as an unknown manifest field, but one: no plugin sets `version`, so Claude Code
+          # versions each by its commit and `claude plugin update` always brings the latest (docs/GUIDE.md, Update).
+          for target in .claude-plugin/plugin.json . plugins/*/; do
+            out=$(claude plugin validate "$target" 2>&1) || { echo "$out"; exit 1; }
+            echo "$out"
+            # The counts the validator reports, never its line format: every warning it found must be the version one.
+            # One target can validate twice (`.` is the marketplace and the root plugin), so the counts add up.
+            found=$(echo "$out" | sed -n 's/.*Found \([0-9][0-9]*\) warning.*/\1/p' | awk '{n += $1} END {print n + 0}')
+            versions=$(echo "$out" | grep -c 'No version specified' || true)
+            if [ "${found:-0}" != "$versions" ]; then exit 1; fi
+          done
+      # A Mermaid diagram with a syntax error renders on GitHub as an error box; parse every one with Mermaid itself.
+      - name: Every Mermaid diagram parses
+        if: steps.scope.outputs.mermaid == 'true'
+        run: node tools/mermaid/check-mermaid.mjs
+
+  # The wheel and the zipapp as users run them, on the oldest and the newest supported Python, and the suite on 3.14 with
+  # branch coverage. One job, so a pull request waits on one runner for it. The suite on 3.15 runs after the merge
+  # (main.yml) and the other Pythons and OSes weekly (weekly.yml).
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          python-version: |
+            3.11
+            3.14
+            3.15
+      # A syntax newer than the oldest supported Python fails here, on every pull request, in seconds; weekly.yml
+      # runs the suite on 3.11.
+      - name: Everything compiles on Python 3.11
+        run: python3.11 -m compileall -q src tests
+      # The suite runs here under branch coverage, so a pull request that lowers coverage below a floor fails before it
+      # merges; aidd-tests runs it as adopters do, with the browser tests. coverage is hash-locked in
+      # .github/requirements/coverage.txt, where Dependabot sees it. tests/run.py runs each test file in its own process,
+      # one per core, and coverage combines what each recorded; weekly.yml runs the suite in one process, so both ways
+      # stay green. The browser tests skip here.
+      - name: The suite on Python 3.14, with branch coverage
+        run: |
+          python3.14 -m pip install --quiet --require-hashes --no-deps -r .github/requirements/coverage.txt
+          python3.14 tests/run.py --coverage
+      # The numbers go to the job summary; the floors fail the run (they only rise: tests/coverage_floors.py).
+      - name: Coverage report
+        if: ${{ !cancelled() }}
+        run: |
+          python3.14 -m coverage report --skip-covered --sort=cover
+          python3.14 -m coverage report --format=markdown --skip-covered --sort=cover >> "$GITHUB_STEP_SUMMARY"
+          python3.14 tests/coverage_floors.py
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: 0.12.24  # unquoted: tests/test_version.py reads quoted `version:` lines as aidd pins
+      # The same hash-locked backend the release uses.
+      - run: uv build --wheel --build-constraint .github/requirements/build.txt --require-hashes
+      # A wheel built from a tree holding local eval results or node_modules leaves them out, and an installed wheel
+      # finds its bundled data inside itself, not in a checkout.
+      - name: The wheel leaves ignored local output out and finds its own data
+        working-directory: tests
+        env:
+          BUILD_WHEEL_TEST: "1"
+        run: python3.14 -m unittest test_release_surface.WheelContentsTests test_bundled_data
+      # CI has no gh login and no git user.email, so init cannot name the operator as the approver: name one, or
+      # doctor fails, as it should for a solo profile with nobody to approve.
+      - name: The wheel carries schemas, skill, and templates (3.11, 3.14, and 3.15)
+        run: |
+          for py in python3.11 python3.14 python3.15; do
+            "$py" -m venv "$RUNNER_TEMP/wheel-$py"
+            bin="$RUNNER_TEMP/wheel-$py/bin"
+            "$bin/python" -m pip install --quiet dist/*.whl
+            mkdir "$RUNNER_TEMP/adopt-$py"
+            (cd "$RUNNER_TEMP/adopt-$py" && "$bin/aidd" --version && git init -q && "$bin/aidd" init --profile solo --ci github --approvers email:ci@example.com && "$bin/aidd" doctor)
+          done
+      # The single-file build, run from outside the checkout with nothing on PYTHONPATH.
+      - name: The zipapp runs on its own (3.14)
+        run: |
+          PYTHONPATH=src python3.14 -m aidd.pyz "$RUNNER_TEMP/aidd.pyz"
+          (cd "$RUNNER_TEMP" && python3.14 aidd.pyz --version)
+
+  # One stable check for the branch ruleset. It passes only when every job above passed: a job that failed, was
+  # cancelled, or did not run fails it, so nothing passes by being skipped.
+  ci-passed:
+    name: ci passed
+    if: always()
+    needs: [checks, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "results: $RESULTS"
+          for r in $RESULTS; do
+            case "$r" in success) ;; *) echo "::error::a ci job ended $r"; exit 1 ;; esac
+          done

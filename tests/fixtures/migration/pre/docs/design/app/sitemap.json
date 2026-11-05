@@ -1,0 +1,24 @@
+{
+  "format": 1,
+  "product": "Shop",
+  "platforms": [
+    "web"
+  ],
+  "navigation": [
+    {
+      "label": "Start",
+      "go": "start:start"
+    }
+  ],
+  "flows": [
+    {
+      "id": "start",
+      "title": "Start"
+    }
+  ],
+  "fixtures": {
+    "export": {
+      "format": 1
+    }
+  }
+}

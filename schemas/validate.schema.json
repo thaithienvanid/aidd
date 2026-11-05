@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:validate",
+  "title": "aidd validate --json",
+  "description": "What `aidd validate --json` prints: whether the files validate, each error, warning, and note, the same as findings, and the next step.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "passed",
+    "errors",
+    "warnings"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "passed": {
+      "type": "boolean",
+      "description": "True when there is no error: the exit code is 0."
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Each error, naming the file it is in (all but a missing config)."
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Each warning, without its `warning: ` prefix: worth fixing, never failing."
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Each note, without its `note: ` prefix: an expected state, such as a planned Spec's placeholders, which needs nothing now and never fails."
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/finding"
+      },
+      "description": "One finding for each error, then each warning, then each note, with the message as its list gives it. A script matches `code` and `severity`, never `message`. A message that opens with the path of a file gives that `path`."
+    },
+    "next": {
+      "$ref": "urn:aidd:1:common#/$defs/next",
+      "description": "What to do next. Absent when there is no error."
+    }
+  }
+}

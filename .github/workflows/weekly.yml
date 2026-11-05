@@ -1,0 +1,150 @@
+# weekly: what a pull request and a push do not run: every supported Python on Linux (a new one as a prerelease, before it
+# ships), the sdist running its own tests, the installed wheel, and the two scans whose answer changes with the date
+# alone. Every Saturday, and by hand. A manual run (Actions, weekly, Run workflow) adds macOS and Windows to the matrix
+# and the wheel; release.yml refuses a commit without a successful manual run of this workflow. macOS and Windows stay
+# off the schedule: in a private repository, Windows minutes bill at twice and macOS at ten times the Linux rate, and a
+# weekly run on every OS took most of GitHub Free's 2,000 minutes a month. No tag trigger: a tag-triggered run counts
+# as publishing, where the caches are unsafe.
+name: weekly
+
+on:
+  schedule:
+    - cron: "37 3 * * 6"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A manual run and the schedule each queue behind the one before, and never cancel it.
+concurrency:
+  group: weekly-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # What a pull request ran once and the date can change: the advisories for the locked dependencies, and for the
+  # actions the workflows use. The pull request's checks job runs the same two on a change; this is the run on a tree
+  # that no one changed.
+  advisories:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          python-version: "3.12"  # stays on 3.12 with the hash-locked toolchains in .github/requirements/
+          cache: pip
+          cache-dependency-path: .github/requirements/lint.txt
+      - name: Dependency scan of aidd's own lock files (OSV-Scanner)
+        run: |
+          go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.0 scan source \
+            -L requirements.txt:.github/requirements/build.txt \
+            -L requirements.txt:.github/requirements/coverage.txt \
+            -L requirements.txt:.github/requirements/lint.txt \
+            -L requirements.txt:.github/requirements/sbom.txt \
+            -L package-lock.json:tools/mermaid/package-lock.json \
+            -L package-lock.json:tools/axe/package-lock.json
+      - name: Install the lint toolchain
+        run: |
+          python -m venv "$RUNNER_TEMP/lint"
+          "$RUNNER_TEMP/lint/bin/python" -m pip install --quiet --require-hashes --no-deps -r .github/requirements/lint.txt
+          echo "$RUNNER_TEMP/lint/bin" >> "$GITHUB_PATH"
+      - name: zizmor
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: zizmor --config .github/zizmor.yml .github/workflows .github/actions action.yml
+
+  # Every Python on Linux, and on macOS and Windows in a manual run. A pull request ran Linux 3.14 under coverage and
+  # the browser tests on 3.14, and main.yml ran 3.15, each on its own change; this runs the whole range together.
+  matrix:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ github.event_name == 'workflow_dispatch' && fromJSON('["ubuntu-latest", "macos-latest", "windows-latest"]') || fromJSON('["ubuntu-latest"]') }}
+        python: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          python-version: ${{ matrix.python }}
+          allow-prereleases: "true"
+          browser: ${{ runner.os == 'Linux' }}
+      # The viewer's behavior tests run on Linux, where the runner has Chrome; the macOS and Windows runs skip them.
+      - run: python -m unittest discover -s tests -v
+        env:
+          AIDD_BROWSER_TESTS: ${{ runner.os == 'Linux' && '1' || '' }}
+      - run: python -m aidd gen-docs --check
+      - run: python -m aidd validate
+
+  # Builds once, uploads the dists for the wheel job, and checks that the sdist runs its own tests.
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: 0.12.24  # unquoted: tests/test_version.py reads quoted `version:` lines as aidd pins
+      # The same hash-locked backend the release uses.
+      - run: uv build --build-constraint .github/requirements/build.txt --require-hashes
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ci-dist
+          path: dist/
+          retention-days: 7
+      # Outside any git checkout, as a packager runs it: a test that needs git state builds its own repository.
+      - name: The sdist runs its own tests
+        run: |
+          mkdir "$RUNNER_TEMP/sdist"
+          tar -xzf dist/*.tar.gz -C "$RUNNER_TEMP/sdist"
+          cd "$RUNNER_TEMP"/sdist/*
+          python3.14 -m unittest discover -s tests
+
+  # The installed wheel on the oldest and the newest Python, on Linux weekly and on every OS by hand. The wheel is pure
+  # Python, and a pull request installs it on Linux.
+  wheel:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ github.event_name == 'workflow_dispatch' && fromJSON('["ubuntu-latest", "macos-latest", "windows-latest"]') || fromJSON('["ubuntu-latest"]') }}
+        python: ["3.11", "3.15"]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # No checkout, so no local action: it is read from the checked-out tree.
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+          allow-prereleases: true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ci-dist
+          path: dist/
+      - name: The wheel carries schemas, skill, and templates
+        run: |
+          python -m venv "$RUNNER_TEMP/wheel"
+          if [ -x "$RUNNER_TEMP/wheel/Scripts/python.exe" ]; then bin="$RUNNER_TEMP/wheel/Scripts"; else bin="$RUNNER_TEMP/wheel/bin"; fi
+          "$bin/python" -m pip install --quiet dist/*.whl
+          mkdir "$RUNNER_TEMP/adopt"
+          cd "$RUNNER_TEMP/adopt"
+          "$bin/aidd" --version
+          git init -q
+          "$bin/aidd" init --profile solo --ci github --approvers email:ci@example.com  # CI has no operator to name
+          "$bin/aidd" doctor

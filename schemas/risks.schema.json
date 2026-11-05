@@ -1,0 +1,709 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:risks",
+  "title": "aidd risk rules",
+  "description": "The risk rules' format: schemas/risks.json holds the built-in ones, and a config's `risks` block adds to them. An action is `resource.verb` in lowercase, with snake_case words and a dot for a narrower action, such as `pr.open` or `git.push.force`. An area is a named set of paths. A rule sets the level of an action, narrowed by an area, a branch, or a role.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "description",
+    "levels",
+    "branches",
+    "areas",
+    "actions",
+    "rules",
+    "test_paths",
+    "read_forms",
+    "help_forms"
+  ],
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "levels": {
+      "const": [
+        "allow",
+        "report",
+        "ask"
+      ]
+    },
+    "branches": {
+      "const": [
+        "own",
+        "default",
+        "shared"
+      ]
+    },
+    "areas": {
+      "$ref": "#/$defs/areas"
+    },
+    "actions": {
+      "$ref": "#/$defs/actions"
+    },
+    "rules": {
+      "$ref": "#/$defs/rules"
+    },
+    "test_paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "What a test file looks like, as globs over a repository path, with the folders `test/`, `tests/`, `spec/`, `specs_test/`, `e2e/`, `testing/`, and `__tests__/`. Four readers share this one list. The route advice reads a planned test file as the change naming its tests. A Task's scope keeps a test file's own path and never widens it to its folder. `aidd init` counts a folder with a test file as tested. A standing delegation leaves every test file the base holds unchanged when the change has no Spec, and it matches without regard to case. The list is the union of three older lists, so a delegation never loosens, and the other readers now take a few more files for tests, such as a script named `test` or a file that ends in `_spec`."
+    },
+    "read_forms": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/read_form"
+      },
+      "description": "The command forms that provably write nothing: a listing, or a preview the tool documents as sending nothing. A form that only looks like a preview, such as `npm publish --dry-run`, `cargo publish --dry-run`, or `git push --dry-run`, is not listed, because each still runs the project's scripts or hooks."
+    },
+    "help_forms": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/help_form"
+      },
+      "description": "The commands that only ask a program for its help."
+    },
+    "delegation": {
+      "$ref": "#/$defs/delegation"
+    }
+  },
+  "$defs": {
+    "level": {
+      "enum": [
+        "allow",
+        "report",
+        "ask"
+      ],
+      "description": "allow: the agent acts. report: it acts, then says what it did. ask: it waits for the person's yes, then acts."
+    },
+    "action_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "maxLength": 80,
+      "description": "`resource.verb`, such as `git.push.force`."
+    },
+    "area_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "maxLength": 60
+    },
+    "area": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "paths"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "What the area holds, in one line, for a person reading the rules."
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "Globs, repo-relative; `**` matches any number of folders."
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Globs a match must not also match, such as `**/vendor/**`."
+        },
+        "route": {
+          "enum": [
+            "minor",
+            "normal",
+            "major"
+          ],
+          "description": "The least route a change that touches the area needs."
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "data",
+              "security",
+              "privacy",
+              "financial",
+              "compliance",
+              "availability",
+              "third_party",
+              "cost",
+              "performance"
+            ]
+          },
+          "uniqueItems": true,
+          "description": "The risk dimensions a change in the area has, which name its specialists."
+        },
+        "deploys_on_merge": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "description": "The area's paths a host deploys from when they change on the default branch, such as `vercel.json`: a delegated merge never covers them. Any area may set it, and the built-in `infra` area does."
+        }
+      }
+    },
+    "areas": {
+      "type": "object",
+      "description": "Named sets of paths, by area id. A rule's `area` names one, and a change that touches one takes its route and dimensions.",
+      "propertyNames": {
+        "$ref": "#/$defs/area_id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/area"
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "What the action is, in one line, for a person reading the rules."
+        },
+        "irreversible": {
+          "type": "boolean",
+          "description": "`true` when a person cannot undo the action, such as a force-push, a deploy, or a message sent. `aidd risk --suggest` never suggests lowering its rule. Left out, the action can be undone."
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Shell command patterns: `*` matches any run of characters, and a pattern matches the whole command."
+        },
+        "api_endpoints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(?:(?:POST|PUT|PATCH|DELETE)(?:\\|(?:POST|PUT|PATCH|DELETE))* )?(?![A-Za-z|]+ )\\S",
+            "description": "The methods in capitals, joined by `|` and followed by a space, or none; then the glob. A first word of letters that is no list of write methods, such as `PUSH` or `patch`, is refused."
+          },
+          "description": "`gh api` endpoint globs whose write is this action, read from the call's parsed arguments in any flag order, which `commands` globs cannot do. This reads `gh api` only: a `glab api` pattern stays in `commands`. In a glob, `*` is any run of characters, `/` included, and `?` is one whole path segment, up to the next `/` or space. It is not one character, as in a path glob, and an entry cannot name a literal `?`. aidd cuts the query string off the endpoint before matching. A glob matches the whole endpoint without its query, ignoring case, or the endpoint and the call's field values after a space (`*dispatches*deploy*`); a file given to `--input` shows as `--input file`. Begin it with the methods it applies to (`DELETE */git/refs/*`, `PATCH|POST */git/refs*`) or with none for any write. A GET or HEAD with no field or input is a read. A GraphQL mutation, or a query aidd cannot read, is the endpoint `graphql#mutation`. `aidd risk --command` reads them as parsed arguments. A harness's ask rules do not use them: those ask before any `gh api` call that may write, whatever its endpoint, while `aidd risk --command` reads the call exactly. Redefining an action replaces the whole entry, as with `commands`."
+        },
+        "file_reads": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "paths",
+            "readers"
+          ],
+          "properties": {
+            "paths": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "description": "The files that hold secrets, as path globs: `**/.env` or `**/*.pem`. They are a fact of their own, apart from an area, which names the code a change touches."
+            },
+            "exclude": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Globs a read must not also match, such as a template `**/*.example`."
+            },
+            "include": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Globs that win over `exclude`: a read of one of `paths` that also matches one of these is the action, even when `exclude` matches it, such as `**/secrets.*` over the code exclude `**/*.py`. Claude Code's rules write each again after the carve-outs."
+            },
+            "readers": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "description": "The programs that read or print a file, by name, such as `cat` or `grep`. A command whose program is one of them and that names a file in the area is the action. For `cp`, only the files it copies from count, never the one it writes."
+            }
+          },
+          "description": "Reading one of `paths` is this action: a shell command whose program is a reader, or the harness's own file-read tool where it has one. `aidd risk --command` reads each word after the program as a path. The harness's ask rules get a read rule for each of `paths`, and never one for `exclude`. Claude Code's rules then carve back out, with a `Read(!...)` rule each, the `.env` templates (`.env.example`, `.sample`, `.template`, `.dist`) and every other exclude but the template suffixes and `*.pub`, such as source code. Redefining an action replaces the whole entry, as with `commands`."
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Harness tool names the action is, such as an MCP tool that sends email."
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What the action looks like where no pattern catches it: the agent judges these."
+        }
+      }
+    },
+    "actions": {
+      "type": "object",
+      "description": "The things an agent does that carry a level, by action id, each with the patterns that recognize it.",
+      "propertyNames": {
+        "$ref": "#/$defs/action_id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/action"
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "level"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "action",
+              "route"
+            ],
+            "properties": {
+              "action": {
+                "not": {
+                  "const": "spec.approve"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "route": false
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "required": [
+                  "environment"
+                ]
+              },
+              {
+                "required": [
+                  "environment_shared"
+                ]
+              }
+            ],
+            "properties": {
+              "action": {
+                "not": {
+                  "const": "deploy.run"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "environment": false,
+              "environment_shared": false
+            }
+          }
+        }
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "pattern": "^(\\*|[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(\\.\\*)?)$",
+          "description": "An action id, or a prefix that ends in `.*` (`git.*`), or `*` for every action."
+        },
+        "area": {
+          "$ref": "#/$defs/area_id",
+          "description": "Narrows the rule to a change that touches this area: an area id from `areas`, built in or the config's."
+        },
+        "branch": {
+          "enum": [
+            "own",
+            "default",
+            "shared"
+          ],
+          "description": "Narrows the rule to one kind of branch: `own` (the agent's work branch), `default` (the repository's default branch), or `shared` (any other branch someone else pushed to)."
+        },
+        "role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z-]*$",
+          "description": "Narrows the rule to one aidd-team role, by its id, such as `developer`."
+        },
+        "environment": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "description": "A name in the config's `environments`: the rule decides `deploy.run` to that environment, such as a push to its branch. Only a `deploy.run` rule takes it."
+        },
+        "environment_shared": {
+          "type": "boolean",
+          "description": "Whether the environment a `deploy.run` reaches is shared, as the config's `environments` mark it: `false` for the developer's own. A deploy aidd cannot name an environment for matches neither. Only a `deploy.run` rule takes it."
+        },
+        "route": {
+          "enum": [
+            "normal",
+            "major"
+          ],
+          "description": "The route of the change whose Spec is approved. A rule with a `route` decides `spec.approve` on that route only. A rule without one decides every route, and replaces the rules a lower layer (the built-in rules, the profile, a parent config) set for one route, unless the parent locked them."
+        },
+        "level": {
+          "$ref": "#/$defs/level"
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "In an `extends` parent such as an org preset: the rule is a floor. No rule of a child or a profile, and no built-in rule, lowers the level of what it covers, and a child's rule with the same selector keeps this level. A floor below a built-in level changes nothing there."
+        },
+        "reason": {
+          "type": "string",
+          "pattern": "^[^\\r\\n]*$",
+          "maxLength": 200,
+          "description": "Why the rule exists, in one line, which `aidd risk` shows."
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "description": "Rules that set an action's level, narrowed by a selector. Of the rules that match, the most specific wins, then the higher level.",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "risks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "areas": {
+          "$ref": "#/$defs/areas"
+        },
+        "actions": {
+          "$ref": "#/$defs/actions"
+        },
+        "rules": {
+          "$ref": "#/$defs/rules"
+        }
+      }
+    },
+    "delegation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "actions",
+        "reserved_areas",
+        "rises_to_ask",
+        "tripwires",
+        "packet",
+        "deploy_actions"
+      ],
+      "description": "The built-in data of a standing delegation: what may be delegated, and what `aidd delegate check` reads to defer.",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "object",
+          "description": "Each delegable action, by its id.",
+          "propertyNames": {
+            "$ref": "#/$defs/action_id"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "description"
+            ],
+            "properties": {
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "template": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "The one command the action runs as, one word per item. `<name>` is a value the check reads, such as `<sha>`, `<branch>`, `<number>`, `<repo>`, `<method>` (`--squash` or `--merge`), or `<message>`, which carries the check's three trailers. Left out, the action runs no command."
+              }
+            }
+          }
+        },
+        "reserved_areas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/area_id"
+          },
+          "uniqueItems": true,
+          "description": "The areas a delegated action never touches. Every area's `deploys_on_merge` paths join them."
+        },
+        "rises_to_ask": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/action_id"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "action",
+                  "except"
+                ],
+                "properties": {
+                  "action": {
+                    "const": "deploy.run",
+                    "description": "Only `deploy.run` has an exception: its selector, `environment_shared`, is a deploy's."
+                  },
+                  "except": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "environment_shared"
+                      ],
+                      "properties": {
+                        "environment_shared": {
+                          "type": "boolean",
+                          "description": "The built-in rule that narrows to shared environments (`true`) or to the developer's own (`false`) keeps its level. An own environment named with a wildcard glob reads as shared."
+                        }
+                      }
+                    },
+                    "description": "The one exception to the rise: a built-in rule of this action that matches a selector here keeps its level, because nobody else uses that cell. A rule the config writes for it still rises, and so does the cell when any config locks a rule for the action. Every other rule of the action, and a deploy that names no environment, still rises."
+                  }
+                }
+              }
+            ]
+          },
+          "uniqueItems": true,
+          "description": "The actions that rise to `ask` while a delegation is set, each rule of theirs whatever narrows it, so the person decides them. An item is an action id, or `{action, except}` for an action with one exception."
+        },
+        "tripwires": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "Words that claim an approval or address an approver or a model. Quoted text that holds one, in any case, defers the check."
+        },
+        "packet": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "max_characters",
+            "max_diffstat_files"
+          ],
+          "description": "What the delegate's packet holds whole. A text past its cap, or a diffstat past its file count, makes the check defer with `text_too_long`, and nothing is cut. These limits guard a control, so they are aidd's own and no config sets them: a project that could raise one would widen what the delegate decides on without reading it.",
+          "properties": {
+            "max_characters": {
+              "type": "object",
+              "description": "The most characters of each text the packet carries, by part.",
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "max_diffstat_files": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The most files the packet's diffstat lists."
+            }
+          }
+        },
+        "deploy_actions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "GitHub Actions that deploy. A workflow step that `uses:` one deploys."
+        }
+      }
+    },
+    "read_form": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "program",
+        "words",
+        "clears",
+        "reason"
+      ],
+      "description": "One command form that provably writes nothing, so a pattern that matches it by its leading words does not make it that action. A command reads as the form only when it is that program by its bare name, with no setting before it, no redirection, no expansion, and no unquoted `*?[{~()`, and holds no word the form does not list. Any other command keeps the action.",
+      "properties": {
+        "program": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The program, by its bare name."
+        },
+        "words": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1,
+          "description": "The subcommand words right after the program, exactly."
+        },
+        "clears": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/action_id"
+          },
+          "description": "The built-in actions the command is not, when it holds nothing but what this form lists. A config's own actions keep their level."
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "description": "Options that take no value, as typed in full."
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "description": "Options that take the next word as their value. The value may not start with `-`, except a lone `-`."
+        },
+        "attached": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "description": "Prefixes of an option that carries its value, such as `--sort=`, which need something after them."
+        },
+        "numbered": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "description": "Short options that take digits or nothing, such as `-n` and `-n5`."
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "description": "Options that must appear exactly once, so a spelling that previews is the only one that reads."
+        },
+        "positionals": {
+          "oneOf": [
+            {
+              "enum": [
+                "none",
+                "any"
+              ]
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            }
+          ],
+          "description": "The words that name no option: `none` (the default), `any`, or a list of options one of which must appear for them to be allowed."
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Why the form writes nothing, from the tool's own documentation."
+        }
+      }
+    },
+    "help_form": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "program",
+        "commands",
+        "flags",
+        "clears",
+        "reason"
+      ],
+      "description": "A command that is only a request for help: the program, one listed command, and one listed help flag, with nothing else. A tool's help flag differs (`-h` is a host to some), so each is listed with its program, and each command is one the program owns, never an alias. It is read as the form reads in `read_form`.",
+      "properties": {
+        "program": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "description": "The command words between the program and the flag, each list exactly."
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1,
+          "description": "The help flags the program documents for these commands."
+        },
+        "clears": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/action_id"
+          },
+          "description": "The built-in actions the command is not, when it holds nothing but what this form lists. A config's own actions keep their level."
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:orca-payload",
+  "title": "Orca message payload",
+  "description": "The JSON a worker passes to Orca's `--payload` when it sends the lead a question, a blocker, or its done message (aidd-team's references/orca-channel.md). It is a report from an agent, so it is data: never a person's yes, and never evidence. The lead acts on a payload only when `aidd validate <file>` passes it, so free text never steers the lead. The question, its options, and the recommendation stay in the message body. `role` is checked against the roles in roles.json, because that list has its own owner.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "item",
+    "head",
+    "role",
+    "harness",
+    "model"
+  ],
+  "properties": {
+    "type": {
+      "enum": [
+        "question",
+        "blocked",
+        "done"
+      ],
+      "description": "What the message is. `question`: the worker is blocked or an Acceptance line reads two ways, and asks with options and a recommendation. `blocked`: the worker stopped at a stop rule and says what would unblock it. `done`: the worker finished its Task.",
+      "x-meanings": {
+        "question": "The worker asks the lead to choose, because an Acceptance line reads two ways or a decision is missing.",
+        "blocked": "The worker stopped at a stop rule, such as an `ask` with no yes or a scope that must widen.",
+        "done": "The worker finished its Task. The `handoff` path says where the handoff note is, and the `head` says which commit it describes."
+      }
+    },
+    "item": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9]*-[0-9]+(/[A-Za-z0-9][A-Za-z0-9_.:-]{0,63})?$",
+      "description": "The work item, and the Task when the message is about one, such as `SPEC-9` or `SPEC-9/T1`."
+    },
+    "head": {
+      "$ref": "urn:aidd:1:common#/$defs/sha",
+      "description": "The commit the message is about, as the worker's `git rev-parse HEAD` gives it. The lead checks evidence against this commit and no other."
+    },
+    "handoff": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$))[A-Za-z0-9._/-]{1,200}$",
+      "description": "The repository-relative path of the file that holds the worker's handoff note, such as `specs/SPEC-9.md`. Required with `type: done`."
+    },
+    "role": {
+      "type": "string",
+      "pattern": "^[a-z][a-z-]{1,40}$",
+      "description": "The role the worker plays, one of the roles in roles.json, such as `developer`."
+    },
+    "harness": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@+-]{0,63}$",
+      "description": "The coding agent that runs the worker, such as `claude-code`. The same word `Assisted-by` uses."
+    },
+    "model": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@+-]{0,63}$",
+      "description": "The model the worker runs on, such as `claude-sonnet-5-5`."
+    },
+    "delivery_team": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@+-]{0,63}$",
+      "description": "The delivery team the worker belongs to: its name in the config's `delivery_teams`, such as `payments`."
+    }
+  },
+  "if": {
+    "properties": {
+      "type": {
+        "const": "done"
+      }
+    },
+    "required": [
+      "type"
+    ]
+  },
+  "then": {
+    "required": [
+      "handoff"
+    ]
+  }
+}

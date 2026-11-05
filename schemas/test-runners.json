@@ -1,0 +1,117 @@
+{
+  "description": "What aidd knows about each test runner, one row for each, in the order `aidd init` lists the runners it finds (by ecosystem). A row's key is the name a command shows the runner by. `not_red_exits` are the exits the runner's own documentation says no test failed in, so a red run that ends with one proves nothing about new behavior. A code the documentation does not give is left out, so an exit nobody documented stays a real failure. `related_tests` is what the documentation says of a mode that runs only the tests related to changed files: with `arguments`, the form `aidd test --changed` suggests for a test command's `related_tests`, and without, why it suggests none. `schemas/languages.json` holds the facts of a language.",
+  "runners": {
+    "pytest": {
+      "command_words": ["pytest", "py.test"],
+      "not_red_exits": [
+        { "exit": 3, "means": "an internal error happened while running the tests, or a plugin raised while importing" },
+        { "exit": 4, "means": "a command line usage error, such as a plugin that cannot be found or a conftest.py that fails to import" },
+        { "exit": 5, "means": "no tests were collected" },
+        { "exit": 6, "means": "all tests passed but the number of warnings went over the maximum (the runner gives 1 instead when a test failed)" }
+      ],
+      "note": "Exit 2 stays a red on purpose. The documentation says the run was interrupted, and the runner also gives it for a collection error, as from importing a module that does not exist yet, which is the usual first red of a new feature on the base commit.",
+      "checked": "2026-11-11",
+      "sources": [
+        "https://docs.pytest.org/en/stable/reference/exit-codes.html",
+        "https://docs.pytest.org/en/stable/how-to/capture-warnings.html"
+      ],
+      "related_tests": {
+        "means": "None built in: the documentation selects tests by path, keyword (`-k`), node id, and marker (`-m`), and names no mode that reads changed files. A plugin, such as pytest-testmon, adds one.",
+        "checked": "2026-11-11",
+        "sources": ["https://docs.pytest.org/en/stable/how-to/usage.html"]
+      }
+    },
+    "unittest": {
+      "command_words": ["unittest"],
+      "not_red_exits": [{ "exit": 5, "means": "no tests were run or skipped" }],
+      "note": "Exit 1 stays a red: the documentation gives it for the failure of the tests run.",
+      "checked": "2026-11-11",
+      "sources": ["https://docs.python.org/3/library/unittest.html"],
+      "related_tests": {
+        "means": "None built in: the command line selects tests by module, class, method, name pattern (`-k`), and discovery folder, and names no mode that reads changed files.",
+        "checked": "2026-11-11",
+        "sources": ["https://docs.python.org/3/library/unittest.html"]
+      }
+    },
+    "vitest": {
+      "command_words": ["vitest"],
+      "related_tests": {
+        "arguments": ["related", "--run", "--passWithNoTests", "{changed_paths}"],
+        "means": "`vitest related` runs \"only tests that cover a list of source files\". Vitest watches by default, so `--run` (\"Disable watch mode\") lets the command end, and `--passWithNoTests` passes \"when no tests are found\", as for a change no test covers.",
+        "checked": "2026-11-11",
+        "sources": ["https://vitest.dev/guide/cli"]
+      }
+    },
+    "jest": {
+      "command_words": ["jest"],
+      "related_tests": {
+        "arguments": ["--passWithNoTests", "--findRelatedTests", "{changed_paths}"],
+        "means": "`--findRelatedTests` runs \"the tests that cover a space separated list of source files that were passed in as arguments\", so the files come last. `--passWithNoTests` \"allows the test suite to pass when no files are found\", as for a change no test covers.",
+        "checked": "2026-11-11",
+        "sources": ["https://jestjs.io/docs/cli"]
+      }
+    },
+    "mocha": {
+      "related_tests": {
+        "means": "None built in: the command line selects files and tests by glob, `--grep`, `--fgrep`, and `--file`, and `--watch` reruns all tests when a watched file changes.",
+        "checked": "2026-11-11",
+        "sources": ["https://mochajs.org/running/cli/"]
+      }
+    },
+    "playwright": {
+      "related_tests": {
+        "means": "`--only-changed [ref]` runs \"test files that have been changed between 'HEAD' and 'ref'\", and since 1.46 the test files that import a changed file too. It compares the commit HEAD, so with a ref it misses a change not yet committed, which `aidd test --changed` reads: aidd suggests none.",
+        "checked": "2026-11-11",
+        "sources": ["https://playwright.dev/docs/test-cli", "https://playwright.dev/docs/release-notes"]
+      }
+    },
+    "rspec": {
+      "related_tests": {
+        "means": "None built in: the command line selects examples by file and line, `--example`, `--tag`, and `--pattern`, and `--only-failures` runs the ones that failed last.",
+        "checked": "2026-11-11",
+        "sources": ["https://rspec.info/features/3-13/rspec-core/command-line/"]
+      }
+    },
+    "phpunit": {
+      "related_tests": {
+        "means": "None built in: the command line selects tests by `--testsuite`, `--group`, `--covers`, `--uses`, and `--filter`, and names no mode that reads changed files.",
+        "checked": "2026-11-11",
+        "sources": ["https://docs.phpunit.de/en/12.0/textui.html"]
+      }
+    },
+    "go test": {
+      "related_tests": {
+        "means": "None by file: `go test` tests \"the packages named by the import paths\", such as `./...`. aidd does not map changed files to packages, so it suggests none.",
+        "checked": "2026-11-11",
+        "sources": ["https://pkg.go.dev/cmd/go"]
+      }
+    },
+    "cargo test": {
+      "related_tests": {
+        "means": "None by file: `-p` tests \"only the specified packages\". aidd does not map changed files to packages, so it suggests none.",
+        "checked": "2026-11-11",
+        "sources": ["https://doc.rust-lang.org/cargo/commands/cargo-test.html"]
+      }
+    },
+    "cargo nextest": {
+      "command_words": ["nextest", "cargo-nextest"],
+      "not_red_exits": [{ "exit": 4, "means": "no tests were selected to run, and no other error occurred" }],
+      "note": "Exit 100 (a test failed) and exit 101 (building the tests failed) stay reds: a test that calls code which is not there yet fails to build on the base commit.",
+      "checked": "2026-11-11",
+      "sources": ["https://nexte.st/docs/running/", "https://docs.rs/crate/nextest-metadata/0.14.1/source/src/exit_codes.rs"],
+      "related_tests": {
+        "means": "None by file: filtersets select tests by package, and `rdeps()` adds the packages that depend on one. aidd does not map changed files to packages, so it suggests none.",
+        "checked": "2026-11-11",
+        "sources": ["https://nexte.st/docs/filtersets/"]
+      }
+    },
+    "dotnet test": {
+      "related_tests": {
+        "means": "None stable: on Microsoft.Testing.Platform, `--affected-tests` is experimental and needs a separately distributed extension and `DOTNET_CLI_ENABLE_AFFECTED_TESTS=1`, so aidd suggests none while it is emerging. VSTest selects only by `--filter`.",
+        "checked": "2026-11-11",
+        "sources": ["https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-test", "https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-test-mtp"]
+      }
+    },
+    "flutter test": {}
+  }
+}

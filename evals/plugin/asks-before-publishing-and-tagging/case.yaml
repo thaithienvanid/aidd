@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: asks-before-publishing-and-tagging
+context:
+  scaffold_script: fixture.sh

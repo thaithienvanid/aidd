@@ -1,0 +1,83 @@
+# aidd's settings for this repository, as an earlier aidd wrote them.
+aidd_version: "1.0.0"
+profile: team      # solo or team: who decides
+
+owners:
+  approvers: ["@x"]
+
+tests:
+  - name: smoke
+    command: [python3, -c, "print(1)"]
+    reruns: 1   # one rerun
+
+project:
+  budget:
+    max_infra_per_month: 100
+    currency: EUR
+  compliance:
+    support_period:
+      ends_on: "2031-01-01"   # five years
+  rules:
+    - id: no-secrets
+      requirement_level: must   # the strongest word
+      statement: "No secret in the repository."
+      why: "A leaked key costs more than a review."
+      owner: "@x"
+      review_due: "2027-06-01"
+      when_changed: ["src/**"]
+      enforced_by: [smoke]   # run by aidd test
+    - requirement_level: should
+      id: small-changes
+      statement: "A change stays small."
+      why: "A small change is reviewed."
+      owner: "@x"
+
+  waivers:
+    - rule: no-secrets
+      reason: "A vendored sample holds a fake key."
+      granted_by: "@x"   # the owner
+      until: "2099-01-01"
+  writing:
+    controlled: [spec, runbook]   # the doc types written at the strictest level
+
+standards:
+  - name: api-errors
+    path: docs/standards/api-errors.md
+    roles: [developer]
+  - name: logging
+    path: docs/standards/logging.md
+    roles: [developer]
+  - name: python-ruff-lint-format
+    path: docs/standards/python/ruff-lint-format.md
+    fills: [ci-pipeline:linter, ci-pipeline:formatter]
+    roles: [developer, reviewer]
+    from_library:
+      id: python/ruff-lint-format
+      aidd_version: "1.0.0"
+      sha256: "0000000000000000000000000000000000000000000000000000000000000000"   # the hash of the copy as aidd wrote it
+
+mcp:
+  allow_own_tools: false   # keep asking
+
+delivery_teams:
+  core:
+    approvers: ["@x"]   # the core team
+    areas: [payments]
+  web:
+    approvers: ["@y"]
+
+docs:
+  dir: docs
+  disabled:
+    runbook: set off before aidd 1.0.0 as docs.required
+    tracking-plan: set off before aidd 1.0.0 as docs.required
+
+environments:
+  - name: production   # the default branch deploys, so the old `true` is cut
+    branches: [main]
+
+delegation:
+  set_by: "A B <a@b.c>"
+  decides: [git.push]
+  default_branch: main
+  review_due: "2027-01-01"

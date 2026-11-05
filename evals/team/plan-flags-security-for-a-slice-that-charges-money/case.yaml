@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: plan-flags-security-for-a-slice-that-charges-money
+context:
+  scaffold_script: fixture.sh

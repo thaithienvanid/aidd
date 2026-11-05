@@ -1,0 +1,306 @@
+{
+  "description": "One row for each thing that can be open in work with aidd, so nothing opens and never closes. A row gives four facts: who opens it, what closes it, who may close it, and what finds one left open, with the step that closes it. A work item's statuses stay in the schema its row of schemas/item-types.json points to, so a row here names only the status groups that close it. `aidd doctor` reads the rows of the machine class for the commands its notes give. A record or a commit is written once and is never open, so neither has a row.",
+  "classes": {
+    "durable": "a work item or a typed document with a status in its file",
+    "dated": "a thing with an end date, or one a person or a role releases",
+    "machine": "a thing a run opens on the machine or the platform"
+  },
+  "closers": {
+    "opener": "the run that opened it, or the run its handoff note names as the new owner",
+    "lead": "the lead, for the roles it started and what they left open",
+    "person": "only a person, because closing it is a person's decision"
+  },
+  "finders": {
+    "aidd status": "lists it among the open work",
+    "aidd validate": "warns or fails while it is open past its date",
+    "aidd doctor": "notes it as left open, with the command that closes it",
+    "aidd delegate check": "defers every delegated ask while it is open past its date",
+    "the lead's close-out": "the lead lists it at the end of a change, and closes or names each one"
+  },
+  "things": {
+    "spec": {
+      "class": "durable",
+      "item_type": "spec",
+      "opened_by": "a role or a person, with `aidd new spec`",
+      "closes_when": "its status reaches a group in `closes_in_groups`",
+      "closes_in_groups": ["completed", "cancelled"],
+      "closed_by": "person",
+      "found_by": ["aidd status"],
+      "close_with": "the status transition `references/state.md` gives, after a person's merge approval or decline"
+    },
+    "intent": {
+      "class": "durable",
+      "item_type": "intent",
+      "keys": ["common.schema.json#/$defs/phase/properties/due"],
+      "opened_by": "the product manager, with `aidd new intent`",
+      "closes_when": "its status reaches a group in `closes_in_groups`",
+      "closes_in_groups": ["completed", "cancelled"],
+      "closed_by": "person",
+      "found_by": ["aidd status"],
+      "close_with": "the status transition `references/state.md` gives, once its phases are done or a person cancels it"
+    },
+    "proposal": {
+      "class": "durable",
+      "item_type": "proposal",
+      "keys": ["proposal.schema.json#/properties/due", "proposal.schema.json#/$defs/phase/properties/due"],
+      "opened_by": "the delivery manager, with `aidd new proposal`",
+      "closes_when": "its status reaches a group in `closes_in_groups`",
+      "closes_in_groups": ["completed", "cancelled"],
+      "closed_by": "person",
+      "found_by": ["aidd status"],
+      "close_with": "a person's go/no-go, sign-off, or outcome, recorded in its front matter"
+    },
+    "postmortem": {
+      "class": "durable",
+      "item_type": "postmortem",
+      "keys": ["postmortem.schema.json#/properties/actions/items/properties/due"],
+      "opened_by": "the SRE after an incident, with `aidd new postmortem`",
+      "closes_when": "a person publishes it and each action item is done",
+      "closed_by": "person",
+      "found_by": ["aidd validate"],
+      "close_with": "record `done: true` on each action, or its owner sets a new `due`"
+    },
+    "exploration": {
+      "class": "durable",
+      "item_type": "exploration",
+      "keys": ["exploration.schema.json#/properties/timebox"],
+      "opened_by": "a role, with `aidd new exploration`",
+      "closes_when": "a person picks a direction and the role records the pick",
+      "closed_by": "person",
+      "found_by": ["aidd status", "aidd validate"],
+      "close_with": "the role records the person's pick in `outcome`"
+    },
+    "delegation": {
+      "class": "dated",
+      "keys": ["config.schema.json#/properties/delegation/properties/review_due"],
+      "opened_by": "a person, in a reviewed change to `.aidd/config.yaml` (`aidd init --delegate`)",
+      "closes_when": "`review_due` passes, or a person removes the block",
+      "closed_by": "person",
+      "found_by": ["aidd delegate check"],
+      "close_with": "a person sets a new `review_due` in `.aidd/config.yaml`, or removes `delegation`"
+    },
+    "waiver": {
+      "class": "dated",
+      "keys": ["config.schema.json#/properties/project/properties/waivers", "config.schema.json#/$defs/project_waiver/properties/until"],
+      "opened_by": "a person, who grants it in `project.waivers`",
+      "closes_when": "its `until` passes, or the work meets the rule",
+      "closed_by": "person",
+      "found_by": ["aidd validate"],
+      "close_with": "a person removes the waiver from `.aidd/config.yaml`, or grants a new one"
+    },
+    "rule_review": {
+      "class": "dated",
+      "keys": ["config.schema.json#/$defs/project_rule/properties/review_due"],
+      "opened_by": "the rule's owner, who sets `review_due` on a project rule",
+      "closes_when": "the owner reviews the rule and sets a new date, or drops the rule",
+      "closed_by": "person",
+      "found_by": ["aidd validate"],
+      "close_with": "the owner sets a new `review_due` in `.aidd/config.yaml`, or removes the rule"
+    },
+    "support_period": {
+      "class": "dated",
+      "keys": ["config.schema.json#/properties/project/properties/compliance/properties/support_period/properties/ends_on"],
+      "opened_by": "a person, who declares the product's support period",
+      "closes_when": "its `ends_on` passes",
+      "closed_by": "person",
+      "found_by": ["aidd validate"],
+      "close_with": "a person sets a new `ends_on`, or ends the product's support"
+    },
+    "emergency_backfill": {
+      "class": "dated",
+      "keys": ["common.schema.json#/$defs/emergency/properties/backfill_due"],
+      "opened_by": "the author of a production repair, with `aidd new spec --route emergency`",
+      "closes_when": "the backfill Spec and the post-incident review are done",
+      "closed_by": "lead",
+      "found_by": ["aidd status", "aidd validate"],
+      "close_with": "record `outcome.learn_ref` in the Spec"
+    },
+    "feature_flag": {
+      "class": "dated",
+      "keys": [
+        "spec.schema.json#/properties/flags",
+        "spec.schema.json#/$defs/flag/properties/cleanup_due",
+        "spec.schema.json#/properties/removes_flags"
+      ],
+      "opened_by": "the architect, in a Spec's `flags`, an experiment's flag too",
+      "closes_when": "a merged Spec lists it in `removes_flags`",
+      "closed_by": "person",
+      "found_by": ["aidd status", "aidd validate"],
+      "close_with": "a cleanup Spec that deletes the flag and lists it in `removes_flags`"
+    },
+    "deprecation": {
+      "class": "dated",
+      "keys": ["spec.schema.json#/$defs/deprecation/properties/sunset"],
+      "opened_by": "the architect, in a Spec's `deprecations`",
+      "closes_when": "a merged Spec lists it in `removes_deprecations`",
+      "closed_by": "person",
+      "found_by": ["aidd status", "aidd validate"],
+      "close_with": "a Spec that removes it and lists it in `removes_deprecations`"
+    },
+    "snoozed_suggestion": {
+      "class": "dated",
+      "keys": ["spec.schema.json#/$defs/triage/properties/until"],
+      "opened_by": "a person, who snoozes suggested work in its `triage`",
+      "closes_when": "its `until` passes and a person decides again",
+      "closed_by": "person",
+      "found_by": ["aidd status"],
+      "close_with": "a person records a new `triage` decision"
+    },
+    "wait": {
+      "class": "dated",
+      "keys": [
+        "spec.schema.json#/properties/waiting_on",
+        "spec.schema.json#/properties/blocked_by",
+        "intent.schema.json#/properties/blocked_by",
+        "common.schema.json#/$defs/slice/properties/blocked_by"
+      ],
+      "opened_by": "the role or the person who names what a work item waits on",
+      "closes_when": "what it waits on is done, and the role clears `waiting_on`",
+      "closed_by": "opener",
+      "found_by": ["aidd status"],
+      "close_with": "clear `waiting_on`, or finish the item `blocked_by` names"
+    },
+    "raid_entry": {
+      "class": "dated",
+      "keys": ["proposal.schema.json#/$defs/raid_item/properties/due"],
+      "opened_by": "the delivery manager or the product manager, in a RAID log entry with a `due`",
+      "closes_when": "its status is no longer `open`",
+      "closed_by": "person",
+      "found_by": ["aidd validate"],
+      "close_with": "the entry's owner records its new status, or sets a new `due`"
+    },
+    "waiting_stop": {
+      "class": "dated",
+      "keys": ["handoff.schema.json#/properties/stopped_at", "handoff.schema.json#/properties/run/properties/resumes_at"],
+      "opened_by": "the lead, when a role or a runner outlasts its session (lead rule 3)",
+      "closes_when": "the run goes on and a later note replaces it",
+      "closed_by": "lead",
+      "found_by": ["aidd validate"],
+      "close_with": "resume the run from the note, and write a new note"
+    },
+    "open_decision": {
+      "class": "dated",
+      "keys": ["handoff.schema.json#/properties/open_decisions"],
+      "opened_by": "a role, on its handoff note",
+      "closes_when": "the lead answers it on its own note's `decided`, or puts it on `needs`",
+      "closed_by": "lead",
+      "found_by": ["the lead's close-out"],
+      "close_with": "the lead's answer on `decided`, before it merges the role's work"
+    },
+    "unanswered_ask": {
+      "class": "dated",
+      "keys": ["handoff.schema.json#/properties/stopped_at"],
+      "opened_by": "a role or the lead that reaches an `ask`",
+      "closes_when": "the person answers, or the work moves on and the question is stale",
+      "closed_by": "person",
+      "found_by": ["aidd status"],
+      "close_with": "the person's answer, recorded with `aidd records add`"
+    },
+    "role": {
+      "class": "machine",
+      "opened_by": "the lead, when it starts a role",
+      "closes_when": "its handoff note is in, and the lead merged or declined its work",
+      "closed_by": "lead",
+      "found_by": ["aidd status", "the lead's close-out"],
+      "close_with": "the harness's own stop for the role"
+    },
+    "worktree": {
+      "class": "machine",
+      "opened_by": "the lead, when it starts a role in its own checkout",
+      "closes_when": "its commits are on the change's branch and its role is done",
+      "closed_by": "lead",
+      "found_by": ["aidd doctor", "the lead's close-out"],
+      "close_with": "git worktree remove -- <path>"
+    },
+    "branch": {
+      "class": "machine",
+      "opened_by": "the lead or the harness, with a role's worktree",
+      "closes_when": "the change merges",
+      "closed_by": "person",
+      "found_by": ["aidd doctor", "the lead's close-out"],
+      "close_with": "git branch -d -- <branch>"
+    },
+    "background_process": {
+      "class": "machine",
+      "opened_by": "the run that starts a server, a browser, a watcher, or a preview",
+      "closes_when": "its purpose ends, before the run hands off, or once a person has looked at a preview",
+      "closed_by": "opener",
+      "found_by": ["the lead's close-out"],
+      "close_with": "stop the process the run started, by the harness's stop or its process id"
+    },
+    "port": {
+      "class": "machine",
+      "opened_by": "the process that listens on it",
+      "closes_when": "the process that holds it stops",
+      "closed_by": "opener",
+      "found_by": ["the lead's close-out"],
+      "close_with": "stop the process that holds the port"
+    },
+    "scratch_folder": {
+      "class": "machine",
+      "opened_by": "a run, with `mktemp -d` under `.aidd/tmp/` or the harness's scratchpad",
+      "closes_when": "no run needs it, which the lead or a person judges",
+      "closed_by": "person",
+      "found_by": ["aidd doctor"],
+      "close_with": "a person deletes the folder, once no run needs it; a role never deletes one"
+    },
+    "open_pr": {
+      "class": "machine",
+      "opened_by": "the lead, with `pr.open`",
+      "closes_when": "a person merges or closes it",
+      "closed_by": "person",
+      "found_by": ["the lead's close-out"],
+      "close_with": "a person's merge on the platform, or its close"
+    },
+    "index_cache": {
+      "class": "machine",
+      "opened_by": "aidd, in the git folder, when a command reads the work items",
+      "closes_when": "never needs to: aidd rebuilds it from the files, so removing it loses nothing",
+      "closed_by": "opener",
+      "found_by": ["aidd doctor"],
+      "close_with": "remove the file `aidd doctor` names, and aidd rebuilds it"
+    }
+  },
+  "never_open": {
+    "item_groups": {
+      "linked": "a document a Spec links is frozen with the Spec or lives with it, so the Spec's row covers it",
+      "standalone": "a living document is kept current and never closes",
+      "repository": "the repository has one of each, kept current, and it never closes",
+      "contract": "a contract is signed once, and its proposal's row covers the decision"
+    },
+    "item_types": {
+      "runbook": "a living procedure: `aidd doctor` checks the age of its `tested_on`, and nothing waits for it to close"
+    },
+    "keys": [
+      {
+        "why": "the day a thing happened, written once",
+        "keys": [
+          "spec.schema.json#/properties/approved_at",
+          "spec.schema.json#/$defs/triage/properties/decided_on",
+          "spec.schema.json#/$defs/deprecation/properties/announced_on",
+          "spec.schema.json#/properties/revisions/items/properties/revised_at",
+          "spec.schema.json#/$defs/outcome/properties/released_on",
+          "spec.schema.json#/$defs/outcome/properties/restored_on",
+          "intent.schema.json#/properties/agreed_at",
+          "proposal.schema.json#/properties/go_no_go/properties/decided_on",
+          "common.schema.json#/$defs/phase/properties/finished_on",
+          "proposal.schema.json#/$defs/decision/properties/decided_on",
+          "proposal.schema.json#/properties/sign_off/properties/decided_on",
+          "proposal.schema.json#/properties/outcome/properties/decided_on",
+          "proposal.schema.json#/$defs/phase/properties/finished_on",
+          "runbook.schema.json#/properties/tested_on",
+          "postmortem.schema.json#/properties/incident_on",
+          "exploration.schema.json#/properties/outcome/properties/decided_on"
+        ]
+      },
+      {
+        "why": "a standing setting with no end, which a person changes in a reviewed change to the config",
+        "keys": [
+          "config.schema.json#/properties/locks",
+          "config.schema.json#/properties/project/properties/stack/properties/hold",
+          "risks.schema.json#/$defs/rule/properties/locked"
+        ]
+      }
+    ]
+  }
+}

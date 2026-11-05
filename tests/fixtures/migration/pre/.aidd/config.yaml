@@ -1,0 +1,99 @@
+# aidd's settings for this repository, as an earlier aidd wrote them.
+aidd_version: "1.0.0"
+profile: team      # solo or team: who decides
+
+owners:
+  approvers: ["@x"]
+  default_owner_team: core   # which team `aidd new` named
+
+tests:
+  - name: smoke
+    command: [python3, -c, "print(1)"]
+    retries: 1   # one rerun
+
+project:
+  repo: acme/shop   # init wrote it
+  dev_services:
+    up: [docker, compose, up, -d]
+    down: [docker, compose, down]
+    teardown: [./scripts/teardown.sh]
+  budget:
+    max_infra_per_month: 100
+    currency: EUR
+    new_paid_service: forbidden
+  compliance:
+    support_period:
+      ends: "2031-01-01"   # five years
+  rules:
+    - id: no-secrets
+      level: must   # the strongest word
+      statement: "No secret in the repository."
+      why: "A leaked key costs more than a review."
+      owner: "@x"
+      review_due: "2027-06-01"
+      applies: ["src/**"]
+      check: smoke   # run by aidd test
+    - requirement_level: should
+      id: small-changes
+      statement: "A change stays small."
+      why: "A small change is reviewed."
+      owner: "@x"
+
+  waivers:
+    - rule: no-secrets
+      reason: "A vendored sample holds a fake key."
+      approved_by: "@x"   # the owner
+      until: "2099-01-01"
+  writing:
+    ste_100: [spec, runbook]   # the doc types written at the strictest level
+
+standards:
+  - type: standard
+    name: api-errors
+    path: docs/standards/api-errors.md
+    roles: [developer]
+  - name: logging
+    type: standard
+    path: docs/standards/logging.md
+    roles: [developer]
+  - type: standard
+    name: python-ruff-lint-format
+    path: docs/standards/python/ruff-lint-format.md
+    fills: [ci-pipeline:linter, ci-pipeline:formatter]
+    roles: [developer, reviewer]
+    from_library:
+      id: python/ruff-lint-format
+      aidd_version: "1.0.0"
+      sha256: "0000000000000000000000000000000000000000000000000000000000000000"   # the hash of the copy as aidd wrote it
+
+mcp:
+  approve_own_tools: false   # keep asking
+
+delivery_teams:
+  core:
+    people: ["@x"]   # the core team
+    areas: [payments]
+    intents: [INT-1, INT-9]
+  web:
+    people: ["@y"]
+    intents: [INT-2]
+
+docs:
+  dir: docs
+  required:
+    runbook: "off"
+    analytics: "off"
+    authz: warn
+    tech-spec: warn
+
+environments:
+  - name: production   # the default branch deploys, so the old `true` is cut
+    branches: [main]
+
+delegation:
+  to: delegate
+  set_by: "A B <a@b.c>"
+  decides: [git.push]
+  default_branch: main
+  default_branch_deploys: true
+  review_by: "2027-01-01"

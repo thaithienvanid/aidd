@@ -1,0 +1,126 @@
+{
+ "normal|-|feat|true": [
+  "test-plan suggest False"
+ ],
+ "normal|-|feat|false": [
+  "migration-plan suggest None",
+  "test-plan suggest False"
+ ],
+ "normal|-|feat|absent": [
+  "test-plan suggest False"
+ ],
+ "normal|-|data|true": [
+  "migration-plan suggest None",
+  "test-plan suggest False"
+ ],
+ "normal|-|data|false": [
+  "migration-plan suggest None",
+  "test-plan suggest False"
+ ],
+ "normal|-|data|absent": [
+  "migration-plan suggest None",
+  "test-plan suggest False"
+ ],
+ "normal|data|feat|true": [
+  "migration-plan suggest None",
+  "test-plan suggest False",
+  "threat-model warn None"
+ ],
+ "normal|data|feat|false": [
+  "migration-plan suggest None",
+  "test-plan suggest False",
+  "threat-model warn None"
+ ],
+ "normal|data|feat|absent": [
+  "migration-plan suggest None",
+  "test-plan suggest False",
+  "threat-model warn None"
+ ],
+ "normal|data|data|true": [
+  "migration-plan suggest None",
+  "test-plan suggest False",
+  "threat-model warn None"
+ ],
+ "normal|data|data|false": [
+  "migration-plan suggest None",
+  "test-plan suggest False",
+  "threat-model warn None"
+ ],
+ "normal|data|data|absent": [
+  "migration-plan suggest None",
+  "test-plan suggest False",
+  "threat-model warn None"
+ ],
+ "major|-|feat|true": [
+  "test-plan warn False"
+ ],
+ "major|-|feat|false": [
+  "migration-plan warn None",
+  "runbook warn None",
+  "tech-spec warn None",
+  "test-plan warn False"
+ ],
+ "major|-|feat|absent": [
+  "test-plan warn False"
+ ],
+ "major|-|data|true": [
+  "migration-plan warn None",
+  "runbook warn None",
+  "tech-spec warn None",
+  "test-plan warn False"
+ ],
+ "major|-|data|false": [
+  "migration-plan warn None",
+  "runbook warn None",
+  "tech-spec warn None",
+  "test-plan warn False"
+ ],
+ "major|-|data|absent": [
+  "migration-plan warn None",
+  "runbook warn None",
+  "tech-spec warn None",
+  "test-plan warn False"
+ ],
+ "major|data|feat|true": [
+  "migration-plan warn None",
+  "runbook warn None",
+  "tech-spec warn None",
+  "test-plan warn False",
+  "threat-model warn None"
+ ],
+ "major|data|feat|false": [
+  "migration-plan warn None",
+  "runbook warn None",
+  "tech-spec warn None",
+  "test-plan warn False",
+  "threat-model warn None"
+ ],
+ "major|data|feat|absent": [
+  "migration-plan warn None",
+  "runbook warn None",
+  "tech-spec warn None",
+  "test-plan warn False",
+  "threat-model warn None"
+ ],
+ "major|data|data|true": [
+  "migration-plan warn None",
+  "runbook warn None",
+  "tech-spec warn None",
+  "test-plan warn False",
+  "threat-model warn None"
+ ],
+ "major|data|data|false": [
+  "migration-plan warn None",
+  "runbook warn None",
+  "tech-spec warn None",
+  "test-plan warn False",
+  "threat-model warn None"
+ ],
+ "major|data|data|absent": [
+  "migration-plan warn None",
+  "runbook warn None",
+  "tech-spec warn None",
+  "test-plan warn False",
+  "threat-model warn None"
+ ]
+}

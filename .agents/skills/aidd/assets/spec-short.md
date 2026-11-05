@@ -1,0 +1,69 @@
+---
+type: spec
+id: "{{id}}"
+title: "{{title}}"
+change_type: "{{change_type}}"    # feat, fix, refactor, perf, docs, test, build, ci, chore
+route: "{{route}}"                # normal or major; never below what `aidd risk --paths` gives
+rollback: Revert the change.      # name the steps if a revert is not enough
+
+risk:
+  summary: "TODO: who or what behaves differently after this change"
+  dimensions: []                  # data, security, privacy, financial, compliance, availability, third_party, cost, performance
+  irreversible: false             # true when a revert cannot restore the prior state (forces major)
+  # cost_estimate: {monthly: "40 EUR", at_10x: "300 EUR", source: "infracost diff"}   # with infrastructure or a cost risk
+
+tasks:
+  - id: "{{id}}-T1"
+    title: "TODO: the first part of the work"
+    scope: ["src/TODO/"]          # the globs this Task's diff may change, its unit tests too; never an acceptance test
+
+tests:
+  files: ["tests/TODO"]           # fixed at Spec approval: the acceptance tests, in their own folder, and their config
+  commands:
+    - name: acceptance
+      command: ["TODO"]           # a vector, one argument per item; never a shell string
+      new_behavior: true          # feat and fix: fails on base (red), passes on head (green); false otherwise
+      covers: [A1]                # the Acceptance ids this command proves
+---
+
+<!-- The short Spec: enough for Spec approval on a normal change, and on the solo profile on a major one too. `aidd new
+     spec --full` adds Problem, Goals, Non-goals, and Learn; a major Spec on the team profile gets them by default. The
+     tech spec it links holds the alternatives, the cross-cutting concerns, and the pre-mortem; its `## Rollout` holds the rollout (`references/spec-release.md`). After approval, an edit between the --- lines is spec.revise. `aidd validate`
+     errors on a placeholder left in a scope, tests.files, or a command. Write at the `instruction` level (`aidd-team:plain-language`). -->
+
+## Request
+
+<!-- The person's own words, quoted: the problem, the outcome they want, and what must not change. Leave out secrets,
+     credentials, and others' personal data, each marked, as `[left out: a password]`. -->
+TODO: quote the request.
+
+## Context
+
+<!-- Why, the files involved and their patterns, the constraints, the non-goals, and each assumption you could not verify. -->
+TODO: the context.
+
+## Acceptance
+
+<!-- One behavior per item, each starting with its id (A1, ...), which `covers` lists. Observable: "request 61 returns 429".
+     On a hot path, one item is its budget: a percentile, a load, an environment, and the rows today and at 10x. -->
+- A1: TODO: given ..., when ..., then ...
+
+## Design
+
+<!-- A few lines: the approach, and the files and functions it changes. Adopt mature software before building, or say why. -->
+TODO: the approach.
+
+## Concerns
+
+<!-- Each risk by area (security, privacy, compliance, UX, operations, domain) and the specialist who owns it. -->
+none
+
+## Policy conflicts
+
+<!-- Where specialist input, a domain pack, or company rules clash, and who decides; never pick a side. -->
+none
+
+## Rollback
+
+<!-- How to undo it, beyond `rollback` above, and what a revert cannot restore. -->
+TODO: how to undo it.

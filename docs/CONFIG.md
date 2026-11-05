@@ -1,0 +1,585 @@
+# Config reference
+
+This is the complete reference for `.aidd/config.yaml`: every top-level key, then every table, field by field. The tables are generated from `schemas/config.schema.json` and `schemas/risks.schema.json`, which are the source of truth. Check a config with `aidd validate .aidd/config.yaml`, and the whole wiring with `aidd doctor`.
+
+The config is advice for your agents. It says who they ask, what the tests are, and which actions they ask about first. aidd enforces none of it: your agent's own ask rules, which `aidd init` writes, and your platform's branch protection are the hard stops.
+
+A minimal config:
+
+```yaml
+aidd_version: "1.0.0"
+profile: team
+owners:
+  approvers: ["@your-org/leads"]
+tests:
+  - name: unit
+    command: [npm, test]
+risks:
+  rules:
+    - {action: pr.open, level: allow}
+```
+
+## Contents
+
+<!-- aidd:gen toc -->
+- [Contents](#contents)
+- [Top-level keys](#top-level-keys)
+- [Parents, presets, and locks](#parents-presets-and-locks)
+- [`risks`](#risks)
+- [`owners`](#owners)
+- [`agents`](#agents)
+- [`limits`](#limits)
+- [`delivery_teams`](#delivery_teams)
+- [`standards`](#standards)
+- [`standards_policy`](#standards_policy)
+- [`docs`](#docs)
+- [`extends`](#extends)
+- [`tests`](#tests)
+- [`preview`](#preview)
+- [`delegation`](#delegation)
+- [`mcp`](#mcp)
+- [`project`](#project)
+<!-- aidd:end -->
+
+## Top-level keys
+
+<!-- aidd:gen fields:config -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `aidd_version` | string | yes | The aidd release this record conforms to; the method and the toolkit share one version. |
+| `profile` | `profile` | yes | The profile (schemas/profiles.json): its risk rules on top of the built-in ones, which set when the agent asks for Spec approval. `team` asks on more routes than `solo`. A lock freezes it; a child cannot raise it. |
+| `extends` | list of mapping (`extends`) | no | Parent configs merged first, such as an org preset. A child changes only what it names: a mapping merges member by member and keeps every entry, a list of named things merges by name, and any other list or a value replaces. A preset locks what it must hold. |
+| `locks` | list of `profile` \| `project` \| `tests` \| `docs` \| `owners` \| `agents` \| `limits` \| `preview` \| `standards_policy` \| `environments` \| string | no | Set by a parent config: what its children may not set. An item is a key or one member of it (`docs.disabled`). A lock freezes the value, except `project`, which only tightens. Children may add locks, never remove them. |
+| `specs_dir` | string | no | Where Spec files live. Default `specs`. A folder inside the repository, never its top: the Specs folder is a role's write area. |
+| `proposals_dir` | string | no | Where proposals live, one folder each. Default `proposals`. A folder inside the repository, never its top: a change only to it needs no Spec. Keep a client's proposals in a repository only its cleared people can read. |
+| `docs` | mapping | no | Linked documents: where `aidd new` writes them, which ones `aidd validate` asks for, and how old they may grow. A lock freezes it. |
+| `owners` | mapping | no | Who decides: the people agents ask, and the specialists a risky change names. A lock freezes it. |
+| `agents` | mapping | no | How the agents work here: which roles may suggest work nobody asked for, and each role's model, effort, and turn limit. A lock freezes it. |
+| `limits` | mapping | no | Named numbers that change what aidd decides or shows. A lock freezes it. |
+| `delivery_teams` | mapping | no | The delivery teams sharing this repository, by name: each one set of the aidd-team roles, run in one harness by its approvers, over its own areas and the work whose `delivery_team` names it. `aidd status --delivery-team <name>` shows one team's work. Not the `team` profile. Unset: one team. |
+| `standards` | list of mapping | no | Standards: the team's own written rules and its copies of aidd's library standards (`aidd standard add`), each a Markdown document that agents read before a loop step, beside their roles' standards. Each is an opinionated standard, one choice your team commits to; an industry standard lives only in the registry. `aidd doctor` checks each path, role, and `enforced_by` name, and each copy against the library. A child adds entries; it cannot drop or redefine one a parent names. |
+| `standards_policy` | mapping | no | A company's rules for library standards, usually in its org preset: `aidd standard add` follows them and `aidd doctor` reports a breach. Only opinionated ids: an industry standard is never excluded or replaced, only waived per project, with a reason and an expiry. A child adds and tightens: it cannot drop a parent's entry, require what a parent excludes, or allow a stack the parent does not. A lock freezes it. |
+| `tests` | list of mapping (`test_command`) | no | The repository suite, run on every change by `aidd test`. Empty means a Spec brings its own commands. A lock freezes it. |
+| `preview` | mapping | no | The one-command local preview: no hosting, no cost. The verifier starts it from a clean checkout of the head and records screenshots, a trace or video, and API transcripts under `.aidd/evidence/preview/<head_sha>/`. `aidd init` fills it only when the command is obvious (a Docker Compose file). A lock freezes it. |
+| `environments` | list of mapping (`environment`) | no | Where a push deploys: each environment has a name, branches, tags. A push to one is `deploy.run` there, which asks unless it says `shared: false`, and a rule's `environment` sets the level. Unset, a push asks as `git.push` and a delegated merge defers; `[]` says none deploys. A child adds or overrides one by name; a lock freezes the list. |
+| `delegation` | mapping | no | A standing delegation: the asks the delegate answers for you, inside these limits, on a passing delegate check. Only the default branch's tip sets it, a parent can only narrow it, and a reserved action is always yours. Claude Code is the one harness that answers one in this version. |
+| `mcp` | mapping | no | How aidd wires its own MCP server into each coding agent. |
+| `project` | mapping | no | The project's constraints and rules, set by humans: a technology radar, the hosting, a budget, the team's own rules each with its why, and the waivers a person approved. Agents read them in Specify and Review; `aidd risk --paths` prints the rules that apply to the paths, must first. `aidd validate` checks them. A parent that locks `project` binds its rules, hold list, budget, and hosting. The lock tightens only: a child may add rules and raise a level, never lower one, waive a locked rule, or spend more. |
+| `risks` | mapping (`risks`) | no | This repository's risk rules over the built-in ones (schemas/risks.json): its own areas and actions, and rules that add to or replace the built-in ones. `aidd risk --list` shows the rules in force and where each comes from. |
+<!-- aidd:end -->
+
+## Parents, presets, and locks
+
+`extends` layers parent configs under this one. An org preset is the root parent of every repository config: you name it with `AIDD_ORG_PRESET`. When they merge:
+
+- a child changes only what it names. A mapping merges member by member at every depth, so a child that adds `owners.specialists.data` keeps the parent's `security` pool, and a child's `agents.models.execution` keeps the parent's `reasoning` and `verifier` entries. The same holds for `agents.effort`, `delivery_teams`, `docs.disabled`, and the areas and actions under `risks`
+- a child can add a map entry or override one it names, and it never removes a parent's entry. To turn a disabled rule or default back on, set its entry to `false` in `docs.disabled` or `project.defaults.disabled`, which only tightens, so no lock stops it. To change what a preset sets, lock it there or edit the preset
+- a list of named things merges by name, id, or selector, such as `standards`, `environments`, `risks.rules`, and `project.rules`. A child adds one or overrides one by name, and a child's `environments: []` removes none. To keep a child from overriding an environment, a preset locks `environments`, or marks the `deploy.run` rule for that environment `locked`, which keeps its branches, tags, and `shared`. Any other list or a single value the child names replaces the parent's whole, such as `tests`, `owners.approvers`, and `project.compliance.targets`
+- a parent's `locks` names what its children may not set. An item is a key, such as `tests`, `owners`, or `profile`, or one member of a key as `key.member`, such as `docs.disabled` or `owners.specialists.security`. A bare key locks the whole group, and a member path locks that member alone. A path the schema lacks fails the load and names the closest one. A lock freezes, so the child's value is ignored with a warning, and the parent's stays. `project` is the one key that tightens instead: with `locks: ["project"]`, a child adds rules to `project` and raises their level, but never lowers one, waives a locked rule, or spends more, as [`project`](#project) explains. `project` takes no member path. `profile` is lockable, so a preset that holds `team` keeps a child from switching to `solo`. Profiles have no strictness order, so that lock freezes the profile and a child cannot raise it either
+- a child adds library standards and tightens `standards_policy`, but never drops or loosens what a parent sets
+- in `risks`, areas and actions merge by id, and rules by their selector (action, area, branch, role, environment, environment_shared). A rule a parent marks `locked: true` is a floor: the level is never lower than it, and it never lowers a built-in or another rule, so a lock below the built-in level changes nothing. `aidd doctor` says when a child's change was set aside. Under a standing delegation, the reserved actions it raises, such as `deploy.run`, still rise to `ask` over a parent's locked lower level, because the rise moves only toward you deciding. A locked rule for an environment that no parent config defines holds nothing a child cannot change, so `aidd validate` and `aidd doctor` warn about it
+- a preset's own parents are fetched by URL only, never from the repository, and a URL parent should carry its `sha256`. With `AIDD_OFFLINE=1`, a URL parent is skipped with a warning
+
+## `risks`
+
+`risks` changes the risk rules for this repository: which actions an agent takes on its own (`allow`), which it takes and reports (`report`), and which it asks a person about first (`ask`). The built-in rules are in `schemas/risks.json`, and `aidd risk --list` shows the rules in force and where each comes from.
+
+- `areas` adds or replaces a named set of paths, such as your billing code. An area may raise the route of a change that touches it.
+- `actions` adds or replaces an action, named `resource.verb`, with the shell command patterns it matches.
+- `rules` adds a rule, or replaces the built-in rule with the same action, area, branch, role, and environment. The most specific rule that matches wins, and between equals the higher level.
+
+```yaml
+risks:
+  areas:
+    billing: {paths: ["src/billing/**"], route: major}
+  actions:
+    cloud.resource.create: {description: Commands that create paid cloud resources, commands: ["terraform apply*"]}
+  rules:
+    - {action: code.edit, area: billing, level: ask}
+    - {action: cloud.resource.create, level: ask}
+    - {action: code.edit, area: dependencies, level: ask}
+    - {action: pr.open, level: allow}
+```
+
+After a change, `aidd upgrade --yes` writes the ask rules again into each coding agent's own settings.
+
+`environments` names where a push deploys. Each environment has a name and the branch and tag globs whose push deploys there. `aidd risk --command` reads such a push as `deploy.run` to that environment, which asks, so the question says "deploy to production". `shared: false` marks the developer's own environment, where a deploy reports instead. Name its branches and tags without a wildcard. A wildcard branch glob gives way only for the branch checked out, a wildcard tag glob never does, and `aidd validate` warns about either. A parent config's locked `deploy.run` rule with `environment_shared` keeps every environment the parent defines, so a child cannot mark one its own. Unmarked, an environment is shared. A rule with `environment` changes one environment's level. A glob with no wildcard names only that ref, so `dev` never covers `dev/login`.
+
+```yaml
+environments:
+  - {name: production, branches: [prod], tags: ["v*"]}
+  - {name: staging, branches: ["release/*"]}
+  - {name: dev, branches: [dev], shared: false}
+```
+
+The `risks` block:
+
+<!-- aidd:gen fields:risks-risks -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `areas` | mapping (`areas`) | no | Named sets of paths, by area id. A rule's `area` names one, and a change that touches one takes its route and dimensions. |
+| `actions` | mapping (`actions`) | no | The things an agent does that carry a level, by action id, each with the patterns that recognize it. |
+| `rules` | list of mapping (`rule`) | no | Rules that set an action's level, narrowed by a selector. Of the rules that match, the most specific wins, then the higher level. |
+<!-- aidd:end -->
+
+Each area:
+
+<!-- aidd:gen fields:risks-area -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `description` | string | no | What the area holds, in one line, for a person reading the rules. |
+| `paths` | list of string | yes | Globs, repo-relative; `**` matches any number of folders. |
+| `exclude` | list of string | no | Globs a match must not also match, such as `**/vendor/**`. |
+| `route` | `minor` \| `normal` \| `major` | no | The least route a change that touches the area needs. |
+| `dimensions` | list of `data` \| `security` \| `privacy` \| `financial` \| `compliance` \| `availability` \| `third_party` \| `cost` \| `performance` | no | The risk dimensions a change in the area has, which name its specialists. |
+| `deploys_on_merge` | list of string | no | The area's paths a host deploys from when they change on the default branch, such as `vercel.json`: a delegated merge never covers them. Any area may set it, and the built-in `infra` area does. |
+<!-- aidd:end -->
+
+Each action:
+
+<!-- aidd:gen fields:risks-action -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `description` | string | no | What the action is, in one line, for a person reading the rules. |
+| `irreversible` | boolean | no | `true` when a person cannot undo the action, such as a force-push, a deploy, or a message sent. `aidd risk --suggest` never suggests lowering its rule. Left out, the action can be undone. |
+| `commands` | list of string | no | Shell command patterns: `*` matches any run of characters, and a pattern matches the whole command. |
+| `api_endpoints` | list of string | no | `gh api` endpoint globs whose write is this action, read from the call's parsed arguments in any flag order, which `commands` globs cannot do. This reads `gh api` only: a `glab api` pattern stays in `commands`. In a glob, `*` is any run of characters, `/` included, and `?` is one whole path segment, up to the next `/` or space. It is not one character, as in a path glob, and an entry cannot name a literal `?`. aidd cuts the query string off the endpoint before matching. A glob matches the whole endpoint without its query, ignoring case, or the endpoint and the call's field values after a space (`*dispatches*deploy*`); a file given to `--input` shows as `--input file`. Begin it with the methods it applies to (`DELETE */git/refs/*`, `PATCH\|POST */git/refs*`) or with none for any write. A GET or HEAD with no field or input is a read. A GraphQL mutation, or a query aidd cannot read, is the endpoint `graphql#mutation`. `aidd risk --command` reads them as parsed arguments. A harness's ask rules do not use them: those ask before any `gh api` call that may write, whatever its endpoint, while `aidd risk --command` reads the call exactly. Redefining an action replaces the whole entry, as with `commands`. |
+| `file_reads` | mapping | no | Reading one of `paths` is this action: a shell command whose program is a reader, or the harness's own file-read tool where it has one. `aidd risk --command` reads each word after the program as a path. The harness's ask rules get a read rule for each of `paths`, and never one for `exclude`. Claude Code's rules then carve back out, with a `Read(!...)` rule each, the `.env` templates (`.env.example`, `.sample`, `.template`, `.dist`) and every other exclude but the template suffixes and `*.pub`, such as source code. Redefining an action replaces the whole entry, as with `commands`. |
+| `tools` | list of string | no | Harness tool names the action is, such as an MCP tool that sends email. |
+| `examples` | list of string | no | What the action looks like where no pattern catches it: the agent judges these. |
+<!-- aidd:end -->
+
+Each rule:
+
+<!-- aidd:gen fields:risks-rule -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `action` | string | yes | An action id, or a prefix that ends in `.*` (`git.*`), or `*` for every action. |
+| `area` | string | no | Narrows the rule to a change that touches this area: an area id from `areas`, built in or the config's. |
+| `branch` | `own` \| `default` \| `shared` | no | Narrows the rule to one kind of branch: `own` (the agent's work branch), `default` (the repository's default branch), or `shared` (any other branch someone else pushed to). |
+| `role` | string | no | Narrows the rule to one aidd-team role, by its id, such as `developer`. |
+| `environment` | string | no | A name in the config's `environments`: the rule decides `deploy.run` to that environment, such as a push to its branch. Only a `deploy.run` rule takes it. |
+| `environment_shared` | boolean | no | Whether the environment a `deploy.run` reaches is shared, as the config's `environments` mark it: `false` for the developer's own. A deploy aidd cannot name an environment for matches neither. Only a `deploy.run` rule takes it. |
+| `route` | `normal` \| `major` | no | The route of the change whose Spec is approved. A rule with a `route` decides `spec.approve` on that route only. A rule without one decides every route, and replaces the rules a lower layer (the built-in rules, the profile, a parent config) set for one route, unless the parent locked them. |
+| `level` | `level` | yes | allow: the agent acts. report: it acts, then says what it did. ask: it waits for the person's yes, then acts. |
+| `locked` | boolean | no | In an `extends` parent such as an org preset: the rule is a floor. No rule of a child or a profile, and no built-in rule, lowers the level of what it covers, and a child's rule with the same selector keeps this level. A floor below a built-in level changes nothing there. |
+| `reason` | string | no | Why the rule exists, in one line, which `aidd risk` shows. |
+<!-- aidd:end -->
+
+The built-in areas:
+
+<!-- aidd:gen risks:areas -->
+| Area | What it holds | Raises the route to | Dimensions | Editing it | Paths, such as |
+| --- | --- | --- | --- | --- | --- |
+| `auth` | Who can sign in and what each person may do: authentication, authorization, roles, sessions, tokens. | major | security | ask | `**/auth/**`, `**/authn/**`, `**/authz/**`, and 54 more |
+| `payments` | Money moves or prices change: checkout, billing, payouts, invoices. | major | financial | ask | `**/payments/**`, `**/payment/**`, `**/billing/**`, and 6 more |
+| `personal_data` | Data about people: users, customers, accounts, profiles, contacts, patients. | major | privacy | ask | `**/users/**`, `**/user/**`, `**/profile/**`, and 52 more |
+| `secrets` | Secrets, keys, certificates, and cryptography. | major | security | ask | `**/crypto/**`, `**/secrets/**`, `**/secrets.*`, and 17 more |
+| `migrations` | Database schema changes and data migrations. | major | data | ask | `**/migrations/**`, `**/migration/**`, `**/migrate/**`, and 9 more |
+| `module_boundaries` | The rules that keep modules apart: import contracts and architecture tests. | major | none | report | `**/boundaries-baseline.*`, `**/.dependency-cruiser.*`, `**/.importlinter`, and 6 more |
+| `ci` | What builds, tests, and ships the code: CI pipelines, git hooks, and code owners. | normal | third_party | report | `.github/workflows/**`, `.github/CODEOWNERS`, `CODEOWNERS`, and 25 more |
+| `infra` | Infrastructure as code and containers: what runs the service. | normal | availability | report | `**/*.tf`, `**/*.tfvars`, `**/terraform/**`, and 58 more |
+| `dependencies` | Third-party code and build tools: manifests, lockfiles, and the bots that update them. | normal | third_party | report | `**/package.json`, `**/package-lock.json`, `**/pnpm-lock.yaml`, and 70 more |
+| `agent_config` | What instructs or permits a coding agent: AGENTS.md, the skills, the harness settings, and aidd's config. | normal | none | report | `.aidd/**`, `**/AGENTS.md`, `**/AGENTS.override.md`, and 37 more |
+| `risk_rules` | The files that set when an agent asks: aidd's config and the record of the ask rules it wrote, and each harness's own ask rules. An agent asks before it changes what makes it ask. | normal | none | ask | `.aidd/config.yaml`, `.aidd/harness-rules.json`, `.claude/settings.json`, and 8 more |
+| `project_config` | How the project checks its code and draws its product: test, lint, and type settings, app manifests, the design system, standards, and module APIs. | normal | none | report | `**/jest.config.*`, `**/vitest.config.*`, `**/jest.setup.*`, and 70 more |
+<!-- aidd:end -->
+
+The built-in rules:
+
+<!-- aidd:gen risks:rules -->
+| Action | Area | Branch | Environment | Level |
+| --- | --- | --- | --- | --- |
+| `code.edit` | any | any | any | **allow** |
+| `code.edit` | auth | any | any | **ask** |
+| `code.edit` | payments | any | any | **ask** |
+| `code.edit` | personal_data | any | any | **ask** |
+| `code.edit` | secrets | any | any | **ask** |
+| `code.edit` | migrations | any | any | **ask** |
+| `code.edit` | module_boundaries | any | any | **report** |
+| `code.edit` | ci | any | any | **report** |
+| `code.edit` | infra | any | any | **report** |
+| `code.edit` | dependencies | any | any | **report** |
+| `code.edit` | agent_config | any | any | **report** |
+| `code.edit` | project_config | any | any | **report** |
+| `code.edit` | risk_rules | any | any | **ask** |
+| `git.commit` | any | any | any | **allow** |
+| `git.push` | any | own | any | **allow** |
+| `git.push` | any | default | any | **ask** |
+| `git.push` | any | shared | any | **ask** |
+| `git.push.force` | any | any | any | **ask** |
+| `git.history.rewrite` | any | any | any | **ask** |
+| `git.branch.delete` | any | any | any | **ask** |
+| `git.tag.create` | any | any | any | **ask** |
+| `git.merge` | any | any | any | **ask** |
+| `git.merge` | any | own | any | **allow** |
+| `pr.open` | any | any | any | **report** |
+| `pr.merge` | any | any | any | **ask** |
+| `workflow.run` | any | any | any | **report** |
+| `dependency.add` | any | any | any | **report** |
+| `network.listen` | any | any | any | **report** |
+| `commit_status.post` | any | any | any | **ask** |
+| `branch_protection.change` | any | any | any | **ask** |
+| `repo.settings.change` | any | any | any | **ask** |
+| `intent.agree` | any | any | any | **ask** |
+| `spec.approve` | any | any | any | **ask** |
+| `spec.revise` | any | any | any | **ask** |
+| `deploy.run` | any | any | any | **ask** |
+| `deploy.run` | any | any | your own | **report** |
+| `records.push` | any | any | any | **ask** |
+| `release.publish` | any | any | any | **ask** |
+| `migration.run` | any | any | any | **ask** |
+| `migration.run.local` | any | any | any | **report** |
+| `migration.rollback` | any | any | any | **ask** |
+| `infra.apply` | any | any | any | **ask** |
+| `data.delete` | any | any | any | **ask** |
+| `data.production.access` | any | any | any | **ask** |
+| `secret.use` | any | any | any | **ask** |
+| `message.send` | any | any | any | **ask** |
+| `money.spend` | any | any | any | **ask** |
+<!-- aidd:end -->
+
+## `owners`
+
+`owners` names the people agents ask for a decision, and the specialists a risky change names. Under `team`, the platform's review decides who may merge.
+
+<!-- aidd:gen fields:config-owners -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `approvers` | list of string | no | The people an agent asks for a decision (`ask`), first to last: users, @org/team, or `email:you@example.com`. Empty or missing, the agent asks whoever directs it. Under `team`, the platform's review decides who may merge. |
+| `specialists` | mapping | no | Specialist pools by name, such as `security`, `privacy`, `finance`, `compliance`, or `data`: the people an agent names when a change's risk dimension calls for one, so the right person reviews it. A pool that no risk dimension asks for, and that no area is named for (an expert pool takes its area's name), gets a warning from `aidd validate` and `aidd doctor`. |
+<!-- aidd:end -->
+
+## `agents`
+
+`agents` sets how the agents work. `proactive_roles` names the roles that may suggest work nobody asked for, always as a draft Spec with `suggested_by: role:<role>`, which stays a draft until a person records its `triage`. `models` and `effort` pick each role's model and effort, which `aidd init --aidd-team` and `aidd upgrade` write into each harness's own agent files. `max_turns` sets a role's turn limit the same way, but only Claude Code's agent file (`maxTurns:`) takes it: aidd's data records no turn limit for another harness, so no other file gets one. A role's number in `schemas/roles.json` stays the default, and the config holds only your change. The plugin's own role files cannot read your config, so `aidd init`, `aidd upgrade`, and `aidd doctor` say so when you set one of the three while the plugin carries the roles.
+
+<!-- aidd:gen fields:config-agents -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `proactive_roles` | list of string | no | Agent roles that may suggest work nobody asked for, always as a draft Spec with `suggested_by: role:<role>` that stays a draft until a person records `triage` (`aidd validate` enforces it). Default: product-manager (which also drafts Specs from incoming issues) and sre (which runs the retrospective). An empty list means agents only work when asked. |
+| `models` | mapping | no | The model each aidd-team role runs on, as `provider/model` (`anthropic/claude-opus-5-5`) or `inherit` (the session's model). Key it by tier (`reasoning` or `execution`) or by role name. A role's own entry wins over its tier's, so one role, such as the verifier, can run on any model by name. A key that names no tier and no role selects nothing, and `aidd doctor` warns about it. `aidd init --aidd-team` and `aidd upgrade` write it into each harness's own agent model field. Claude Code takes only an `anthropic/` model or `inherit`, Codex only an `openai/` one, OpenCode the whole `provider/model`, and Kiro and GitHub Copilot the model name. Where a harness cannot run it, the generated file says so: Claude Code keeps the tier's alias, and any other harness runs its own default. `inherit` writes no model field outside Claude Code. The aidd-team plugin carries Claude Code's own role files, so this key changes nothing there, and `aidd doctor` says so. Unset: Claude Code takes the tier's alias, and any other harness runs its own default model. |
+| `independent_review` | boolean | no | Opt in to review by a different provider: the verifier and the reviewer run on a provider other than the developer's, so a mistake one model family makes is checked by another. Set the three roles in `agents.models` as `provider/model`. `aidd init --aidd-team` says when `agents.models` does not give that, and the lead checks the developer's `Assisted-by` trailers against the reviewer's and verifier's reports. It advises and never blocks. Default: off. |
+| `effort` | mapping | no | How hard each aidd-team role thinks, keyed by tier (`reasoning` or `execution`) or by role name, as `agents.models` is; a role's own entry wins over its tier's. `aidd init --aidd-team` and `aidd upgrade` write it into Claude Code's agent `effort:` field. Unset: reasoning `xhigh`, execution `high`. Claude Code's CLAUDE_CODE_EFFORT_LEVEL still overrides it. The aidd-team plugin carries Claude Code's own role files, so this key changes nothing there, and `aidd doctor` says so. |
+| `max_turns` | mapping | no | The most agentic turns one run of an aidd-team role takes before it stops and hands back, keyed by tier (`reasoning` or `execution`) or by role name, as `agents.models` is; a role's own entry wins over its tier's. Unset, each role keeps the number aidd ships for it. The range is the roles' own (`max_turns` in the team's data). A project may lower a limit to its floor and raise it to the ceiling, the most aidd ships for any role, so a run always has a bound. `aidd init --aidd-team` and `aidd upgrade` write it into Claude Code's agent `maxTurns:` field, and no other harness's agent file has a turn limit in aidd's data. The aidd-team plugin carries Claude Code's own role files, so this key changes nothing there, and `aidd doctor` says so. |
+| `domain_packs` | list of `ai-agents-and-tools` \| `ai-features` \| `apis-and-services` \| `cloud-and-infrastructure` \| `commerce-and-marketplaces` \| `data-and-analytics` \| `desktop-apps` \| `education` \| `embedded-automotive-industrial` \| `enterprise-controls` \| `extensions-and-marketplace-apps` \| `games-and-interactive-media` \| `health` \| `hr-and-workforce` \| `insurance` \| `internationalization` \| `logistics-and-supply-chain` \| `mobile-apps` \| `multi-tenant-saas` \| `package-publishing` \| `payments-and-finance` \| `privacy-by-default` \| `products-for-children` \| `public-sector` \| `tax-and-e-invoicing` \| `user-content-and-online-safety` \| `web-front-end` | no | Domain packs to install as project skills beside the ones the repository calls for, such as `insurance`, for a domain no file names. Without the aidd-team plugin, `aidd init --aidd-team` and `aidd upgrade` write the practice skills and only the packs the repository calls for. Those are the packs a manifest's dependencies call for, the ones whose risk areas `aidd risk` matches on a tracked path, the one `project.compliance` brings, the ones this list names, and the ones a past install wrote. Each skill puts its description in every session's context, so a pack no one needs is left out. Run `aidd upgrade --yes` after you add one. With the aidd-team plugin, the packs are the optional aidd-packs plugin's: `aidd doctor` names the packs the repository calls for, this list included, and the project enables the plugin. |
+| `max_tokens_per_run` | integer | no | The spend cap of one `/aidd-team:autopilot` run, in tokens: the sum of each step's count from the harness, every token of its model calls, cache reads included, copied and never estimated. Once the sum passes it, autopilot stops and asks once whether to go on for one more cap's worth, so an unattended run never spends without a bound. Where the harness gives no count for each step, autopilot says so once at launch, writes each step's spend as `unknown`, and the cap can't stop that run. The default is about five large role steps, because one step on a large Spec spends about 10000000, mostly in cache reads. |
+<!-- aidd:end -->
+
+```yaml
+agents:
+  proactive_roles: [product-manager]  # default: product-manager, sre; [] means agents only work when asked
+  models:
+    reasoning: anthropic/claude-opus-5-5
+    verifier: inherit
+  max_turns:
+    execution: 150  # a project's change; each role otherwise keeps its number in schemas/roles.json
+  max_tokens_per_run: 20000000  # autopilot stops and asks once a run spends more
+```
+
+## `limits`
+
+`limits` names the numbers that change what aidd decides or shows, each with its default in `schemas/config.schema.json`. Nothing else states a default: the table below and the texts the roles read come from the schema.
+
+A limit that guards a control can only be lowered, because its ceiling is aidd's own. So a Task never gets more retries than aidd allows, and a quick-path change never grows past the minor route's size. A limit that decides nothing, such as how many paths an answer lists, takes any value in its range. A value outside its range fails the config's load at its line, with the range and the next step. A parent's `locks` freezes a limit, and a child that sets a limit its parent also set keeps the stricter of the two.
+
+<!-- aidd:gen fields:config-limits -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `max_task_retries` | integer | no | How many retries one Task gets before it stops and its Spec is blocked, until a person re-plans it. A retry is a fix after a red run. Default `3`; it takes 1 to 3; you may only lower it. |
+| `min_fix_review_lines` | integer | no | The size of a quick-path change's diff, in changed lines, past which `/aidd-team:fix` adds the reviewer. A smaller diff runs one builder alone. Default `20`; it takes 1 to 20; you may only lower it. |
+| `max_fix_lines` | integer | no | The most changed lines a quick-path change may have. It is the minor route's size rule, so a larger change is not for the quick path: it goes to `/aidd-team:specify`. Default `50`; it takes 1 to 50; you may only lower it. |
+| `retrospective_every` | mapping | no | When the team looks back at how the loop delivered: after the days or the merges, whichever comes first. A Learn signal (a rejected Merge approval, a rollback, an incident, a Task out of retries) starts one at once. |
+| `max_paths_shown` | integer | no | How many paths of one area an `aidd risk` answer lists, with the full count beside them. It decides nothing: the route and the edit level come from every path. Default `50`; it takes 1 to 500. |
+<!-- aidd:end -->
+
+<!-- aidd:gen fields:config-limits-retrospective_every -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `days` | integer | no | Days between two retrospectives on the loop itself. Default `14`; it takes 1 to 365. |
+| `merges` | integer | no | Merged changes between two retrospectives. Default `20`; it takes 1 to 1000. |
+<!-- aidd:end -->
+
+```yaml
+limits:
+  max_task_retries: 2  # a Task stops after two retries; 3 is the most
+  retrospective_every:
+    days: 7
+```
+
+## `delivery_teams`
+
+`delivery_teams` lists the delivery teams that share one repository, by name. Each is one set of the aidd-team roles, run in one harness by its approvers. Its work is the Intents and Specs whose `delivery_team` names it, the Specs under such an Intent, and the Specs whose Task scope touches its areas. `aidd validate` fails a `delivery_team` that is no key here. `aidd status --delivery-team <name>` shows that work alone, and `/aidd-team:autopilot team:<name>` runs it, so each team's run keeps to its own work. Give the teams areas and work that don't overlap, because aidd doesn't check that. Without the key, the whole repository has one delivery team. The `team` profile is a different thing: it sets who approves.
+
+<!-- aidd:gen fields:config-delivery_teams -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `approvers` | list of string | yes | The people who run the team and answer its asks, as `owners.approvers` names them: users, @org/team, or `email:you@example.com`. The team's roles read it; aidd's commands do not. |
+| `areas` | list of string | no | The areas the team works in, by name: a built-in area or one under `risks.areas`. A Spec whose Task scope touches one is the team's work. Optional: a team can own work by name alone, through the `delivery_team` of an Intent, a slice, or a Spec. A name that is no area fails the config's load. |
+| `harness` | string | no | The harness the team's roles run in, as `aidd init --harness` names it, such as `claude-code` or `opencode`. A name aidd does not know fails the config's load. Unset: the harness of whoever runs the team. |
+| `models` | mapping (`models`) | no | The model each of the team's roles runs on, keyed as `agents.models` is. `/aidd-team:autopilot` passes it to a team's Orca worker. Unset: `agents.models`. |
+| `effort` | mapping (`effort`) | no | How hard each of the team's roles thinks, keyed as `agents.effort` is. `/aidd-team:autopilot` passes it to a team's Orca worker. Unset: `agents.effort`. |
+<!-- aidd:end -->
+
+A harness aidd does not know, or an area that neither the built-in rules nor `risks.areas` define, fails the config's load, so a team never sees less work by a typo.
+
+```yaml
+delivery_teams:
+  payments:
+    approvers: ["@alice", "@org/payments"]
+    areas: [payments]
+    harness: claude-code
+    models: {reasoning: anthropic/claude-opus-5-5}
+  web:
+    approvers: ["@bob"]
+    intents: [INTENT-3]
+    harness: opencode
+```
+
+## `standards`
+
+`standards` holds the team's own rules beside the ones each role already applies, and its copies of aidd's library standards. Each names a Markdown document, and the aidd-team roles that read it before their step. Optionally, it also names the paths that make it apply, and the `tests` that check it.
+
+- Every entry is an opinionated standard. An industry standard lives only in the registry, `schemas/industry-standards.json`, and a project only waives one, with a reason and an expiry.
+- `fills` names the open choices it answers, such as `ci-pipeline:linter`. `aidd standard` lists the open choices.
+- `aidd standard add <id>` and `aidd standard add --stack <name>` write a copy with its entry and its `tests`, as [STANDARDS.md](STANDARDS.md) explains.
+- `aidd doctor` warns about a missing document, an unknown role, or an `enforced_by` naming no test. For a copy, it also warns about an edit and a newer library version.
+- A child config adds standards; it cannot drop or redefine one a parent names.
+
+<!-- aidd:gen fields:config-standards -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `name` | string | yes | Stable name, such as `api-errors`. |
+| `path` | string | yes | The Markdown document that states the standard, repo-relative, such as `docs/standards/api-errors.md`. |
+| `roles` | list of string | yes | aidd-team role keys that read it before their step, such as `developer` or `reviewer`, or `*` for every role. |
+| `when_changed` | list of string | no | Load it only for a change that touches one of these paths. Omit to load it for every change. |
+| `enforced_by` | list of string | no | Names of `tests` entries that check the rule, so `aidd test` checks it. Without one, the standard is guidance a reviewer checks. |
+| `fills` | list of string | no | The open choices it answers, each `<pack or skill>:<choice>`, such as `ci-pipeline:linter` (`aidd standard list` names them). Optional for the team's own standard. `aidd doctor` warns about a choice no pack or skill declares, and about two copies of library standards that fill one choice for one ecosystem. |
+| `from_library` | mapping | no | Written by `aidd standard add` for a copy of a library standard: never edit the copy. To change the rule, write your own standard and replace the library one in `standards_policy`. `aidd doctor` reports an edited copy and drift; `aidd upgrade` refreshes an unedited one. |
+<!-- aidd:end -->
+
+```yaml
+standards:
+  - name: api-errors
+    path: docs/standards/api-errors.md
+    roles: [developer, reviewer]
+    when_changed: ["src/api/**"]
+    enforced_by: [contract]  # a `tests` entry that checks the rule
+```
+
+## `standards_policy`
+
+`standards_policy` holds a company's rules for the library standards, usually in its org preset. `aidd standard add` follows them, and `aidd doctor` fails on a breach. A child config adds and tightens: it cannot drop a parent's entry, require what a parent excludes or replaces, or allow a stack the parent does not allow.
+
+<!-- aidd:gen fields:config-standards_policy -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `require` | list of string | no | Library standards every project must carry; `aidd doctor` fails while one is missing. |
+| `exclude` | list of string | no | Library standards no project may add. |
+| `replace` | mapping | no | A library standard and the `standards` name of the company's own standard that takes its place, such as `python/mypy-typing: typing`. Projects cannot add the library one. |
+| `allow_stacks` | list of string | no | The only stacks a project may add. Unset, any stack. |
+<!-- aidd:end -->
+
+```yaml
+standards_policy:
+  require: [python/uv-tooling]
+  exclude: [python/mypy-typing]
+  replace: {"python/ruff-lint-format": lint}  # the `standards` entry `lint` takes its place
+  allow_stacks: [python-cli]
+```
+
+## `docs`
+
+Where the project's official docs live, and which documents a Spec should link, which `aidd validate` asks for. A Spec's own documents go in its folder, `specs/<ID>/`. The matrix only warns, and nothing is asked of a minor change. A repository turns a type's rule off in `disabled`, with a reason. aidd's own rules, the same in every repository:
+
+- A major Spec needs a tech-spec and a runbook, and its own Alternatives considered and Pre-mortem, or a Rollout section, count.
+- It needs a threat-model when a risk dimension is security, privacy, or data.
+- When compliance is on (`project.compliance` targets), a Task that touches an authentication, authorization, secrets, or cryptography path needs one, on normal too.
+- An `authz-matrix` doc (the authorization matrix) is needed, on normal too, when a Task touches an authentication or authorization path (the `auth` area's paths) and either the risk names security or compliance is on.
+- A major feat whose Tasks touch a user-facing path needs a design spec (`design-spec`, or `design.files`).
+- A major Spec needs a test-plan, and so does a normal one with a compliance dimension, or with compliance on. With compliance on, the component's living test plan (`aidd new test-plan <component> --living`) is needed too, on normal as well.
+- It needs a `migration-plan` doc on a data dimension, or on an irreversible change.
+- A `compliance-record` doc (its DPIA) is needed, on normal too, when a risk dimension is privacy, with the data map (`data-map`) suggested beside it.
+- A `tracking-plan` doc is needed, on normal too, when the Spec has a `hypothesis`.
+- On normal, the design-spec and migration-plan rules are suggestions that `aidd new spec` prints, and so is any other test plan, `manual_acceptance: true` or a device path included.
+- Otherwise testing lives in the Spec's Acceptance and its `tests`.
+
+<!-- aidd:gen fields:config-docs -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `dir` | string | no | Where `aidd new <type> <topic> --spec <ID>` writes a linked document: `<dir>/decisions/NNNN-<topic>.md` for an ADR, `<dir>/specs/<doc folder or Spec id>/<type>-<topic>.<ext>` otherwise. Default `docs`. |
+| `disabled` | mapping | no | Document types whose rule `aidd validate` skips, each with a reason, such as `{runbook: a library}`. `test-plan` stops the Spec's plan and the component's living plan alike. A type left out follows aidd's rule, the same everywhere, and `aidd validate` only warns. A child adds types, and `false` turns one back on, which a lock never stops. `docs.disabled` in `locks` freezes the rest. |
+| `exemplars` | list of string | no | The project's best Specs, which a person names, such as `["specs/SPEC-12.md"]`. Whoever writes a Spec reads them first, for their shape and depth, never to copy them. `aidd validate` warns on a path that does not exist. aidd never chooses them. |
+| `max_review_age_days` | integer | no | Days after a living doc's `reviewed_on` date before `aidd doctor` warns that it is stale. About six months by default. The living docs are the architecture overview, the data map, the vendor register, the glossary, and every doc a Spec links with `frozen: false`, except a runbook, which has `tested_on`. `reviewed_on` is optional: a person sets it in the doc's `---` YAML front matter each time they review the doc. A doc nobody has reviewed lately describes a system that has moved on. |
+| `max_runbook_age_days` | integer | no | Days after a runbook's `tested_on` date before `aidd doctor` warns that it is stale. A runbook nobody has run lately is a guess at the moment it is needed. Default `180`; it takes 1 to 3650. |
+<!-- aidd:end -->
+
+## `extends`
+
+Each entry names one parent config, by repository path or by URL.
+
+<!-- aidd:gen fields:config-extends -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `path` | string | no | Repo-relative path to a parent config: no leading / or ./, no .., backslashes, or wildcards. |
+| `url` | string | no | HTTPS URL of a parent config. |
+| `sha256` | string | no | Required with url. Pins the content. |
+<!-- aidd:end -->
+
+## `tests`
+
+`tests` is the repository suite, which `aidd test` runs on every change beside the Spec's own tests. Empty means every Spec brings its own commands. Each entry is a test command; `new_behavior` belongs to a Spec's tests and is never set here.
+
+aidd starts a command with no shell, so a command that needs an environment variable starts with `env`, as in `[env, PYTHONPATH=src, python3, -m, pytest]`. `aidd init` and `aidd validate` refuse a command whose first word is `NAME=value`, since that word would run as the program.
+
+<!-- aidd:gen fields:test_command -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `name` | string | yes | Stable name used in evidence. |
+| `command` | list of string | yes | Command vector, one argument per item. Never a shell string. |
+| `runs_in` | string | no | The folder the command runs in, as a path in the repository, such as `packages/api`. Omit it to run at the repository's top. `when_changed` and `report` stay relative to the top. A folder outside the repository, or one reached through a link, is refused. |
+| `new_behavior` | boolean | no | True when this command proves new or fixed behavior. It must fail on the base commit (red) and pass on head (green). |
+| `timeout_seconds` | integer | no | Wall-clock limit. A timeout is a fail. Default `1800`; it takes 1 to 86400. |
+| `smoke` | boolean | no | In the config's `tests`: part of the smoke set, the only repository commands an emergency change runs (with its own). When no command is marked, an emergency runs the whole suite. |
+| `reruns` | integer | no | How many more times a failing run on head runs again. Every run is kept in the evidence; a pass after a failure passes, marked flaky, and the flaky test is a finding. A red run on the base commit never runs again. Default `0`; it takes 0 to 5. |
+| `when_changed` | list of string | no | Run and require this command only when a changed path matches. Omit to run it on every change. |
+| `related_tests` | mapping | no | In the config's `tests`: how `aidd test --changed` runs only the tests related to the change. It runs `related_tests.command` when every changed path the command covers matches `sees`, is a file in the working tree, and lies inside the command's folder; else it runs the full command and says why. A full `aidd test`, `--require-green`, and every red run always run the full command. Omit it to run the full command under `--changed` too. |
+| `report` | string | no | A JUnit XML report this command writes, as a path in the repository (pytest `--junitxml`, Vitest `--reporter=junit`, jest-junit, gotestsum, cargo-nextest, PHPUnit `--log-junit`). `aidd test` reads it after each run and records the test cases that failed, so a red run can be told from "no tests found". A missing, stale, or unreadable report is a finding. The exit code stays the evidence. |
+| `covers` | list of string | no | In a Spec: the Acceptance items this command proves, by id (`A1`, `A2`, ...). Optional; once any command declares it, `aidd validate` warns about an Acceptance item no command covers, and about an id the Acceptance section does not have. |
+<!-- aidd:end -->
+
+## `preview`
+
+`preview` is the one command that starts the app on this machine with seed data. With it, the verifier can exercise each Acceptance item on the exact head, before anyone pays for an environment. `aidd init` writes it only when a Docker Compose file makes the command obvious.
+
+<!-- aidd:gen fields:config-preview -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `command` | list of string | yes | Starts the app on this machine with its seed data (the command loads them), from a clean checkout, such as ["docker", "compose", "up", "--build"]. The verifier runs it in a worktree of the exact head commit. |
+| `url` | string | no | Where the running preview answers, such as http://localhost:3000: the address the verifier drives. |
+<!-- aidd:end -->
+
+## `delegation`
+
+`delegation` lets the `aidd-team:delegate` role answer some asks for you, inside the limits you set. Before each delegated ask, the delegate check reads the delegation from the default branch's tip, never from a working tree. It then checks the evidence again: the tests, the diff, and, where a remote exists, the platform's own check run and branch rules. The delegate may answer only on a passing check, and it can always defer to you. A reserved action is always yours, such as a deploy, a migration, a new dependency, or a secret. So is a change to what decides, such as this block. Under a delegation, `dependency.add`, `deploy.run`, and `migration.run.local` rise to `ask`, whatever rule narrows them. The one cell that stays is a deploy to your own environment (`shared: false`, its branches and tags named with no wildcard), which reports as before because nobody else uses it. A parent's locked rule for deploys, or a wildcard in the environment, makes it ask. Claude Code is the one harness that answers a delegated ask in this version; every other harness keeps its ask rules. `aidd doctor` and `aidd status` say when your checked-out config sets a delegation that the tip does not hold, so it does not count yet.
+
+<!-- aidd:gen fields:config-delegation -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `set_by` | string | yes | Who set the delegation, as `Name <email>`: the address you commit with, or your no-reply one. It goes into each delegated commit's `On-behalf-of` trailer, so it is public wherever the history is. |
+| `decides` | list of `spec.approve` \| `git.push` \| `git.merge` \| `pr.merge` | yes | The asks the delegate answers: a list of `spec.approve`, `git.push`, `git.merge`, and `pr.merge`. `aidd init --delegate` writes every one a person can undo, and a later aidd adds an action only when you name it here. |
+| `reserved` | list of string | no | Actions you keep, on top of the built-in reserved list. |
+| `default_branch` | string | no | The default branch, as you confirmed it to `aidd init`, such as `main`. With no remote, the check trusts a branch only when this field on that branch's own tip names it, so a ref an agent makes is never the default branch. |
+| `review_due` | string | yes | After this date every ask defers, until you review the delegation. `aidd init` sets it 90 days ahead. |
+| `digest` | `each_session` \| `each_answer` | no | When `aidd status` shows what was decided for you: once a session, or after each answer. Default `"each_session"`. |
+<!-- aidd:end -->
+
+## `mcp`
+
+`mcp` says how aidd wires its own MCP server. By default, `aidd init` lets aidd's own MCP tools run with no prompt in Claude Code and Codex. Set `allow_own_tools: false` to keep them asking, then run `aidd upgrade --yes`. It takes out only the names aidd allowed, which `.aidd/harness-rules.json` lists.
+
+<!-- aidd:gen fields:config-mcp -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `allow_own_tools` | boolean | no | Whether `aidd init` and `aidd upgrade` let aidd's own MCP tools run with no prompt: by name in Claude Code's `permissions.allow` and in Codex's aidd block. `false` keeps them asking: they allow none, and take out the names aidd allowed (listed in `.aidd/harness-rules.json`). Default `true`. |
+<!-- aidd:end -->
+
+## `project`
+
+The project's constraints and rules, set by humans and read by agents: a technology radar, the hosting, a budget, the team's own rules each with its why, and the waivers a person approved. `aidd validate` checks them.
+
+Every product default is on until you turn it off. To turn one off, name it under `project.defaults.disabled` with the reason, such as `dark_mode: an internal tool with one theme`.
+
+<!-- aidd:gen fields:config-project -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `work` | `product` \| `client` | no | Whose work the repository holds: `product`, the team's own product (the default), or `client`, work for a client. With `client`, a goal starts with `/aidd-team:propose`, not `/aidd-team:plan`. |
+| `stack` | mapping | no | A technology radar: what new work uses. A child config adds to each list. |
+| `hosting` | string | no | Where the project runs, in a phrase, such as "one VPS in the EU". Agents design and deploy for it. |
+| `budget` | mapping | no | What running the project may cost. The SRE picks the zero-cost option that fits first. |
+| `rules` | list of mapping (`project_rule`) | no | The team's own rules. `aidd validate` fails on a repeated id and warns once a rule's `review_due` has passed. |
+| `waivers` | list of mapping (`project_waiver`) | no | Time-boxed exceptions to a rule. `aidd validate` fails on a waiver of an unknown rule or one an agent or bot approved, warns 14 days before `until`, and fails once it has passed. |
+| `defaults` | mapping | no | What every product gets unless a person turns it off: each default is on unless `disabled` names it, with the reason (`disabled: {dark_mode: a print-only report}`). Agents build them on the MVP's Day 0 and whenever a change touches the area, from `aidd-team:product-defaults`, which owns each one and its test. `aidd init` writes none of them, and in a repository it detects as a command-line tool or a library (no web or mobile interface) turns the interface defaults off with the reason "no user interface". A child's `disabled` adds to its parent's, and `false` turns a default back on, which a lock never stops. When the parent locks `project`, a child adds none. |
+| `compliance` | mapping | no | What the product must be ready for. Compliance is on when `targets` names a framework or law: `aidd risk --paths` names the `enterprise-controls` pack, `aidd validate` warns for a threat model and an authorization matrix on security and auth paths (`docs.disabled` can turn one off), and `aidd init` writes the security-scanning workflow. The organizational work (policies, an ISMS, vendor reviews, training, a penetration test, the auditor) stays with people outside the team. `aidd validate` warns when a target that expects separation of duties (soc2, iso27001, pci-dss, fedramp, hipaa) meets the `solo` profile, which waives it. `aidd init` writes this table only when given `--compliance-target`. A parent that locks `project` keeps its targets: a child adds to them. |
+| `writing` | mapping | no | How the project's documents are written. It only records an opt-in for the humans and agents who write them; no check or rule reads it. A parent that locks `project` keeps its types: a child adds to them. |
+<!-- aidd:end -->
+
+`project.stack`, the technology radar:
+
+<!-- aidd:gen fields:config-project-stack -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `adopt` | list of string | no | The default for new work. |
+| `trial` | list of string | no | In use on a trial basis: fine where the design says why. |
+| `hold` | list of string | no | Not for new work without an ADR that records a person's decision. `aidd validate` warns when a Spec's Context or Design names one and the Spec links no ADR (a case-insensitive text match: a hint). |
+<!-- aidd:end -->
+
+`project.budget`:
+
+<!-- aidd:gen fields:config-project-budget -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `max_infra_per_month` | number | no | The most the infrastructure may cost per month, in `currency`. |
+| `currency` | string | no | The ISO 4217 code of `max_infra_per_month`, such as `EUR`. |
+<!-- aidd:end -->
+
+`project.defaults` holds the product defaults. Each is on unless `disabled` names it, with the reason as the value, such as `disabled: {dark_mode: a print-only report}`.
+
+<!-- aidd:gen fields:config-project-defaults -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `disabled` | mapping | no | The defaults turned off, each with the one line a reader accepts as the reason, such as "no user interface". Every default it does not name is on. |
+<!-- aidd:end -->
+
+`project.compliance` names what the product must be ready for, such as `targets: [soc2, gdpr]`.
+
+<!-- aidd:gen fields:config-project-compliance -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `targets` | list of `soc2` \| `iso27001` \| `gdpr` \| `hipaa` \| `pci-dss` \| `fedramp` \| `cra` \| `other` | no | The frameworks and laws the product answers to: `soc2` (SOC 2 Trust Services Criteria), `iso27001` (ISO/IEC 27001:2022), `gdpr`, `hipaa`, `pci-dss`, `fedramp`, `cra` (the EU Cyber Resilience Act, Regulation (EU) 2024/2847), or `other` (name it in a project rule). Any target turns compliance on. `cra` leans on two controls most: EC-08 (scanning and an SBOM per release) and EC-18 (vulnerability handling). It needs a `support_period`, and `aidd doctor` checks the repository's `security.txt`. |
+| `support_period` | mapping | no | How long the product gets security updates, which the CRA makes the manufacturer declare (Art. 13(8)). It is at least five years, unless people use the product for less time. `aidd validate` fails a config whose targets name `cra` without it, and warns once `ends_on` has passed. A parent that locks `project` keeps the later end. |
+<!-- aidd:end -->
+
+With the `cra` target, `support_period` declares how long the product gets security updates, such as `support_period: {ends_on: "2031-12-31"}`:
+
+<!-- aidd:gen fields:config-project-compliance-support_period -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `ends_on` | string | yes | The last day of support, `YYYY-MM-DD`: the date the buyer must see at the time of purchase (CRA Art. 13(19)). |
+| `reason` | string | no | Why this length fits how long people use the product. Write one when the period is shorter than five years. |
+<!-- aidd:end -->
+
+`project.writing` lists the doc types written in ASD-STE100 Simplified Technical English, such as `controlled: ["spec", "runbook"]`:
+
+<!-- aidd:gen fields:config-project-writing -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `controlled` | list of `acceptance` \| `adr` \| `agents` \| `api` \| `architecture` \| `authz-matrix` \| `compliance-record` \| `contract` \| `control-register` \| `data-map` \| `design-spec` \| `design-system` \| `exploration` \| `feedback` \| `glossary` \| `improvement-log` \| `intent` \| `metrics-dictionary` \| `migration-plan` \| `postmortem` \| `product-brief` \| `proposal` \| `runbook` \| `service-card` \| `slo` \| `spec` \| `srs` \| `tech-spec` \| `test-plan` \| `threat-model` \| `tracking-plan` \| `vendors` \| `vulnerability-policy` | no | The doc types written in ASD-STE100 Simplified Technical English: the objects (`spec`, `intent`, `proposal`, `runbook`, `postmortem`) and the types `aidd new` writes. Default empty: no type opts in. |
+<!-- aidd:end -->
+
+Each `project.rules` entry:
+
+<!-- aidd:gen fields:config-project-rules -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `id` | string | yes | Stable, unique name, such as `money-in-minor-units`; a waiver names it. |
+| `requirement_level` | `must` \| `should` \| `may` | yes | How binding it is, in the BCP 14 sense (RFC 2119, RFC 8174): must, should (a reason to differ is written down), or may. |
+| `statement` | string | yes | The rule, in one sentence. |
+| `why` | string | yes | Why the rule exists, printed beside it. |
+| `when_changed` | list of string | no | The paths it holds for. Omitted: every change. |
+| `enforced_by` | list of string | no | `tests` names that check it. Without one, a reviewer does. |
+| `source` | string | no | The ADR or document that decided it. |
+| `owner` | string | yes | The person or team who answers for it. |
+| `review_due` | string | no | When its owner reviews it again; `aidd validate` warns once it has passed. |
+<!-- aidd:end -->
+
+Each `project.waivers` entry:
+
+<!-- aidd:gen fields:config-project-waivers -->
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `rule` | string | yes | The id of the rule it waives, or of an industry standard. |
+| `reason` | string | yes | Why the rule cannot hold for now. |
+| `granted_by` | string | yes | Who granted it, in a Spec's `approved_by` form; never an agent or a bot. |
+| `until` | string | yes | The last day it holds. |
+<!-- aidd:end -->

@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:explain",
+  "title": "aidd explain --json",
+  "description": "What `aidd explain <word> --json` prints: each meaning aidd's data gives the word, with why it matters and the file that owns it. With `--list`, every word it knows, by type. For a word aidd does not know, `matches` is empty, `error` says so, and the exit code is 2. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "word": {
+      "type": "string",
+      "description": "The word asked about, as given."
+    },
+    "matches": {
+      "type": "array",
+      "description": "One entry per type the word names, in the order of `words`' types; empty for a word aidd does not know, and the exit code is then 2.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "name",
+          "what",
+          "why",
+          "source"
+        ],
+        "properties": {
+          "type": {
+            "$ref": "#/$defs/type"
+          },
+          "name": {
+            "type": "string",
+            "description": "The word as its data writes it, such as `pr.merge` or `in_progress`."
+          },
+          "what": {
+            "type": "string",
+            "description": "What it is, as its data says it."
+          },
+          "why": {
+            "type": "string",
+            "description": "Why it matters: the rule in force and what its level makes the agent do, who decides and on what, or what the data says it leads to. Empty where its data says nothing more."
+          },
+          "source": {
+            "type": "string",
+            "description": "The file that owns the word, relative to aidd's own data, such as `schemas/risks.json`."
+          }
+        }
+      }
+    },
+    "words": {
+      "type": "object",
+      "description": "With `--list`: every word, by type, each type in its order.",
+      "propertyNames": {
+        "$ref": "#/$defs/type"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "error": {
+      "$ref": "urn:aidd:1:common#/$defs/finding",
+      "description": "For a word aidd does not know: why, as the error object of every `--json` command says it, beside the empty `matches`."
+    }
+  },
+  "$defs": {
+    "type": {
+      "enum": [
+        "action",
+        "area",
+        "level",
+        "route",
+        "document_type",
+        "lane",
+        "stage",
+        "loop_step",
+        "gate",
+        "decision",
+        "role",
+        "status",
+        "profile",
+        "finding_code",
+        "term"
+      ],
+      "description": "What type of word it is: an action, an area, or a level of the risk rules, a route, a document type, a lane, a stage, a loop step, a gate, a decision a person makes, a role of the team, a status, a profile, a finding code, or a term of the glossary."
+    }
+  }
+}
