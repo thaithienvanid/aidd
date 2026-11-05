@@ -1,0 +1,171 @@
+{
+  "description": "The moves that weaken a check, which `aidd test --changed` names as a note, from the merge base, untracked files included (R334): a new skip marker, a new suppression comment, a deleted test file, a lowered or removed coverage floor, and a test file that loses assertions on net (R351). Each counts only on net, so a marker moved within a file, a renamed file, or a check made stricter says nothing. Skip markers and suppressions are read in code files only (`code_suffixes`), never inside a string literal, and a conditional skip (`skipIf`, `skipUnless`, `skipif`) is no move. A runtime skip call (`pytest.skip()`, `self.skipTest()`, Go's `t.Skip()`) is left out on purpose: it sits inside a condition as a rule. Assertions are counted in test files' code only (`test_files` and `code_suffixes`), and a loss is named unless the test files in the same folder gain as many. A note, never a failure: a person may skip a test with a reason, and AGENTS.md says to never weaken a check to pass one.",
+  "skip_markers": [
+    {
+      "name": "unittest skip",
+      "regex": "^\\s*@unittest\\.skip(?![A-Za-z])"
+    },
+    {
+      "name": "pytest skip or xfail",
+      "regex": "^\\s*@pytest\\.mark\\.(?:skip|xfail)\\b"
+    },
+    {
+      "name": "JavaScript skip",
+      "regex": "\\b(?:it|test|describe)\\.skip\\(|\\bx(?:it|describe|test)\\("
+    },
+    {
+      "name": "Rust ignore",
+      "regex": "^\\s*(?:/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/\\s*)*#\\[ignore\\]"
+    },
+    {
+      "name": "JUnit disable",
+      "regex": "^\\s*(?:/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/\\s*)*@(?:Disabled|Ignore)\\b"
+    }
+  ],
+  "suppressions": [
+    {
+      "name": "noqa",
+      "regex": "#\\s*noqa\\b"
+    },
+    {
+      "name": "type: ignore",
+      "regex": "#\\s*type:\\s*ignore\\b"
+    },
+    {
+      "name": "pylint disable",
+      "regex": "#\\s*pylint:\\s*disable\\b"
+    },
+    {
+      "name": "nosec",
+      "regex": "#\\s*nosec\\b"
+    },
+    {
+      "name": "pragma: no cover",
+      "regex": "pragma:\\s*no\\s*cover\\b"
+    },
+    {
+      "name": "eslint-disable",
+      "regex": "eslint-disable"
+    },
+    {
+      "name": "ts-ignore or ts-expect-error",
+      "regex": "@ts-(?:ignore|expect-error)\\b"
+    },
+    {
+      "name": "nolint",
+      "regex": "//\\s*nolint\\b"
+    },
+    {
+      "name": "Rust allow",
+      "regex": "#!?\\[allow\\("
+    },
+    {
+      "name": "SuppressWarnings",
+      "regex": "@SuppressWarnings\\b"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "assert statement, macro, or module",
+      "regex": "(?<![\\w.$])assert\\b(?!!)"
+    },
+    {
+      "name": "assert method or function",
+      "regex": "\\bassert[A-Z_]\\w*\\s*\\("
+    },
+    {
+      "name": "Rust assert macro",
+      "regex": "\\b(?:debug_)?assert(?:_eq|_ne)?!"
+    },
+    {
+      "name": "expect",
+      "regex": "(?<![\\w.$])expect\\s*\\("
+    },
+    {
+      "name": "Assert class",
+      "regex": "\\bAssert\\.[A-Z]\\w*\\s*\\("
+    },
+    {
+      "name": "XCTest assert",
+      "regex": "\\bXCT(?:Assert\\w*|Fail)\\s*\\("
+    },
+    {
+      "name": "GoogleTest assert",
+      "regex": "\\b(?:EXPECT|ASSERT)_[A-Z_]+\\s*\\("
+    },
+    {
+      "name": "Go test failure",
+      "regex": "\\bt\\.(?:Error|Errorf|Fatal|Fatalf|Fail|FailNow)\\s*\\("
+    },
+    {
+      "name": "testify require",
+      "regex": "\\brequire\\.[A-Z]\\w*\\s*\\("
+    },
+    {
+      "name": "pytest raises or warns",
+      "regex": "\\bpytest\\.(?:raises|warns)\\s*\\("
+    }
+  ],
+  "code_suffixes": [
+    ".py",
+    ".pyi",
+    ".js",
+    ".jsx",
+    ".mjs",
+    ".cjs",
+    ".ts",
+    ".tsx",
+    ".mts",
+    ".cts",
+    ".go",
+    ".rs",
+    ".java",
+    ".kt",
+    ".kts",
+    ".scala",
+    ".cs",
+    ".fs",
+    ".rb",
+    ".php",
+    ".swift",
+    ".m",
+    ".mm",
+    ".c",
+    ".cc",
+    ".cpp",
+    ".cxx",
+    ".h",
+    ".hpp",
+    ".dart",
+    ".ex",
+    ".exs",
+    ".vue",
+    ".svelte"
+  ],
+  "test_files": [
+    "tests/**",
+    "test/**",
+    "**/tests/**",
+    "**/test/**",
+    "**/__tests__/**",
+    "**/test_*.py",
+    "**/*_test.py",
+    "**/*_test.go",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/*Test.java",
+    "**/*Tests.cs"
+  ],
+  "coverage_floors": [
+    {
+      "files": null,
+      "regex": "(?P<key>--cov-fail-under|fail_under|fail-under|minimum_coverage|min_coverage|coverage_threshold)[\"']?\\s*(?:[=:]\\s*)?[\"']?(?P<n>\\d{1,3}(?:\\.\\d{1,4})?)"
+    },
+    {
+      "files": [
+        "**/coverage_floors.py"
+      ],
+      "regex": "\\(\\s*\"(?P<key>[^\"]{1,80})\"\\s*,\\s*\"[^\"]{0,200}\"\\s*,\\s*(?P<n>\\d{1,3})\\s*\\)"
+    }
+  ]
+}

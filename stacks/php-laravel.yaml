@@ -1,0 +1,16 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: php-laravel
+description: "A web app and its API in PHP, on Laravel."
+standards:
+  - php/php-version
+  - php/composer
+  - php/pint
+  - php/larastan
+  - php/pest
+  - php/laravel
+checked: "2026-11-04"
+checked_by: agent:claude-code/claude-opus-5-5
+project:
+  stack:
+    adopt: [PHP, Composer, Laravel, Pint, Larastan, PHPStan, Pest]

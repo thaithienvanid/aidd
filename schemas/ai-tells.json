@@ -1,0 +1,21 @@
+{
+  "description": "Fixed phrases that read as machine-written: chat residue, a model's talk about itself, staged openers, and stock transitions. `aidd validate` warns on one in a Spec's prose, outside code, quotes, and blockquotes, and `tests/test_plain_language.py` keeps aidd's own pages free of them. Whole phrases only, any case. A warning, never an error. Keep the list short: only a phrase that is almost never the right word in a Spec. The ideas follow the humanizer skills read on 2026-11-05 (blader/humanizer and phuryn/work-humanizer, MIT), restated, never copied.",
+  "phrases": [
+    "I hope this helps",
+    "let me know if you",
+    "feel free to",
+    "as of my last",
+    "here's the thing",
+    "let's dive in",
+    "dive into",
+    "in conclusion",
+    "delve",
+    "delves",
+    "moreover",
+    "furthermore",
+    "additionally",
+    "it's important to note",
+    "it is worth noting",
+    "a testament to"
+  ]
+}

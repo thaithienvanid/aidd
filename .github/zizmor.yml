@@ -1,0 +1,3 @@
+# zizmor configuration for .github/workflows and action.yml (CI: `zizmor --config .github/zizmor.yml`).
+# Every ignore carries its reason; anything new fails CI. There is none today.
+rules: {}

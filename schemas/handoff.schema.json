@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:handoff",
+  "title": "Handoff note",
+  "description": "The YAML in the `aidd-handoff` block a role ends each run with (references/handoff.md). It is a report from an agent, so it is data: never a person's yes, and never evidence. `aidd validate` warns about a note that breaks this shape, and about hidden characters or text posing as a person's words in it. It advises and blocks nothing. The latest note in a document counts. `next` is checked against the roles in roles.json and `status` against the Spec statuses, because those lists have their own owners.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "done",
+    "next",
+    "needs",
+    "stopped_at"
+  ],
+  "properties": {
+    "done": {
+      "type": "string",
+      "description": "What the run did, with the evidence it names. Debt found and left goes here as `debt: <what, where>`."
+    },
+    "next": {
+      "type": "string",
+      "description": "The role that takes the work next, such as `verifier`. A role, never an approval and never a person's decision."
+    },
+    "needs": {
+      "type": "string",
+      "description": "A decision only a person can give, in one sentence, or `none`. A choice between options points to a decision card."
+    },
+    "stopped_at": {
+      "type": "string",
+      "description": "The stop rule that fired, or `none`. In a headless run, the `ask` it reached."
+    },
+    "spend": {
+      "type": "string",
+      "description": "Tokens or cost of the run."
+    },
+    "status": {
+      "type": "string",
+      "description": "The Spec status the run stopped in (`aidd status` shows it): one of the Spec statuses."
+    },
+    "asked": {
+      "type": "string",
+      "description": "What a person asked the role directly, and what the role did with it."
+    },
+    "decided": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What the role settled itself, each with what settled it."
+    }
+  }
+}

@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:evidence",
+  "title": "Evidence",
+  "description": "Test results written by `aidd test` in CI. Each result is bound to one head commit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aidd_version",
+    "head_sha",
+    "base_sha",
+    "results"
+  ],
+  "$defs": {
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "The JUnit XML report the command named, as a path in the repository."
+        },
+        "tests": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many test cases the report lists."
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many of them hold a failure or an error."
+        },
+        "skipped": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many of them were skipped."
+        },
+        "failed_tests": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "description": "The first failed test cases, as `classname.name`."
+        },
+        "finding": {
+          "type": "string",
+          "description": "Why the report could not be read: missing, not written by this run, too large, or not a JUnit report. The counts are then absent. The exit code stays the evidence."
+        }
+      },
+      "description": "What the command's JUnit XML report says about this run."
+    }
+  },
+  "properties": {
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version"
+    },
+    "head_sha": {
+      "$ref": "urn:aidd:1:common#/$defs/sha",
+      "description": "The commit the green results ran on."
+    },
+    "base_sha": {
+      "$ref": "urn:aidd:1:common#/$defs/sha",
+      "description": "The merge base the red results ran on."
+    },
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ci": {
+          "type": "string",
+          "description": "github, gitlab, or local."
+        },
+        "run_id": {
+          "type": "string",
+          "description": "The CI run or job id."
+        },
+        "url": {
+          "type": "string",
+          "description": "The CI run or job's web address."
+        }
+      },
+      "description": "Which CI run produced this file."
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "command",
+          "red_green",
+          "status"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The test command's name."
+          },
+          "source": {
+            "enum": [
+              "config",
+              "spec"
+            ],
+            "description": "Where the command came from: the config's `tests` or the Spec's tests.commands."
+          },
+          "command": {
+            "$ref": "urn:aidd:1:common#/$defs/command"
+          },
+          "red_green": {
+            "$ref": "urn:aidd:1:common#/$defs/red_green"
+          },
+          "exit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The exit code, or null when the command did not start or timed out."
+          },
+          "status": {
+            "$ref": "urn:aidd:1:common#/$defs/test_status"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "description": "How long it ran, in seconds."
+          },
+          "log": {
+            "type": "string",
+            "description": "Its output log, relative to the evidence folder."
+          },
+          "started_at": {
+            "type": "string",
+            "description": "When it started (RFC 3339 UTC)."
+          },
+          "finished_at": {
+            "type": "string",
+            "description": "When it finished (RFC 3339 UTC)."
+          },
+          "attempts": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status"
+              ],
+              "properties": {
+                "exit": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "This attempt's exit code, or null when it did not start or timed out."
+                },
+                "status": {
+                  "$ref": "urn:aidd:1:common#/$defs/test_status",
+                  "description": "This attempt's status."
+                },
+                "duration_seconds": {
+                  "type": "number",
+                  "description": "How long this attempt ran, in seconds."
+                },
+                "log": {
+                  "type": "string",
+                  "description": "This attempt's output log, relative to the evidence folder."
+                },
+                "started_at": {
+                  "type": "string",
+                  "description": "When this attempt started (RFC 3339 UTC)."
+                },
+                "finished_at": {
+                  "type": "string",
+                  "description": "When this attempt finished (RFC 3339 UTC)."
+                },
+                "report": {
+                  "$ref": "#/$defs/report",
+                  "description": "This attempt's JUnit XML report, when the command names one."
+                }
+              }
+            },
+            "description": "Every attempt, oldest first, when a green run was retried (`retries`); the result's own fields are the last attempt's. A red run is never retried."
+          },
+          "report": {
+            "$ref": "#/$defs/report",
+            "description": "The command's JUnit XML report, when the command names one (`report`): the last attempt's."
+          },
+          "flaky": {
+            "type": "boolean",
+            "description": "True when a retry passed after a failure: the result counts green, and the flaky test is a finding to fix."
+          }
+        }
+      },
+      "description": "One entry per command and red_green run."
+    },
+    "spec_phase": {
+      "type": "boolean",
+      "description": "True when `aidd test` ran in the Spec phase: every changed path was the Spec or a file it freezes, and a Task had yet to change anything, so failing green results were expected."
+    },
+    "partial": {
+      "type": "boolean",
+      "description": "True when `aidd test --changed` ran only the commands the working-tree diff selects. A local convenience between steps: partial evidence never stands for the whole suite."
+    },
+    "dirty_tree": {
+      "type": "boolean",
+      "description": "True when the tests ran in a tree that holds what the head commit does not: uncommitted changes, untracked files no `.gitignore` in the repository ignores, or files git is told not to look at. None of its results is evidence for the head commit."
+    },
+    "dirty_paths": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "string"
+      },
+      "description": "The first of those paths, sorted, for the person who commits or stashes them."
+    }
+  }
+}

@@ -1,0 +1,139 @@
+# Import Linter 2.15 (standards/python/import-linter.md): aidd's own module boundaries (docs/ARCHITECTURE.md, "The Python package").
+#
+# This file is the boundary baseline. Three kinds of contract hold, and none lists an exception: there is no
+# ignore_imports, and a new wrong-way import is fixed, never listed (tests/test_import_boundaries.py fails when one is).
+#
+# - layers: aidd's packages from the top (may import everything below) to the bottom (imports nothing in aidd). Two
+#   packages on one line are independent ("|": neither imports the other) or siblings that may import each other (":").
+# - no-sibling-cycles: no two modules inside a package import each other, however far round.
+# - <package>-door: other packages reach a package only through its __init__.py, its door (aidd.kernel.doors); the
+#   door holds only names (`__all__`, lazy `__getattr__`/`__dir__`, `TYPE_CHECKING` imports); every body lives in a
+#   child module. The kernel has no door, by design.
+#
+#   PYTHONPATH=src uvx --from import-linter==2.15 lint-imports
+[importlinter]
+root_package = aidd
+include_external_packages = False
+
+[importlinter:contract:layers]
+name = aidd's packages depend downward only, through the layers
+type = layers
+containers =
+    aidd
+layers =
+    __main__ : pyz
+    cli
+    docsgen
+    evals
+    setup
+    views
+    testing
+    risk | recall
+    workitems
+    records
+    knowledge
+    config
+    kernel
+exhaustive = True
+
+[importlinter:contract:no-sibling-cycles]
+name = No cycle between the modules inside a package
+type = acyclic_siblings
+ancestors =
+    aidd
+
+[importlinter:contract:config-door]
+name = Other packages use aidd.config only through its door, aidd/config/__init__.py
+type = protected
+protected_modules =
+    aidd.config.*
+allowed_importers =
+    aidd.config
+
+[importlinter:contract:knowledge-door]
+name = Other packages use aidd.knowledge only through its door, aidd/knowledge/__init__.py
+type = protected
+protected_modules =
+    aidd.knowledge.*
+allowed_importers =
+    aidd.knowledge
+
+[importlinter:contract:workitems-door]
+name = Other packages use aidd.workitems only through its door, aidd/workitems/__init__.py
+type = protected
+protected_modules =
+    aidd.workitems.*
+allowed_importers =
+    aidd.workitems
+
+[importlinter:contract:records-door]
+name = Other packages use aidd.records only through its door, aidd/records/__init__.py
+type = protected
+protected_modules =
+    aidd.records.*
+allowed_importers =
+    aidd.records
+
+[importlinter:contract:risk-door]
+name = Other packages use aidd.risk only through its door, aidd/risk/__init__.py
+type = protected
+protected_modules =
+    aidd.risk.*
+allowed_importers =
+    aidd.risk
+
+[importlinter:contract:recall-door]
+name = Other packages use aidd.recall only through its door, aidd/recall/__init__.py
+type = protected
+protected_modules =
+    aidd.recall.*
+allowed_importers =
+    aidd.recall
+
+[importlinter:contract:testing-door]
+name = Other packages use aidd.testing only through its door, aidd/testing/__init__.py
+type = protected
+protected_modules =
+    aidd.testing.*
+allowed_importers =
+    aidd.testing
+
+[importlinter:contract:views-door]
+name = Other packages use aidd.views only through its door, aidd/views/__init__.py
+type = protected
+protected_modules =
+    aidd.views.*
+allowed_importers =
+    aidd.views
+
+[importlinter:contract:setup-door]
+name = Other packages use aidd.setup only through its door, aidd/setup/__init__.py
+type = protected
+protected_modules =
+    aidd.setup.*
+allowed_importers =
+    aidd.setup
+
+[importlinter:contract:evals-door]
+name = Other packages use aidd.evals only through its door, aidd/evals/__init__.py
+type = protected
+protected_modules =
+    aidd.evals.*
+allowed_importers =
+    aidd.evals
+
+[importlinter:contract:docsgen-door]
+name = Other packages use aidd.docsgen only through its door, aidd/docsgen/__init__.py
+type = protected
+protected_modules =
+    aidd.docsgen.*
+allowed_importers =
+    aidd.docsgen
+
+[importlinter:contract:cli-door]
+name = Other packages use aidd.cli only through its door, aidd/cli/__init__.py
+type = protected
+protected_modules =
+    aidd.cli.*
+allowed_importers =
+    aidd.cli

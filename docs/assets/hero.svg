@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 676" width="1200" height="676" role="img" aria-labelledby="t d">
+  <title id="t">aidd: the AI-Driven Development toolkit</title>
+  <desc id="d">Agents do the work, and you decide the risky steps. Every change runs one loop: Plan, Specify, Spec approval, Implement, Verify and Review side by side, Merge approval, Merge, Roll out, and Learn, which feeds each lesson back into Plan. At Spec approval the agent asks you a plain question, such as "Approve SPEC-3?", and at Merge approval "Merge into main?". It acts on your yes. Every action has a level. Allow: the agent acts, as when it edits code or commits. Report: it acts, then tells you, as when it opens a pull request. Ask: it waits for your yes, as before it force-pushes, merges to main, or deploys. aidd advises. The hard stops are your harness's own ask rules and your platform's branch protection.</desc>
+  <style>
+    .bg { fill: #f8fafc; stroke: #e2e8f0; }
+    .ink { fill: #0f172a; }
+    .mut { fill: #475569; }
+    .brand { fill: #4338ca; }
+    .pill { fill: #ffffff; stroke: #6366f1; }
+    .pt { fill: #1e1b4b; }
+    .flow { stroke: #64748b; fill: none; }
+    .hd { fill: #64748b; }
+    .lrn { stroke: #6366f1; fill: none; stroke-dasharray: 7 6; }
+    .lh { fill: #6366f1; }
+    .ask { fill: #b45309; }
+    .bub { fill: #ffffff; stroke: #b45309; }
+    .yest { fill: #ffffff; }
+    .card { fill: #ffffff; stroke: #e2e8f0; }
+    .c-al { fill: #f0fdf4; stroke: #16a34a; }
+    .t-al { fill: #166534; }
+    .c-re { fill: #eef2ff; stroke: #6366f1; }
+    .t-re { fill: #3730a3; }
+    .c-as { fill: #fffbeb; stroke: #d97706; }
+    .t-as { fill: #92400e; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0b1020; stroke: #1e293b; }
+      .ink { fill: #f1f5f9; }
+      .mut { fill: #94a3b8; }
+      .brand { fill: #a5b4fc; }
+      .pill { fill: #161b33; stroke: #818cf8; }
+      .pt { fill: #e0e7ff; }
+      .flow { stroke: #94a3b8; }
+      .hd { fill: #94a3b8; }
+      .lrn { stroke: #818cf8; }
+      .lh { fill: #818cf8; }
+      .ask { fill: #f59e0b; }
+      text.ask { fill: #fbbf24; }
+      .bub { fill: #1c1606; stroke: #f59e0b; }
+      .yest { fill: #1c1204; }
+      .card { fill: #111731; stroke: #1e293b; }
+      .c-al { fill: #0c1d14; stroke: #22c55e; }
+      .t-al { fill: #bbf7d0; }
+      .c-re { fill: #161b33; stroke: #818cf8; }
+      .t-re { fill: #e0e7ff; }
+      .c-as { fill: #1c1204; stroke: #f59e0b; }
+      .t-as { fill: #fcd34d; }
+    }
+  </style>
+  <defs>
+    <marker id="h" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="hd" d="M0 0 L10 5 L0 10z"/>
+    </marker>
+    <marker id="hl" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="lh" d="M0 0 L10 5 L0 10z"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="1" y="1" width="1198" height="674" rx="28" stroke-width="2"/>
+
+  <g font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16">
+    <!-- Name and tagline -->
+    <text class="ink" x="52" y="122" font-size="96" font-weight="800" letter-spacing="-3">aidd</text>
+    <text class="brand" x="290" y="84" font-size="22" font-weight="600">The AI-Driven Development toolkit.</text>
+    <text class="ink" x="290" y="122" font-size="28" font-weight="600">Agents do the work, and you decide the risky steps.</text>
+
+    <!-- The plain questions a person answers, and their yes -->
+    <path class="bub" d="M228 206 H440 Q454 206 454 220 V252 Q454 266 440 266 H344 L334 278 L324 266 H228 Q214 266 214 252 V220 Q214 206 228 206Z" stroke-width="2"/>
+    <text class="ink" x="334" y="232" font-size="19" font-weight="700" text-anchor="middle">Approve SPEC-3?</text>
+    <text class="mut" x="334" y="254" text-anchor="middle">4 Acceptance items, 2 Tasks</text>
+    <rect class="ask" x="462" y="246" width="88" height="28" rx="14"/>
+    <text class="yest" x="506" y="265" font-size="15" font-weight="700" text-anchor="middle">You: yes</text>
+
+    <path class="bub" d="M678 206 H870 Q884 206 884 220 V252 Q884 266 870 266 H732 L722 278 L712 266 H678 Q664 266 664 252 V220 Q664 206 678 206Z" stroke-width="2"/>
+    <text class="ink" x="774" y="232" font-size="19" font-weight="700" text-anchor="middle">Merge into main?</text>
+    <text class="mut" x="774" y="254" text-anchor="middle">Verified and reviewed</text>
+    <rect class="ask" x="892" y="246" width="88" height="28" rx="14"/>
+    <text class="yest" x="936" y="265" font-size="15" font-weight="700" text-anchor="middle">You: yes</text>
+
+    <!-- The loop -->
+    <g font-size="19" font-weight="600" text-anchor="middle">
+      <rect class="pill" x="56" y="288" width="84" height="48" rx="24" stroke-width="2"/>
+      <text class="pt" x="98" y="319">Plan</text>
+      <rect class="pill" x="176" y="288" width="112" height="48" rx="24" stroke-width="2"/>
+      <text class="pt" x="232" y="319">Specify</text>
+      <rect class="pill" x="388" y="288" width="132" height="48" rx="24" stroke-width="2"/>
+      <text class="pt" x="454" y="319">Implement</text>
+      <rect class="pill" x="562" y="274" width="96" height="32" rx="16" stroke-width="2"/>
+      <text class="pt" x="610" y="296" font-size="17">Verify</text>
+      <rect class="pill" x="562" y="318" width="96" height="32" rx="16" stroke-width="2"/>
+      <text class="pt" x="610" y="340" font-size="17">Review</text>
+      <rect class="pill" x="776" y="288" width="96" height="48" rx="24" stroke-width="2"/>
+      <text class="pt" x="824" y="319">Merge</text>
+      <rect class="pill" x="904" y="288" width="116" height="48" rx="24" stroke-width="2"/>
+      <text class="pt" x="962" y="319">Roll out</text>
+      <rect class="pill" x="1052" y="288" width="92" height="48" rx="24" stroke-width="2"/>
+      <text class="pt" x="1098" y="319">Learn</text>
+
+      <rect class="ask" x="320" y="298" width="28" height="28" rx="4" transform="rotate(45 334 312)"/>
+      <text class="ask" x="334" y="366" font-size="16" font-weight="700">Spec approval</text>
+      <rect class="ask" x="708" y="298" width="28" height="28" rx="4" transform="rotate(45 722 312)"/>
+      <text class="ask" x="722" y="366" font-size="16" font-weight="700">Merge approval</text>
+      <text class="mut" x="454" y="366" font-size="16" font-weight="400">until green</text>
+    </g>
+
+    <g class="flow" stroke-width="2">
+      <path d="M140 312 H170" marker-end="url(#h)"/>
+      <path d="M288 312 H309" marker-end="url(#h)"/>
+      <path d="M356 312 H382" marker-end="url(#h)"/>
+      <path d="M744 312 H770" marker-end="url(#h)"/>
+      <path d="M872 312 H898" marker-end="url(#h)"/>
+      <path d="M1020 312 H1046" marker-end="url(#h)"/>
+      <path d="M520 312 H538 Q546 312 546 304 V298 Q546 290 554 290 H558" marker-end="url(#h)"/>
+      <path d="M520 312 H538 Q546 312 546 320 V326 Q546 334 554 334 H558" marker-end="url(#h)"/>
+      <path d="M658 290 H668 Q676 290 676 298 V304 Q676 312 684 312"/>
+      <path d="M658 334 H668 Q676 334 676 326 V320 Q676 312 684 312 H697" marker-end="url(#h)"/>
+    </g>
+
+    <path class="lrn" d="M1098 336 V380 Q1098 392 1086 392 H110 Q98 392 98 380 V343" stroke-width="2.5" marker-end="url(#hl)"/>
+    <text class="mut" x="600" y="422" text-anchor="middle">Learn feeds each lesson back into Plan</text>
+
+    <!-- The three levels -->
+    <text class="mut" x="56" y="476" font-size="15" font-weight="700" letter-spacing="2">EVERY ACTION HAS A LEVEL</text>
+    <rect class="card" x="56" y="492" width="346" height="120" rx="16" stroke-width="1.5"/>
+    <rect class="card" x="427" y="492" width="346" height="120" rx="16" stroke-width="1.5"/>
+    <rect class="card" x="798" y="492" width="346" height="120" rx="16" stroke-width="1.5"/>
+    <rect class="c-al" x="76" y="512" width="76" height="30" rx="15" stroke-width="1.5"/>
+    <rect class="c-re" x="447" y="512" width="86" height="30" rx="15" stroke-width="1.5"/>
+    <rect class="c-as" x="818" y="512" width="58" height="30" rx="15" stroke-width="1.5"/>
+    <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="700" text-anchor="middle">
+      <text class="t-al" x="114" y="532">allow</text>
+      <text class="t-re" x="490" y="532">report</text>
+      <text class="t-as" x="847" y="532">ask</text>
+    </g>
+    <g class="ink" font-size="18" font-weight="600">
+      <text x="76" y="572">The agent acts.</text>
+      <text x="447" y="572">It acts, then tells you.</text>
+      <text x="818" y="572">It waits for your yes, then acts.</text>
+    </g>
+    <g class="mut">
+      <text x="76" y="596">Edit code, commit, push its branch</text>
+      <text x="447" y="596">Open a pull request, edit CI</text>
+      <text x="818" y="596">Force-push, merge to main, deploy</text>
+    </g>
+
+    <text class="mut" x="56" y="648">aidd advises. The hard stops are your harness's own ask rules and your platform's branch protection.</text>
+  </g>
+</svg>
