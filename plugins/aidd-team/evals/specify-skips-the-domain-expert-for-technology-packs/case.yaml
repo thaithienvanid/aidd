@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: specify-skips-the-domain-expert-for-technology-packs
+context:
+  scaffold_script: fixture.sh

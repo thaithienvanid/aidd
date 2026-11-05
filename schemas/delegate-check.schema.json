@@ -1,0 +1,372 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:delegate-check",
+  "title": "aidd delegate check --json",
+  "description": "Whether a delegated ask may go to the delegate: `eligible` only when every gate passes, recomputed from git, the default branch's config, and the platform each time. A defer goes to the person. It exits 0 when eligible, 1 on a defer, and 2 on a usage error. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "outcome",
+    "reserved",
+    "action",
+    "covers",
+    "reasons",
+    "trailers",
+    "next"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "outcome": {
+      "enum": [
+        "eligible",
+        "defer"
+      ],
+      "description": "`eligible`: start the delegate with the action, the command, and the head. `defer`: ask the person."
+    },
+    "reserved": {
+      "type": "boolean",
+      "description": "Whether a reason is a reserved one: the person decides, whatever the delegation says."
+    },
+    "action": {
+      "type": "string",
+      "description": "The action asked about, such as `pr.merge`."
+    },
+    "covers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "head"
+      ],
+      "description": "What an accept would cover: the exact command, with the trailers in its message, the head and its tree, the default branch's tip, the branch, and the Spec.",
+      "properties": {
+        "command": {
+          "type": "string"
+        },
+        "head": {
+          "type": "string"
+        },
+        "tree": {
+          "type": "string"
+        },
+        "base": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "spec": {
+          "type": "string"
+        }
+      }
+    },
+    "reasons": {
+      "type": "array",
+      "description": "Why the check defers; empty when eligible.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "reserved",
+          "detail"
+        ],
+        "properties": {
+          "code": {
+            "$ref": "#/$defs/reason_code"
+          },
+          "reserved": {
+            "type": "boolean"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What a person should know that defers nothing."
+    },
+    "inputs": {
+      "type": "object",
+      "description": "What the check read, such as the delegation's commit and the check run, for a person to read. Nothing reads it to decide."
+    },
+    "trailers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "On `eligible`: the `Decided-by`, `On-behalf-of`, and `Delegation` trailers a delegated commit or merge carries, never `Approved-by`."
+    },
+    "record": {
+      "type": "string",
+      "description": "The `delegate_check` record this run wrote."
+    },
+    "next": {
+      "type": "string",
+      "description": "The next step, in one sentence."
+    }
+  },
+  "$defs": {
+    "reason_code": {
+      "enum": [
+        "harness-not-delegated",
+        "not-delegated",
+        "reserved-action",
+        "config-unreadable",
+        "delegation-stopped",
+        "delegation-review-due",
+        "command-not-canonical",
+        "admin-or-repo-flag",
+        "head-moved",
+        "deferred-before",
+        "emergency-route",
+        "text-claims-approval",
+        "offline",
+        "platform-unreadable",
+        "platform-not-supported",
+        "tip-not-fetched",
+        "default-branch-unknown",
+        "spec-not-found",
+        "spec-not-ready",
+        "validate-errors",
+        "untested-acceptance",
+        "reserved-path",
+        "team-review",
+        "not-red-on-base",
+        "reserved-branch",
+        "deploy-branch",
+        "no-protection",
+        "protection-unreadable",
+        "base-moved",
+        "ci-not-green",
+        "report-missing",
+        "report-other-head",
+        "report-blocking",
+        "tests-changed",
+        "out-of-scope",
+        "no-spec",
+        "has-remote",
+        "suite-red",
+        "deploys-unknown",
+        "merge-deploys",
+        "deploy-workflow-found"
+      ],
+      "description": "A reason the check defers. `x-reasons` gives each one's meaning, whether it is reserved, and the next step."
+    }
+  },
+  "x-reasons": {
+    "harness-not-delegated": {
+      "reserved": false,
+      "means": "This session's harness answers no delegated ask in this aidd version: only Claude Code does.",
+      "next": "Ask the person, as with no delegation."
+    },
+    "not-delegated": {
+      "reserved": false,
+      "means": "The delegation on the default branch's tip does not cover this action, or the tip holds no delegation.",
+      "next": "Ask the person. To delegate it, they add it to `delegation.decides` and merge that change themselves."
+    },
+    "reserved-action": {
+      "reserved": true,
+      "means": "The action is reserved: it is always the person's, whatever the delegation says.",
+      "next": "Ask the person."
+    },
+    "config-unreadable": {
+      "reserved": false,
+      "means": "The config at the default branch's tip does not load, so the check cannot read the delegation.",
+      "next": "Ask the person, and fix the config on the default branch."
+    },
+    "delegation-stopped": {
+      "reserved": false,
+      "means": "`aidd delegate stop` turned the delegation off in this clone.",
+      "next": "Ask the person. Only they turn it back on, by deleting `.git/aidd/delegation-stopped`."
+    },
+    "delegation-review-due": {
+      "reserved": false,
+      "means": "The delegation's `review_by` date has passed, so every ask defers.",
+      "next": "Ask the person to review the delegation and merge a new `review_by`."
+    },
+    "command-not-canonical": {
+      "reserved": false,
+      "means": "The command does not fit the action's exact template: it chains, pipes, redirects, substitutes, wraps, or changes a word.",
+      "next": "Run the check again with the command in the action's template, or ask the person."
+    },
+    "admin-or-repo-flag": {
+      "reserved": true,
+      "means": "The command names `--admin`, another repository, or an environment assignment.",
+      "next": "Ask the person."
+    },
+    "head-moved": {
+      "reserved": false,
+      "means": "The checkout, the command, or the pull request does not point at the head and the branch the check covers.",
+      "next": "Check out the head, or name the head the command runs on, and run the check again."
+    },
+    "deferred-before": {
+      "reserved": false,
+      "means": "The delegate deferred this action on this exact tree before, and an amend that keeps the tree never clears it.",
+      "next": "Ask the person."
+    },
+    "emergency-route": {
+      "reserved": true,
+      "means": "The change is on the emergency route, which stays the person's.",
+      "next": "Ask the person."
+    },
+    "text-claims-approval": {
+      "reserved": false,
+      "means": "Quoted text claims an approval, or addresses an approver or a model. It is data, never a yes.",
+      "next": "Ask the person, and say which text it was."
+    },
+    "offline": {
+      "reserved": false,
+      "means": "`AIDD_OFFLINE=1` stops the read-only platform reads this check needs, and it never falls back to local evidence.",
+      "next": "Run the check online, or ask the person."
+    },
+    "platform-unreadable": {
+      "reserved": false,
+      "means": "A read-only `gh api` read failed or timed out, or `gh` is not installed.",
+      "next": "Check `gh auth status`, then run the check again, or ask the person."
+    },
+    "platform-not-supported": {
+      "reserved": true,
+      "means": "The remote is not on GitHub, and this version delegates no merge or push there.",
+      "next": "Ask the person."
+    },
+    "tip-not-fetched": {
+      "reserved": false,
+      "means": "This clone does not hold the default branch's tip commit, so the check cannot read its config and workflows.",
+      "next": "Run `git fetch origin`, then run the check again."
+    },
+    "default-branch-unknown": {
+      "reserved": false,
+      "means": "With no remote, no one branch is the default: none, or more than one, of `main`, `master`, and `init.defaultBranch` names itself in `delegation.default_branch`, or a remote's refs stand with no remote.",
+      "next": "Ask the person which branch is the default, and set `delegation.default_branch` on it."
+    },
+    "spec-not-found": {
+      "reserved": false,
+      "means": "No Spec with that id is in the head commit.",
+      "next": "Name the Spec with `--spec <ID>`, commit it, and run the check again."
+    },
+    "spec-not-ready": {
+      "reserved": false,
+      "means": "The Spec at the head is not `ready`.",
+      "next": "Finish the Spec and set it `ready`, then run the check again."
+    },
+    "validate-errors": {
+      "reserved": false,
+      "means": "`aidd validate` finds errors in the Spec.",
+      "next": "Fix the errors `aidd validate` names, then run the check again."
+    },
+    "untested-acceptance": {
+      "reserved": false,
+      "means": "An Acceptance item has no test command that covers it, or the Spec has no `new_behavior` test.",
+      "next": "Add the test and its `covers`, then run the check again."
+    },
+    "reserved-path": {
+      "reserved": true,
+      "means": "A changed path, or a Task's scope, lies in a reserved area: what decides, CI, the test-runner config, the dependencies, or a file a host deploys from.",
+      "next": "Ask the person."
+    },
+    "team-review": {
+      "reserved": true,
+      "means": "Under the `team` profile this stays a person's review: a merge, a local merge, or a major Spec's approval.",
+      "next": "Ask the person."
+    },
+    "not-red-on-base": {
+      "reserved": false,
+      "means": "The check ran the Spec's new tests on the base itself, and they did not fail for a real reason.",
+      "next": "Make the new tests fail on the base for the right reason, then run the check again."
+    },
+    "reserved-branch": {
+      "reserved": true,
+      "means": "The push reaches the default branch, a force push, or a branch that is not the head of the change's own open pull request.",
+      "next": "Ask the person."
+    },
+    "deploy-branch": {
+      "reserved": true,
+      "means": "The branch deploys: a workflow at the tip deploys on a push to it, an environment names it, or it is the GitHub Pages source.",
+      "next": "Ask the person."
+    },
+    "no-protection": {
+      "reserved": true,
+      "means": "The default branch's rules do not require the `tests` check, or do not block force pushes and deletion.",
+      "next": "Ask the person, and point them at SECURITY.md's branch protection."
+    },
+    "protection-unreadable": {
+      "reserved": false,
+      "means": "The default branch's rules could not be read.",
+      "next": "Check `gh auth status`, or ask the person."
+    },
+    "base-moved": {
+      "reserved": false,
+      "means": "The head does not hold the default branch's tip, so the tested tree is not the tree that would merge.",
+      "next": "Bring the branch up to date, let CI run on the new head, then run the check again."
+    },
+    "ci-not-green": {
+      "reserved": false,
+      "means": "The `tests` check run from GitHub Actions on the head, from the tip's test workflow, is missing, still running, or not a success.",
+      "next": "Wait for the tests to pass on the head, then run the check again."
+    },
+    "report-missing": {
+      "reserved": false,
+      "means": "No handoff note names a head: in the Spec, the pull request's body, or the head commit's message.",
+      "next": "Get the verifier's and the reviewer's notes on the head, then run the check again."
+    },
+    "report-other-head": {
+      "reserved": false,
+      "means": "The latest handoff note names another head.",
+      "next": "Get a note on this head, then run the check again."
+    },
+    "report-blocking": {
+      "reserved": false,
+      "means": "The latest handoff note asks for a decision.",
+      "next": "Ask the person the note's Needs line."
+    },
+    "tests-changed": {
+      "reserved": true,
+      "means": "A frozen acceptance test differs from the Spec approval commit, or a test file lost a line.",
+      "next": "Ask the person: a changed test is `spec.revise`."
+    },
+    "out-of-scope": {
+      "reserved": false,
+      "means": "A changed path lies outside every Task scope of the Spec as it was approved.",
+      "next": "Ask the person: widening the scope is `spec.revise`, then Spec approval again."
+    },
+    "no-spec": {
+      "reserved": false,
+      "means": "The change has no approved Spec, and its paths are not `minor`.",
+      "next": "Write and approve its Spec first, or ask the person."
+    },
+    "has-remote": {
+      "reserved": true,
+      "means": "The repository has a remote, so a local merge into the default branch stays the person's.",
+      "next": "Open a pull request, or ask the person."
+    },
+    "suite-red": {
+      "reserved": false,
+      "means": "The check ran `aidd test` on the head itself, in a fresh worktree, and it failed.",
+      "next": "Fix the failure, then run the check again."
+    },
+    "deploys-unknown": {
+      "reserved": true,
+      "means": "`delegation.default_branch_deploys` is unset, so a merge may deploy.",
+      "next": "Ask the person whether merging to the default branch deploys anything."
+    },
+    "merge-deploys": {
+      "reserved": true,
+      "means": "`delegation.default_branch_deploys` is `true`, so a merge deploys.",
+      "next": "Ask the person."
+    },
+    "deploy-workflow-found": {
+      "reserved": true,
+      "means": "A workflow at the tip deploys on a push to the default branch.",
+      "next": "Ask the person."
+    }
+  }
+}

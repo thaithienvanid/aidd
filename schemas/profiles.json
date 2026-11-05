@@ -1,0 +1,24 @@
+{
+  "description": "The profiles a config names in `profile`: each is a description, the routes on which an agent asks for Spec approval before Implement (on the others it says it goes on, the `report` level), and its risk rules, which replace the built-in rules with the same selector (schemas/risks.json). A config's own `risks.rules` replace a profile's the same way.",
+  "order": [
+    "solo",
+    "team"
+  ],
+  "profiles": {
+    "solo": {
+      "description": "One person directs the agents and decides. The agent writes a Spec for a normal or major change, asks for Spec approval on major only, and asks before anything reaches the default branch.",
+      "spec_approval_routes": [
+        "major"
+      ],
+      "rules": []
+    },
+    "team": {
+      "description": "One or a few teams on one repository. The agent asks for Spec approval on normal and major changes, and a person merges through the platform's review: the agent opens the PR/MR and stops there.",
+      "spec_approval_routes": [
+        "normal",
+        "major"
+      ],
+      "rules": []
+    }
+  }
+}

@@ -1,0 +1,7 @@
+# The build backend, hash-locked as a build constraint (uv build --build-constraint ... --require-hashes).
+# pyproject.toml pins the same versions for anyone building from source (tests/test_release_surface.py keeps them equal);
+# CI and releases also check these hashes.
+# Regenerate build.txt with:
+#   cd .github/requirements && uv pip compile --universal --generate-hashes --python-version 3.11 build.in -o build.txt
+hatchling==1.32.4
+hatch-fancy-pypi-readme==25.1.0

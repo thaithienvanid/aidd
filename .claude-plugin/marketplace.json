@@ -1,0 +1,57 @@
+{
+  "name": "aidd",
+  "owner": {
+    "name": "Van Hoang"
+  },
+  "metadata": {
+    "description": "aidd: the toolkit for AI-Driven Development (AIDD): build production-ready, maintainable software with AI agents, proven at every step and auditable after. Agents do the work, and a person decides the risky steps they keep. A skill, an MCP server with advice tools, and an optional delivery team of agent roles."
+  },
+  "plugins": [
+    {
+      "name": "aidd",
+      "source": "./",
+      "description": "AIDD, one loop from intent to production: one skill, and aidd's advice as MCP tools (the route of a change, the risk level of an action, and the checks of a Spec).",
+      "relevance": {
+        "topic": "AIDD",
+        "signals": {
+          "cli": [
+            "aidd"
+          ],
+          "filesRead": [
+            "**/.aidd/config.yaml"
+          ]
+        }
+      }
+    },
+    {
+      "name": "aidd-cli",
+      "source": "./plugins/aidd-cli",
+      "description": "Optional: the aidd command on the PATH of Claude Code's Bash tool, with no other install. A plugin of its own, because claude.ai and Cowork do not install a plugin that has a bin/ folder.",
+      "relevance": {
+        "topic": "the aidd command in Claude Code",
+        "signals": {
+          "filesRead": [
+            "**/.aidd/config.yaml"
+          ]
+        }
+      }
+    },
+    {
+      "name": "aidd-team",
+      "source": "./plugins/aidd-team",
+      "description": "Optional: run the aidd loop as a delivery team of agent roles, each applying its discipline's industry standards, with a domain pack per domain and practice skills per kind of work, every standard carrying a checked date (or a reviewed date for a practice), and an edition and source where the document has one. Ships one command per team flow, from onboarding a repository, writing a proposal, or building an MVP, to a quick fix, a rollout, and the retrospective. Needs the aidd plugin.",
+      "dependencies": [
+        "aidd"
+      ],
+      "relevance": {
+        "topic": "an AIDD delivery team",
+        "signals": {
+          "filesRead": [
+            "**/.aidd/config.yaml",
+            "**/.claude/agents/aidd-*.md"
+          ]
+        }
+      }
+    }
+  ]
+}

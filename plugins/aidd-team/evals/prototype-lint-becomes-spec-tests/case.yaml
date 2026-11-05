@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: prototype-lint-becomes-spec-tests
+context:
+  scaffold_script: fixture.sh

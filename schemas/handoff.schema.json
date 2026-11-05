@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:handoff",
+  "title": "Handoff note",
+  "description": "The YAML in the `aidd-handoff` block a role ends each run with (references/handoff.md). It is a report from an agent, so it is data: never a person's yes, and never evidence. `aidd validate` warns about a note that breaks this shape, and about hidden characters or text posing as a person's words in it. It advises and blocks nothing. The latest note in a document counts. `next` is checked against the roles in roles.json, `status` against the Spec statuses, and the first word of `stopped_at` against the stop codes, because those lists have their own owners.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "done",
+    "next",
+    "needs",
+    "stopped_at"
+  ],
+  "properties": {
+    "done": {
+      "type": "string",
+      "description": "What the run did, with the evidence it names. Debt found and left goes here as `debt: <what, where>`."
+    },
+    "next": {
+      "type": "string",
+      "description": "The role that takes the work next, such as `verifier`. A role, never an approval and never a person's decision."
+    },
+    "needs": {
+      "type": "string",
+      "description": "A decision only a person can give, in one sentence, or `none`. A choice between options points to a decision card."
+    },
+    "stopped_at": {
+      "type": "string",
+      "description": "Why the run stopped: one stop code (`stop_code` in the common schema), alone or followed by `: ` and any detail, such as `stopped_at: \"ask: spec.approve SPEC-3\"`, quoted because of the colon. `none` when nothing stopped it. In a headless run, `ask`, with the ask it reached."
+    },
+    "by": {
+      "$ref": "urn:aidd:1:common#/$defs/identity",
+      "description": "Who wrote the note: an agent writes `agent:<harness id>/<model>`, the value of its commits' `Assisted-by`, such as `agent:claude-code/claude-opus-5-5`. `aidd eval work` counts the note's step under it, and without it under the commit that posted the note. It is a label the writer gave, never proof, and it decides nothing."
+    },
+    "spend": {
+      "type": "string",
+      "description": "The harness's count of the run's tokens or cost, copied, or `unknown`; never an estimate. A run seldom sees its own count, so it writes `unknown`, and the lead's journal holds the harness's count."
+    },
+    "status": {
+      "type": "string",
+      "description": "The Spec status the run stopped in (`aidd status` shows it): one of the Spec statuses."
+    },
+    "head": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,64}$",
+      "description": "The commit the run checked, such as the verifier's or the reviewer's head. A delegated merge needs the latest note to name its exact head with `needs: none`."
+    },
+    "asked": {
+      "type": "string",
+      "description": "What a person asked the role directly, and what the role did with it."
+    },
+    "decided": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What the role settled itself, each with what settled it."
+    }
+  }
+}

@@ -1,0 +1,404 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:risks",
+  "title": "aidd risk rules",
+  "description": "The risk rules' format: schemas/risks.json holds the built-in ones, and a config's `risks` block adds to them. An action is `resource.verb` in lowercase, with snake_case words and a dot for a narrower action, such as `pr.open` or `git.push.force`. An area is a named set of paths. A rule sets the level of an action, narrowed by an area, a branch, or a role.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "description",
+    "levels",
+    "branches",
+    "areas",
+    "actions",
+    "rules"
+  ],
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "levels": {
+      "const": [
+        "allow",
+        "report",
+        "ask"
+      ]
+    },
+    "branches": {
+      "const": [
+        "own",
+        "default",
+        "shared"
+      ]
+    },
+    "areas": {
+      "$ref": "#/$defs/areas"
+    },
+    "actions": {
+      "$ref": "#/$defs/actions"
+    },
+    "rules": {
+      "$ref": "#/$defs/rules"
+    },
+    "delegation": {
+      "$ref": "#/$defs/delegation"
+    }
+  },
+  "$defs": {
+    "level": {
+      "enum": [
+        "allow",
+        "report",
+        "ask"
+      ],
+      "description": "allow: the agent acts. report: it acts, then says what it did. ask: it waits for the person's yes, then acts."
+    },
+    "action_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "maxLength": 80,
+      "description": "`resource.verb`, such as `git.push.force`."
+    },
+    "area_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "maxLength": 60
+    },
+    "area": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "paths"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "Globs, repo-relative; `**` matches any number of folders."
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Globs a match must not also match, such as `**/vendor/**`."
+        },
+        "route": {
+          "enum": [
+            "minor",
+            "normal",
+            "major"
+          ],
+          "description": "The least route a change that touches the area needs."
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "data",
+              "security",
+              "privacy",
+              "financial",
+              "compliance",
+              "availability",
+              "third_party",
+              "cost",
+              "performance"
+            ]
+          },
+          "uniqueItems": true,
+          "description": "The risk dimensions a change in the area has, which name its specialists."
+        },
+        "deploys_on_merge": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The area's paths a host deploys from when they change on the default branch, such as `vercel.json`: a delegated merge never covers them. Only the built-in `infra` area sets it."
+        }
+      }
+    },
+    "areas": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/area_id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/area"
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "irreversible": {
+          "type": "boolean",
+          "description": "`true` when a person cannot undo the action, such as a force-push, a deploy, or a message sent. `aidd risk --suggest` never suggests lowering its rule. Left out, the action can be undone."
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Shell command patterns: `*` matches any run of characters, and a pattern matches the whole command."
+        },
+        "api_endpoints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(?:(?:POST|PUT|PATCH|DELETE)(?:\\|(?:POST|PUT|PATCH|DELETE))* )?(?![A-Za-z|]+ )\\S",
+            "description": "The methods in capitals, joined by `|` and followed by a space, or none; then the glob. A first word of letters that is no list of write methods, such as `PUSH` or `patch`, is refused."
+          },
+          "description": "`gh api` endpoint globs whose write is this action, read from the call's parsed arguments in any flag order, which `commands` globs cannot do. This reads `gh api` only: a `glab api` pattern stays in `commands`. In a glob, `*` is any run of characters, `/` included, and `?` is one whole path segment, up to the next `/` or space. It is not one character, as in a path glob, and an entry cannot name a literal `?`. aidd cuts the query string off the endpoint before matching. A glob matches the whole endpoint without its query, ignoring case, or the endpoint and the call's field values after a space (`*dispatches*deploy*`); a file given to `--input` shows as `--input file`. Begin it with the methods it applies to (`DELETE */git/refs/*`, `PATCH|POST */git/refs*`) or with none for any write. A GET or HEAD with no field or input is a read. A GraphQL mutation, or a query aidd cannot read, is the endpoint `graphql#mutation`. `aidd risk --command` reads them as parsed arguments. A harness's ask rules do not use them: those ask before any `gh api` call that may write, whatever its endpoint, while `aidd risk --command` reads the call exactly. Redefining an action replaces the whole entry, as with `commands`."
+        },
+        "file_reads": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "paths",
+            "readers"
+          ],
+          "properties": {
+            "paths": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "description": "The files that hold secrets, as path globs: `**/.env` or `**/*.pem`. They are a fact of their own, apart from an area, which names the code a change touches."
+            },
+            "exclude": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Globs a read must not also match, such as a template `**/*.example`."
+            },
+            "include": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Globs that win over `exclude`: a read of one of `paths` that also matches one of these is the action, even when `exclude` matches it, such as `**/secrets.*` over the code exclude `**/*.py`. Claude Code's rules write each again after the carve-outs."
+            },
+            "readers": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "description": "The programs that read or print a file, by name, such as `cat` or `grep`. A command whose program is one of them and that names a file in the area is the action. For `cp`, only the files it copies from count, never the one it writes."
+            }
+          },
+          "description": "Reading one of `paths` is this action: a shell command whose program is a reader, or the harness's own file-read tool where it has one. `aidd risk --command` reads each word after the program as a path. The harness's ask rules get a read rule for each of `paths`, and never one for `exclude`. Claude Code's rules then carve back out, with a `Read(!...)` rule each, the `.env` templates (`.env.example`, `.sample`, `.template`, `.dist`) and every other exclude but the template suffixes and `*.pub`, such as source code. Redefining an action replaces the whole entry, as with `commands`."
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Harness tool names the action is, such as an MCP tool that sends email."
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What the action looks like where no pattern catches it: the agent judges these."
+        }
+      }
+    },
+    "actions": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/action_id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/action"
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "level"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "pattern": "^(\\*|[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(\\.\\*)?)$",
+          "description": "An action id, or a prefix that ends in `.*` (`git.*`), or `*` for every action."
+        },
+        "area": {
+          "$ref": "#/$defs/area_id"
+        },
+        "branch": {
+          "enum": [
+            "own",
+            "default",
+            "shared"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z-]*$"
+        },
+        "environment": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "description": "A name in the config's `environments`: the rule decides `deploy.run` to that environment, such as a push to its branch."
+        },
+        "level": {
+          "$ref": "#/$defs/level"
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "In an `extends` parent such as an org preset: a child's rule with the same selector keeps this level."
+        },
+        "reason": {
+          "type": "string",
+          "pattern": "^[^\\r\\n]*$",
+          "maxLength": 200,
+          "description": "Why the rule exists, in one line, which `aidd risk` shows."
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "risks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "areas": {
+          "$ref": "#/$defs/areas"
+        },
+        "actions": {
+          "$ref": "#/$defs/actions"
+        },
+        "rules": {
+          "$ref": "#/$defs/rules"
+        }
+      }
+    },
+    "delegation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "actions",
+        "reserved_areas",
+        "rises_to_ask",
+        "test_paths",
+        "tripwires",
+        "deploy_actions"
+      ],
+      "description": "The built-in data of a standing delegation: what may be delegated, and what `aidd delegate check` reads to defer.",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "object",
+          "description": "Each delegable action, by its id.",
+          "propertyNames": {
+            "$ref": "#/$defs/action_id"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "since",
+              "description"
+            ],
+            "properties": {
+              "since": {
+                "type": "string",
+                "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+                "description": "The aidd version that made it delegable. `decides: all` covers it only from a config whose `aidd_version` is that or later."
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "template": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "The one command the action runs as, one word per item. `<name>` is a value the check reads, such as `<sha>`, `<branch>`, `<number>`, `<repo>`, `<method>` (`--squash` or `--merge`), or `<message>`, which carries the check's three trailers. Left out, the action runs no command."
+              }
+            }
+          }
+        },
+        "reserved_areas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/area_id"
+          },
+          "uniqueItems": true,
+          "description": "The areas a delegated action never touches. The `infra` area's `deploys_on_merge` paths join them."
+        },
+        "rises_to_ask": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/action_id"
+          },
+          "uniqueItems": true,
+          "description": "The actions that rise to `ask` while a delegation is set, so the person decides them."
+        },
+        "test_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "What a test file looks like: a delegated merge defers on a deleted line in one."
+        },
+        "tripwires": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "Words that claim an approval or address an approver or a model. Quoted text that holds one, in any case, defers the check."
+        },
+        "deploy_actions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "GitHub Actions that deploy. A workflow step that `uses:` one deploys."
+        }
+      }
+    }
+  }
+}

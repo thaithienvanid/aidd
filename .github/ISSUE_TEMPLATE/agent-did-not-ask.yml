@@ -1,0 +1,60 @@
+name: The agent didn't ask, or asked when it shouldn't
+description: An agent acted without asking at an `ask`, asked at an `allow`, or took text it read as a yes.
+labels: [bug, agent]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Remove secrets, tokens, and personal data from the excerpt before you post it.
+        A harness ask rule that aidd wrote looser than the config is a security issue. Report it privately instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What did the agent do, and what should it have done?
+      description: Such as "it force-pushed without asking", or "it took a comment that said approved as my yes".
+    validations:
+      required: true
+  - type: textarea
+    id: rule
+    attributes:
+      label: The action and its rule
+      description: Output of `aidd risk --command "<the command>" --json`, or `aidd risk --action <id> --json`.
+      render: json
+    validations:
+      required: true
+  - type: dropdown
+    id: ask-rule
+    attributes:
+      label: Did the harness's own ask rule fire?
+      options: ["yes", "no", "the harness has no ask rules", "not sure"]
+    validations:
+      required: true
+  - type: input
+    id: harness
+    attributes:
+      label: Harness and its version
+      description: Such as Claude Code 2.3.1 or Codex CLI. Say which aidd plugins were installed, and whether the run was headless.
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model and effort
+      description: The exact model id and reasoning effort, and each subagent role's model when a team command ran.
+    validations:
+      required: true
+  - type: textarea
+    id: excerpt
+    attributes:
+      label: Session excerpt
+      description: The prompt, and the turns from the last correct step to the one that went wrong, with the tool calls.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: aidd version
+      description: Output of `aidd --version`.
+    validations:
+      required: true

@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:trace",
+  "title": "aidd status <path> --json",
+  "description": "What stands behind a repository path or a work item, derived on demand from git and aidd's files and never stored: the Specs whose Task scope covers it, the open Specs in flight there, the tests, docs, and interfaces they name, the route `aidd risk --paths` gives, and the last commits. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "subject",
+    "paths",
+    "work",
+    "in_flight",
+    "tests",
+    "docs",
+    "interfaces",
+    "commits"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "value"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "path",
+            "work_item"
+          ],
+          "description": "A repository path, or a Spec or Intent id."
+        },
+        "value": {
+          "type": "string",
+          "description": "The path or id, as given."
+        }
+      },
+      "description": "What was asked about."
+    },
+    "paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The paths or globs the answer covers: the path itself, or the Task scopes of a work item (of the Specs below an Intent)."
+    },
+    "work": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "title",
+          "path",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The item's id, such as `SPEC-3`."
+          },
+          "type": {
+            "enum": [
+              "spec",
+              "intent"
+            ],
+            "description": "The type of work item."
+          },
+          "title": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string",
+            "description": "The item's file, relative to the repository's top."
+          },
+          "status": {
+            "type": "string",
+            "description": "The status the item's front matter stores, or an Intent's status from its slices."
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The Tasks of this Spec whose scope covers the subject."
+          }
+        }
+      },
+      "description": "The work items that stand behind the subject: the Specs whose Task scope covers a path (any status, so the history shows), then their Intent; for an id, the item, its parents, and the Specs below it. Open ones first."
+    },
+    "in_flight": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "path",
+          "status",
+          "overlaps"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "overlaps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The Task scopes of this Spec that overlap the subject's paths.",
+            "minItems": 1
+          }
+        },
+        "description": "An open Spec, other than the subject and what is below it, with a Task scope that overlaps the subject's paths."
+      }
+    },
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commands",
+        "files"
+      ],
+      "properties": {
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "command",
+              "when_changed"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "description": "`config` for the repository's `tests`, else the Spec id whose `tests.commands` it is."
+              },
+              "command": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "when_changed": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The globs that select it; empty when it always runs."
+              }
+            }
+          },
+          "description": "The test commands that apply: the config's whose `when_changed` match the subject (or that always run), and the covering Specs' own."
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "spec",
+              "files"
+            ],
+            "properties": {
+              "spec": {
+                "type": "string"
+              },
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The Spec's `tests.files`, as written (globs)."
+              }
+            }
+          },
+          "description": "Each covering Spec's test files."
+        }
+      }
+    },
+    "docs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "path",
+          "spec"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "`design`, `adr`, or the `type` of a linked doc, such as `threat-model` or `tech-spec`."
+          },
+          "path": {
+            "type": "string",
+            "description": "As the Spec writes it: a path or a glob."
+          },
+          "spec": {
+            "type": "string",
+            "description": "The Spec that links it."
+          }
+        }
+      },
+      "description": "The design files, ADRs, and linked docs of the covering Specs."
+    },
+    "interfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "provided_by",
+          "consumed_by"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "A stable interface name from a covering Spec's `provides` or `consumes`."
+          },
+          "provided_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Every Spec in the repository that provides it."
+          },
+          "consumed_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Every Spec in the repository that consumes it."
+          }
+        }
+      },
+      "description": "The interfaces the covering Specs provide and consume (R115)."
+    },
+    "risk": {
+      "$ref": "urn:aidd:1:risk#/$defs/paths",
+      "description": "`aidd risk --paths` over `paths`: the route, the areas, and the levels. Absent when the item has no Task scope."
+    },
+    "commits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sha",
+          "date",
+          "work_ids",
+          "assisted_by"
+        ],
+        "properties": {
+          "sha": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "description": "The author date, ISO 8601."
+          },
+          "work_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The ids of the repository's work items the message names."
+          },
+          "assisted_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The values of its `Assisted-by` trailers."
+          }
+        }
+      },
+      "description": "The last commits on the path, or the commits that name the id, newest first, at most `--commits` of them."
+    },
+    "truncated": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The sections cut at their bound: 50 entries each, 200 paths, or the commit limit."
+    },
+    "unreadable": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Work item files whose front matter does not parse: `aidd validate` names the reason."
+    }
+  }
+}

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: skips-maintainable-code-reply-to-a-comment
+context:
+  scaffold_script: fixture.sh
