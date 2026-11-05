@@ -1,0 +1,527 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:status",
+  "title": "aidd status --json",
+  "description": "The open work: each Spec, Intent, and proposal with its stored status and its next step, then what is past due. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "items",
+    "due"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "root_blocker": {
+      "type": "string",
+      "description": "Present only when open work exists and no open step is a person's: the line `aidd status` ends with. It names each item that Specs wait behind and how many, with the move that frees them and the choice, such as `SPEC-1 blocks 23 Specs: finish it, or choose a Spec to specify.` Or it names the ring of items that wait on each other. A script that shows what waits on a person shows this line when the list is empty."
+    },
+    "items": {
+      "type": "array",
+      "description": "The open work items, started first, then urgent ones, then by id.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "title",
+          "path",
+          "status",
+          "group"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The item's id, such as `SPEC-3`."
+          },
+          "type": {
+            "enum": [
+              "spec",
+              "intent",
+              "proposal"
+            ],
+            "description": "The type of work item."
+          },
+          "title": {
+            "type": "string",
+            "description": "The item's title."
+          },
+          "path": {
+            "type": "string",
+            "description": "The item's file, relative to the repository's top."
+          },
+          "status": {
+            "type": "string",
+            "description": "The status the item's front matter stores, or an Intent's status from its slices."
+          },
+          "group": {
+            "enum": [
+              "backlog",
+              "unstarted",
+              "started",
+              "completed",
+              "cancelled"
+            ],
+            "description": "The status group, from the schemas' `x-groups`."
+          },
+          "route": {
+            "enum": [
+              "minor",
+              "normal",
+              "major",
+              "emergency"
+            ],
+            "description": "The route the item declares."
+          },
+          "progress": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "finished",
+              "of"
+            ],
+            "description": "An Intent's slices: how many finished (merged or ended), of how many.",
+            "properties": {
+              "finished": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "of": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "parent": {
+            "type": "string",
+            "description": "The Intent a Spec names as its `parent`."
+          },
+          "stage": {
+            "type": "string",
+            "minLength": 1,
+            "description": "For a Spec: the stage it stands in, a name in `loop.stages` of `schemas/roles.json`, from its stored status, its Tasks' `done`, and its observe window. Absent for a cancelled Spec."
+          },
+          "phases": {
+            "type": "array",
+            "description": "For an Intent: its phases, in order, by their ids (a person reads each as \"Phase <n> · <name>\", by its place), each with its slices, their status (`planned` for a slice with no Spec file yet), and once started, their stage.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "slices"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "due": {
+                  "type": "string"
+                },
+                "finished_on": {
+                  "type": "string",
+                  "description": "The day a person recorded the phase finished."
+                },
+                "slices": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "title",
+                      "status"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "Its Spec's status, `done` for a slice its line records as merged, or `planned`."
+                      },
+                      "stage": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "waiting_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "The unfinished items it waits for: its `blocked_by`, its slice line's, and each that says it `blocks` it."
+          },
+          "next": {
+            "$ref": "#/$defs/step"
+          },
+          "owner": {
+            "type": "string",
+            "description": "The person driving the work, as its front matter names them."
+          },
+          "owner_team": {
+            "type": "string",
+            "description": "The team accountable for the work, as its front matter names it."
+          },
+          "delivery_teams": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "With `delivery_teams` in the config: the teams whose work the item is, by the rule `--delivery-team` uses (an Intent of the team, a Spec under one, a Spec whose `owner_team` names the team, or a Spec whose Task scope touches the team's areas)."
+          },
+          "blockers": {
+            "type": "string",
+            "description": "The Spec's `blockers` text, as written: the wait a person must clear."
+          },
+          "tasks": {
+            "type": "array",
+            "description": "A Spec's Tasks, each with its state: `todo`, `blocked` (it waits for another Task or for Spec approval), `stopped` (it used its retries, so a person re-plans it), or `done`.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "title",
+                "status",
+                "retry_count"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "todo",
+                    "blocked",
+                    "stopped",
+                    "done"
+                  ]
+                },
+                "retry_count": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "The retries the Task used."
+                },
+                "why": {
+                  "type": "string",
+                  "description": "Why the Task is blocked or stopped."
+                }
+              }
+            }
+          },
+          "emergency": {
+            "$ref": "urn:aidd:1:common#/$defs/emergency",
+            "description": "The Spec's `emergency` object: the incident an emergency change repairs."
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "commit",
+              "head",
+              "result",
+              "at"
+            ],
+            "description": "A summary of the worktree's last `aidd test` run, set on the one Spec the branch's diff holds. It is for a person to read and is never evidence: the runner's exit code on the head is.",
+            "properties": {
+              "commit": {
+                "type": "string",
+                "description": "The short sha of the commit the run tested."
+              },
+              "head": {
+                "type": "string",
+                "description": "The short sha of the branch's head now."
+              },
+              "behind": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "How many commits the head is past the tested commit. Absent when the head is the tested commit, or the tested commit is not an ancestor of the head."
+              },
+              "result": {
+                "enum": [
+                  "passed",
+                  "failed",
+                  "partial"
+                ],
+                "description": "The verdict `aidd test` exits on; `partial` for a `--changed` run or a dirty tree."
+              },
+              "at": {
+                "type": "string",
+                "description": "When the run wrote its evidence, in UTC (`2026-11-05T03:24:47Z`)."
+              }
+            }
+          },
+          "unsaved": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "branch",
+              "count",
+              "paths"
+            ],
+            "description": "Set on the item this worktree's branch is for, such as SPEC-1 on `spec/SPEC-1`, when the worktree holds changes in no commit yet. Removing the worktree loses that work, so the next step is to commit it on that branch.",
+            "properties": {
+              "branch": {
+                "type": "string",
+                "description": "The branch checked out."
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "How many paths hold uncommitted changes, new files too."
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "description": "The first of them, as git names them."
+              }
+            }
+          },
+          "places": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "With --all-branches: the places that hold this version of the item, `worktree:<path>` or `branch:<name>`. Two places that hold different versions give two items."
+          },
+          "history": {
+            "type": "array",
+            "description": "With an id: the item's history, newest first, then the documents it links. Its decisions and reports from the records (the agent's account, never a yes), the commits on HEAD whose message names its id, and its `docs`. It never changes the next step.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "at",
+                "what",
+                "ref"
+              ],
+              "properties": {
+                "type": {
+                  "enum": [
+                    "decision",
+                    "report",
+                    "record",
+                    "commit",
+                    "doc"
+                  ]
+                },
+                "at": {
+                  "type": "string",
+                  "description": "When, in UTC (`2026-11-05T03:24:47Z`); empty for a document."
+                },
+                "what": {
+                  "type": "string",
+                  "description": "One line: the action and the question with its outcome, what was reported, a commit's subject, or a document's type and path."
+                },
+                "ref": {
+                  "type": "string",
+                  "description": "The record's id, the commit's short sha, or the document's path."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "trace": {
+      "description": "With one work item's id, a Spec or an Intent: what stands behind it, as `aidd status <path>` gives a path.",
+      "$ref": "urn:aidd:1:trace"
+    },
+    "due": {
+      "type": "array",
+      "description": "What is past due: a feature flag past its `cleanup_due`, a deprecation past its sunset.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "what",
+          "next"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The work item that names it."
+          },
+          "what": {
+            "type": "string",
+            "description": "What is due, in a sentence."
+          },
+          "next": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      }
+    },
+    "handoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch",
+        "commit"
+      ],
+      "description": "Where the work on this branch stopped, from the handoff note in its last commit's message, when no Spec the branch is for holds a note: a change with no Spec before its PR/MR. Only on a branch of one's own. It is the agent's account, never a yes.",
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "The branch checked out."
+        },
+        "commit": {
+          "type": "string",
+          "description": "The short sha of the commit whose message holds the note."
+        },
+        "done": {
+          "type": "string",
+          "description": "The note's `done`, on one line."
+        },
+        "next": {
+          "type": "string",
+          "description": "The note's `next`, on one line."
+        },
+        "needs": {
+          "type": "string",
+          "description": "The note's `needs`, on one line."
+        },
+        "stopped_at": {
+          "type": "string",
+          "description": "The note's `stopped_at`, on one line."
+        }
+      }
+    },
+    "explorations": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Present only when an exploration's `status` is `open`: a person owes its pick, so a person has a step. Each gives its file, its question, the work item whose folder holds it, and the step.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "question",
+          "next"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The exploration's file, relative to the repository's top."
+          },
+          "question": {
+            "type": "string",
+            "description": "The question the exploration answers, as its front matter writes it."
+          },
+          "item": {
+            "type": "string",
+            "description": "The id of the work item whose folder holds it; absent for one under `specs/explore/`."
+          },
+          "next": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      }
+    },
+    "unreadable": {
+      "type": "array",
+      "description": "A work item whose front matter does not parse, with the reason: still open work, which `aidd validate` names in full.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "error"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "place": {
+            "type": "string",
+            "description": "With --all-branches: the place that holds the file."
+          }
+        }
+      }
+    },
+    "delivery_teams": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "With `delivery_teams` in the config: the team names, in the config's order, so a team with no open work still has its lane."
+    },
+    "next": {
+      "$ref": "#/$defs/step",
+      "description": "With nothing open: what to do next."
+    }
+  },
+  "$defs": {
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "who",
+        "what"
+      ],
+      "description": "A next step: its stable code, who takes it, and what it is.",
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z_]+(\\.[a-z_]+)?$",
+          "description": "A stable code, such as `spec.approval`, that a script may match on."
+        },
+        "who": {
+          "enum": [
+            "agent",
+            "person",
+            "nobody"
+          ],
+          "description": "Who takes the step: an agent, a person, or nobody, when the step waits on other work or the work is finished."
+        },
+        "what": {
+          "type": "string",
+          "description": "The step, in a sentence."
+        },
+        "person": {
+          "type": "string",
+          "description": "For a step a person takes: who answers. The first approver for an approval, else the owner."
+        },
+        "words": {
+          "type": "string",
+          "description": "What a person types to their agent, or the command to run, to take the step. Absent for a step nobody takes, and for an item whose id is not a plain id (the schema's id pattern), because words hold no other text of the repository."
+        },
+        "why": {
+          "type": "string",
+          "description": "Why the step comes next, in one line, read from the data that owns the reason: the loop's lanes and decision rights in `schemas/roles.json`, or a schema's meaning. Absent where no data owns one, such as finished work."
+        }
+      }
+    }
+  }
+}

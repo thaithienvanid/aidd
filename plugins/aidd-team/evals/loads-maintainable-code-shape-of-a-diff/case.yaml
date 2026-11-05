@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: loads-maintainable-code-shape-of-a-diff
+context:
+  scaffold_script: fixture.sh

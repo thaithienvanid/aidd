@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: skips-accessible-ui-screen-class
+context:
+  scaffold_script: fixture.sh

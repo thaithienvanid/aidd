@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 546" width="680" height="546" role="img" aria-labelledby="t d">
+<title id="t">aidd's loop: six stages, where agents do the steps and you decide at four gates</title>
+<desc id="d">Proven at every step. You decide the risky steps. Agents do the steps, and you decide at the gates. Every change runs one loop of six stages. Plan holds the Plan step and ends at the Intent agreement gate. Design holds Specify and ends at the Spec approval gate. Build holds Implement. Test holds Verify and Review and ends at the Merge approval gate. Deploy holds Merge, then the Production release gate, then Roll out. Maintain holds Learn, and a lesson becomes a new change, back at Plan. Below the loop, an Intent holds two phases, and each phase holds slices. The slice being worked on has its own Spec. The Intent stands in Plan, and the Spec stands in each stage from Design on.</desc>
+<style>
+svg{font-family:system-ui,-apple-system,"Segoe UI Variable Text","Segoe UI",Roboto,sans-serif}
+.pg{fill:#fafaf9;stroke:rgba(28,27,25,.12)}
+.cd{fill:#fff;stroke:rgba(28,27,25,.12)}
+.gp{fill:#f4f4f2;stroke:rgba(28,27,25,.12)}
+.ink{fill:#1c1b19}
+.mut{fill:#5b5955}
+.gt{fill:#4d4b47}
+.gx{fill:#fafaf9}
+.ln{fill:none;stroke:#5b5955;stroke-width:1.5}
+.ah{fill:#5b5955}
+.ic{color:#5b5955}
+.ig{color:#fafaf9}
+.sl{fill:#fff;stroke:#87847e}
+.cu{fill:#ebeae7;stroke:#1c1b19;stroke-width:2}
+@media (prefers-color-scheme:dark){
+.pg{fill:#151514;stroke:rgba(228,226,222,.12)}
+.cd{fill:#1e1e1c;stroke:rgba(228,226,222,.12)}
+.gp{fill:#1b1b19;stroke:rgba(228,226,222,.12)}
+.ink{fill:#e4e2de}
+.mut{fill:#b9b6b0}
+.gt{fill:#d0cec9}
+.gx{fill:#151514}
+.ln{stroke:#b9b6b0}
+.ah{fill:#b9b6b0}
+.ic{color:#b9b6b0}
+.ig{color:#151514}
+.sl{fill:#1e1e1c;stroke:#7e7b75}
+.cu{fill:#282725;stroke:#e4e2de}
+}
+</style>
+<defs>
+<symbol id="b" viewBox="0 0 16 16"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.8" y="4.8" width="12.4" height="9.4" rx="3"/><path d="M8 4.8V1.6"/></g><circle cx="5.6" cy="9.5" r="1.2" fill="currentColor"/><circle cx="10.4" cy="9.5" r="1.2" fill="currentColor"/></symbol>
+<symbol id="p" viewBox="0 0 16 16"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="5" r="2.9"/><path d="M2.6 14.6c0-3.1 2.4-5.2 5.4-5.2s5.4 2.1 5.4 5.2"/></g></symbol>
+<symbol id="f" viewBox="0 0 12 14"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.5.8h5.8l3.2 3.2v9.2h-9z"/><path d="M7.2.8v3.3h3.3"/></g></symbol>
+<marker id="a" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path class="ah" d="M0 .5 8 4 0 7.5z"/></marker>
+</defs>
+
+<rect class="pg" x=".5" y=".5" width="679" height="545" rx="16"/>
+
+<!-- The promise, and the key -->
+<text class="ink" x="30" y="48" font-size="20" font-weight="600">Proven at every step. You decide the risky steps.</text>
+<use class="ic" href="#b" x="30" y="64" width="16" height="16"/>
+<text class="mut" x="53" y="78" font-size="18">Agents do the steps</text>
+<rect class="gt" x="232" y="61" width="22" height="22" rx="5"/>
+<use class="ig" href="#p" x="235" y="64" width="16" height="16"/>
+<text class="mut" x="262" y="78" font-size="18">You decide at the gates</text>
+
+<!-- The six stages, clockwise -->
+<g class="cd">
+<rect x="30" y="100" width="190" height="142" rx="10"/>
+<rect x="245" y="100" width="190" height="142" rx="10"/>
+<rect x="460" y="100" width="190" height="142" rx="10"/>
+<rect x="30" y="268" width="190" height="176" rx="10"/>
+<rect x="245" y="268" width="190" height="176" rx="10"/>
+<rect x="460" y="268" width="190" height="176" rx="10"/>
+</g>
+<g class="ink" font-size="22" font-weight="600">
+<text x="44" y="130">Plan</text>
+<text x="259" y="130">Design</text>
+<text x="474" y="130">Build</text>
+<text x="44" y="298">Maintain</text>
+<text x="259" y="298">Deploy</text>
+<text x="474" y="298">Test</text>
+</g>
+<!-- The work item each stage holds -->
+<g class="mut" font-size="18" text-anchor="end">
+<text x="189" y="129">Intent</text>
+<text x="404" y="129">Spec</text>
+<text x="619" y="129">Spec</text>
+<text x="189" y="297">Spec</text>
+<text x="404" y="297">Spec</text>
+<text x="619" y="297">Spec</text>
+</g>
+<g class="ic">
+<use href="#f" x="194" y="116" width="12" height="14"/>
+<use href="#f" x="409" y="116" width="12" height="14"/>
+<use href="#f" x="624" y="116" width="12" height="14"/>
+<use href="#f" x="194" y="284" width="12" height="14"/>
+<use href="#f" x="409" y="284" width="12" height="14"/>
+<use href="#f" x="624" y="284" width="12" height="14"/>
+<use href="#b" x="44" y="148" width="16" height="16"/>
+<use href="#b" x="259" y="148" width="16" height="16"/>
+<use href="#b" x="474" y="148" width="16" height="16"/>
+<use href="#b" x="44" y="316" width="16" height="16"/>
+<use href="#b" x="259" y="316" width="16" height="16"/>
+<use href="#b" x="259" y="414" width="16" height="16"/>
+<use href="#b" x="474" y="316" width="16" height="16"/>
+</g>
+<g class="ink" font-size="20">
+<text x="68" y="163">Plan</text>
+<text x="283" y="163">Specify</text>
+<text x="498" y="163">Implement</text>
+<text x="68" y="331">Learn</text>
+<text x="283" y="331">Merge</text>
+<text x="283" y="429">Roll out</text>
+<text x="498" y="331">Verify, Review</text>
+</g>
+
+<!-- The four gates, where a person decides -->
+<g class="gt">
+<rect x="38" y="180" width="174" height="54" rx="8"/>
+<rect x="253" y="180" width="174" height="54" rx="8"/>
+<rect x="468" y="348" width="174" height="54" rx="8"/>
+<rect x="253" y="348" width="174" height="54" rx="8"/>
+</g>
+<g class="ig">
+<use href="#p" x="48" y="199" width="16" height="16"/>
+<use href="#p" x="263" y="199" width="16" height="16"/>
+<use href="#p" x="478" y="367" width="16" height="16"/>
+<use href="#p" x="263" y="367" width="16" height="16"/>
+</g>
+<g class="gx" font-size="20" font-weight="600">
+<text x="72" y="202">Intent</text><text x="72" y="224">agreement</text>
+<text x="287" y="202">Spec</text><text x="287" y="224">approval</text>
+<text x="502" y="370">Merge</text><text x="502" y="392">approval</text>
+<text x="287" y="370">Production</text><text x="287" y="392">release</text>
+</g>
+
+<!-- The flow: each gate ends its stage, and a lesson starts a new change -->
+<g class="ln" marker-end="url(#a)">
+<path d="M220 207h6.5q6 0 6-6v-39q0-6 6-6h6.5"/>
+<path d="M435 207h6.5q6 0 6-6v-39q0-6 6-6h6.5"/>
+<path d="M650 156h9q6 0 6 6v156q0 6-6 6h-9"/>
+<path d="M460 375h-6.5q-6 0-6-6v-39q0-6-6-6h-6.5"/>
+<path d="M245 423h-6.5q-6 0-6-6v-87q0-6-6-6h-6.5"/>
+<path d="M30 324h-9q-6 0-6-6v-156q0-6 6-6h9"/>
+</g>
+<text class="mut" x="44" y="359" font-size="18">A lesson becomes</text>
+<text class="mut" x="44" y="381" font-size="18">a new change</text>
+
+<!-- The work items: an Intent's phases of slices, and the Spec of the slice being worked on -->
+<rect class="cd" x="30" y="466" width="422" height="56" rx="10"/>
+<use class="ic" href="#f" x="44" y="487" width="12" height="14"/>
+<text class="ink" x="62" y="501" font-size="20" font-weight="600">Intent</text>
+<rect class="gp" x="132" y="474" width="162" height="40" rx="8"/>
+<text class="mut" x="144" y="500" font-size="18">Phase 1</text>
+<rect class="gp" x="302" y="474" width="142" height="40" rx="8"/>
+<text class="mut" x="314" y="500" font-size="18">Phase 2</text>
+<g class="sl">
+<rect x="216" y="485" width="18" height="18" rx="4"/>
+<rect x="240" y="485" width="18" height="18" rx="4"/>
+<rect x="264" y="485" width="18" height="18" rx="4"/>
+<rect x="390" y="485" width="18" height="18" rx="4"/>
+</g>
+<rect class="cu" x="414" y="485" width="18" height="18" rx="4"/>
+<path class="ln" d="M433 494H484" marker-end="url(#a)"/>
+<rect class="cd" x="486" y="466" width="164" height="56" rx="10"/>
+<use class="ic" href="#f" x="500" y="475" width="12" height="14"/>
+<text class="ink" x="518" y="489" font-size="20" font-weight="600">Spec</text>
+<text class="mut" x="500" y="511" font-size="18">for one slice</text>
+</svg>

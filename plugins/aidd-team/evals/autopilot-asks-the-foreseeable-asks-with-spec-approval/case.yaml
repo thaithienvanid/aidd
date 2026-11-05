@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: autopilot-asks-the-foreseeable-asks-with-spec-approval
+context:
+  scaffold_script: fixture.sh

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: skips-debugging-flaky-meaning
+context:
+  scaffold_script: fixture.sh

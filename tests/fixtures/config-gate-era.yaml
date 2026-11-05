@@ -1,0 +1,42 @@
+# aidd binding. The gate reads this file from the base branch only, so a change to it takes effect on
+# the next PR. Every change to it is major.
+aidd_version: "0.9.0"
+profile: solo      # solo, team, org, audited.
+mode: advisory   # the gate's mode, read from the base branch
+components: {loop: false, guard: false}   # side project, no approval stops; delete to restore
+# locale: vi             # ticket titles and PR summaries only
+goal: "ship a small tool people can try in five minutes"   # one sentence every agent weighs an open choice against
+
+# Paths exempt from the Task-scope rule, and paths excluded from the changed-line budget.
+# scope_exempt_paths: [CHANGELOG.md]
+budget_exclude_paths:
+  - "**/package-lock.json"
+  - "**/uv.lock"
+
+# Turn a baseline rule off for paths where it does not apply.
+# rule_exclusions: {}
+
+owners:
+  # The `owner_team` that `aidd new` writes into a new Spec.
+  default_team: maintainers
+
+  # Who may approve.
+  approvers: ["@lead"]
+
+  # Specialist Approver pools.
+  # specialists:
+  #   security: ["@org/security"]
+
+tests:
+  - name: suite
+    command: [make, test]
+
+identities:
+  # Accounts that are infrastructure, not humans.
+  system_accounts: [web-flow]
+
+  # Agent and bot accounts that implement.
+  bots: []
+
+# gates:
+#   approvals: {major: 2}

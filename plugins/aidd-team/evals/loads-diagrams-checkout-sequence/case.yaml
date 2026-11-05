@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: loads-diagrams-checkout-sequence
+context:
+  scaffold_script: fixture.sh

@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:intent",
+  "title": "Intent",
+  "description": "Work bigger than one Spec: what a person wants, in their words, with its goal, and its slices grouped into phases. A person agrees to it before Specify starts on a slice, and each slice becomes a Spec when its work starts. The team writes it from a brief, the person's raw ask. Aliases: Theme, Program.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "aidd_version",
+    "type",
+    "id",
+    "title",
+    "goal"
+  ],
+  "properties": {
+    "aidd_version": {
+      "$ref": "urn:aidd:1:common#/$defs/aidd_version"
+    },
+    "type": {
+      "const": "intent",
+      "description": "Object type. Always `intent`."
+    },
+    "id": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "description": "Intent key, such as INTENT-3. An id from before the Intent, such as INIT-1, stays."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "One line. The language in the project's AGENTS.md may apply."
+    },
+    "goal": {
+      "$ref": "urn:aidd:1:common#/$defs/goal"
+    },
+    "brief": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The brief it answers, the person's raw ask: a repository path, such as `intent.md`, or a link. aidd never reads or changes it."
+    },
+    "status": {
+      "$ref": "urn:aidd:1:common#/$defs/intent_status",
+      "description": "Only a person closes an Intent, because only a person can say its goal is met or dropped: they set `done`, or `cancelled` to stop it. Draft and active are derived from its slices."
+    },
+    "agreed_by": {
+      "$ref": "urn:aidd:1:common#/$defs/approved_by",
+      "description": "The person who agreed, in `approved_by`'s form, never an agent. On their yes to `intent.agree`, the agent sets it and `agreed_at` and commits with an `Agreed-by:` trailer. `aidd upgrade` never writes it."
+    },
+    "agreed_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$",
+      "format": "date-time",
+      "description": "When the person agreed (RFC 3339). A slice added or removed, or a new `goal`, after it warns until they agree again."
+    },
+    "labels": {
+      "$ref": "urn:aidd:1:common#/$defs/labels"
+    },
+    "relations": {
+      "$ref": "urn:aidd:1:common#/$defs/relations"
+    },
+    "priority": {
+      "$ref": "urn:aidd:1:common#/$defs/priority"
+    },
+    "owner": {
+      "$ref": "urn:aidd:1:common#/$defs/owner"
+    },
+    "owner_team": {
+      "type": "string",
+      "description": "The team accountable for the outcome. A slice may name another team in its own `owner_team`."
+    },
+    "context": {
+      "type": "string",
+      "description": "Shared terms and constraints for every Spec under this Intent: the one glossary the teams on it share."
+    },
+    "trace_id": {
+      "$ref": "urn:aidd:1:common#/$defs/trace_id",
+      "description": "Joins this Intent with the Specs of other repositories that deliver its slices: each sets `trace_id: <home>/<Intent id>`."
+    },
+    "reaches": {
+      "enum": [
+        "incremental",
+        "flagged",
+        "batched"
+      ],
+      "default": "incremental",
+      "description": "How the work reaches users, agreed with the Intent. `incremental` (the default): each Spec merges by itself. `flagged`: each merges behind a flag that stays off until the `launch` Spec. `batched`: the Specs build on one branch, which one Merge approval merges."
+    },
+    "launch": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "description": "For `reaches: flagged`: the Spec that turns the feature on for users, planned last. Its Merge approval is the launch, which a person always decides."
+    },
+    "covers": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/id"
+      },
+      "uniqueItems": true,
+      "description": "The ids of the proposal needs this Intent delivers, when it came from an accepted proposal."
+    },
+    "proposal": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "description": "The accepted proposal this Intent delivers, so every change under it traces back to what was promised."
+    },
+    "go_no_go": {
+      "$ref": "urn:aidd:1:proposal#/properties/go_no_go",
+      "description": "A person's decision to pursue the Intent or not, in the proposal's shape; `no_go` derives `cancelled`. Never an agent's."
+    },
+    "phases": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/phase"
+      },
+      "maxItems": 50,
+      "description": "The phases, in order, each an ordered group of slices. An Intent with one phase lists `slices` directly instead."
+    },
+    "slices": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/slice"
+      },
+      "maxItems": 50,
+      "description": "The slices of an Intent with one phase, in the order they merge, in place of `phases`."
+    },
+    "tracker": {
+      "$ref": "urn:aidd:1:common#/$defs/tracker",
+      "description": "The tracker's records this Intent links to, such as `{type: epic, id: PORT-31}`. aidd calls no tracker."
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "urn:aidd:1:proposal#/$defs/raid_item"
+          }
+        ],
+        "required": [
+          "likelihood",
+          "impact"
+        ]
+      },
+      "description": "The R of the RAID log, copied from the accepted proposal and kept current here."
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:proposal#/$defs/raid_item"
+      },
+      "description": "The A of the RAID log, copied from the accepted proposal and kept current here."
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:proposal#/$defs/raid_item"
+      },
+      "description": "The I of the RAID log, copied from the accepted proposal and kept current here."
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:proposal#/$defs/raid_item"
+      },
+      "description": "The D of the RAID log, copied from the accepted proposal and kept current here."
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:proposal#/$defs/decision"
+      },
+      "description": "The scope decisions log, copied from the accepted proposal and kept current here. Each entry is a person's decision."
+    }
+  },
+  "allOf": [
+    {
+      "not": {
+        "required": [
+          "phases",
+          "slices"
+        ]
+      },
+      "description": "An Intent lists its slices in `phases` or, with one phase, in `slices`, never both."
+    },
+    {
+      "if": {
+        "required": [
+          "agreed_by"
+        ]
+      },
+      "then": {
+        "required": [
+          "agreed_at"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "agreed_at"
+        ]
+      },
+      "then": {
+        "required": [
+          "agreed_by"
+        ]
+      }
+    }
+  ]
+}

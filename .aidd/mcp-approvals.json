@@ -1,0 +1,10 @@
+{
+  "claude-code": [
+    "mcp__plugin_aidd_aidd__recall",
+    "mcp__plugin_aidd_aidd__record",
+    "mcp__plugin_aidd_aidd__risk",
+    "mcp__plugin_aidd_aidd__status",
+    "mcp__plugin_aidd_aidd__validate"
+  ],
+  "taken_out": []
+}

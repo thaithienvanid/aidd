@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:doctor",
+  "title": "aidd doctor --json",
+  "description": "What `aidd doctor --json` prints: each check of the repository's wiring, or with `--autopilot` of an autopilot run's settings, and whether any failed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "passed",
+    "checks"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "passed": {
+      "type": "boolean",
+      "description": "True when no check failed: the exit code is 0. A warning never fails."
+    },
+    "checks": {
+      "type": "array",
+      "description": "Each check, in the order the text output prints them.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "level",
+          "message"
+        ],
+        "properties": {
+          "level": {
+            "enum": [
+              "ok",
+              "warn",
+              "fail",
+              "info"
+            ],
+            "description": "ok, warn (worth fixing), fail (the exit code is 1), or info (never a finding)."
+          },
+          "message": {
+            "type": "string",
+            "description": "What the check found, with the next step when it is not ok."
+          }
+        }
+      }
+    },
+    "advisor": {
+      "type": "string",
+      "description": "With `--autopilot`: one line about Claude Code's advisor, as information only."
+    },
+    "check_yourself": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "With `--autopilot`: what aidd cannot see, for a person to check before a run."
+    }
+  }
+}

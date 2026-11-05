@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:explain",
+  "title": "aidd explain --json",
+  "description": "What `aidd explain <word> --json` prints: each meaning aidd's data gives the word, with why it matters and the file that owns it. With `--list`, every word it knows, by kind. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "word": {
+      "type": "string",
+      "description": "The word asked about, as given."
+    },
+    "matches": {
+      "type": "array",
+      "description": "One entry per kind the word names, in the order of `words`' kinds; empty for a word aidd does not know, and the exit code is then 1.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "name",
+          "what",
+          "why",
+          "source"
+        ],
+        "properties": {
+          "kind": {
+            "$ref": "#/$defs/kind"
+          },
+          "name": {
+            "type": "string",
+            "description": "The word as its data writes it, such as `pr.merge` or `in_progress`."
+          },
+          "what": {
+            "type": "string",
+            "description": "What it is, as its data says it."
+          },
+          "why": {
+            "type": "string",
+            "description": "Why it matters: the rule in force and what its level makes the agent do, who decides and on what, or what the data says it leads to. Empty where its data says nothing more."
+          },
+          "source": {
+            "type": "string",
+            "description": "The file that owns the word, relative to aidd's own data, such as `schemas/risks.json`."
+          }
+        }
+      }
+    },
+    "words": {
+      "type": "object",
+      "description": "With `--list`: every word, by kind, each kind in its order.",
+      "propertyNames": {
+        "$ref": "#/$defs/kind"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "kind": {
+      "enum": [
+        "action",
+        "area",
+        "route",
+        "lane",
+        "stage",
+        "loop step",
+        "gate",
+        "decision",
+        "role",
+        "document type",
+        "status",
+        "profile"
+      ],
+      "description": "What kind of word it is: an action or an area of the risk rules, a route or a lane, a stage, a loop step, a gate, a decision a person makes, a role of the team, a document type, a status, or a profile."
+    }
+  }
+}

@@ -1,0 +1,210 @@
+/* The components of aidd's built-in pages, one source (R392): the prototype viewer, its design format doc,
+   `aidd status --html`, and `aidd explore` each read this file after the tokens. DESIGN.md says what each component
+   is for and the states it draws. Every value is a token: a length here is 0, a percentage, an em of the text it sits
+   in, or a calc of tokens. A page's own CSS lays out its page and adds no component. */
+
+/* Base: the page, text, and focus. */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scrollbar-gutter: stable; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans); font-size: var(--text-body); line-height: var(--text-body--line-height); font-variant-numeric: tabular-nums; }
+h1, h2, h3, h4, p, ol, ul, dl, dd, figure { margin: 0; }
+h1 { font-size: var(--text-display); line-height: var(--text-display--line-height); font-weight: var(--font-weight-semibold); overflow-wrap: anywhere; }
+h2, h3 { font-size: var(--text-title); line-height: var(--text-title--line-height); font-weight: var(--font-weight-semibold); }
+h4 { font-size: var(--text-body); font-weight: var(--font-weight-semibold); }
+p, li, dd, td { overflow-wrap: anywhere; }
+button, input, select, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+::selection { background: var(--accent); color: var(--foreground); }
+/* Focus is blue, its own hue, so it never reads as pressed or chosen. A button, a link, a tab, a segment, and the switch
+   draw an outline offset from them, with a halo in the page's color that keeps it clear of a fill. */
+:focus-visible { outline: var(--focus-width) solid var(--ring); outline-offset: var(--focus-offset); box-shadow: 0 0 0 var(--focus-halo) var(--background); }
+.sr-only, .skip:not(:focus) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+svg.icon { width: var(--size-icon); height: var(--size-icon); flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Skip link: the first stop on every page, shown only while it has focus. */
+.skip { position: absolute; z-index: 50; left: var(--spacing-2); top: var(--spacing-2); padding: var(--spacing-1_5) var(--spacing-3); border: var(--border-width-thin) solid var(--foreground); border-radius: var(--radius-md); background: var(--background); color: var(--foreground); }
+
+/* Page shell: the top bar, then one main column, then the foot. */
+.shell { min-height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.page { width: 100%; max-width: var(--container-text); margin-inline: auto; padding: var(--spacing-6) var(--spacing-4) var(--spacing-2); }
+.page-wide { max-width: var(--container-page); }
+.page-head { display: grid; gap: var(--spacing-1); margin-bottom: var(--spacing-4); }
+.lead { color: var(--muted-foreground); font-size: var(--text-title); line-height: var(--text-title--line-height); }
+/* Prose: a block a person reads runs about 80 characters a line; a one-line row may run wider, so no blanket p rule. */
+.prose { max-inline-size: var(--container-prose); }
+.foot { display: grid; gap: var(--spacing-1_5); width: 100%; max-width: var(--container-page); margin: var(--spacing-6) auto 0; padding: var(--spacing-3) var(--spacing-4) var(--spacing-6); border-top: var(--border-width-thin) solid var(--border); color: var(--muted-foreground); }
+.section { margin-top: var(--spacing-6); }
+.section > h2 { padding-bottom: var(--spacing-1_5); margin-bottom: var(--spacing-3); border-bottom: var(--border-width-thin) solid var(--border); }
+
+/* Top bar: the product's name and what the page is, the views as tabs, then the tools. */
+.topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--spacing-4); min-height: var(--size-bar); padding-inline: var(--spacing-3); border-bottom: var(--border-width-thin) solid var(--border); background: var(--background); }
+.topbar-name { display: flex; align-items: baseline; gap: var(--spacing-2); min-width: 0; white-space: nowrap; }
+.topbar-name b { font-size: var(--text-title); font-weight: var(--font-weight-semibold); }
+.topbar-name span { color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; }
+.topbar-end { display: flex; justify-content: flex-end; align-items: center; gap: var(--spacing-1_5); min-width: 0; }
+/* Toolbar: a row of controls for the view below it. */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-2); padding: var(--spacing-2) var(--spacing-3); border-bottom: var(--border-width-thin) solid var(--border); background: var(--background); }
+.toolbar .grow { flex: 1; min-width: 0; }
+
+/* Tabs: one view at a time; the current one is in the text's color with a bar under it. */
+.tabs { display: flex; gap: var(--spacing-6); align-self: stretch; }
+.tabs > :is(a, button) { position: relative; display: inline-flex; align-items: center; min-height: var(--size-target); padding: 0 var(--spacing-1); border: 0; background: none; color: var(--muted-foreground); font-weight: var(--font-weight-medium); text-decoration: none; cursor: pointer; }
+.tabs > :is(a, button):hover { color: var(--foreground); }
+.tabs > [aria-current="page"], .tabs > [aria-selected="true"] { color: var(--foreground); }
+.tabs > [aria-current="page"]::after, .tabs > [aria-selected="true"]::after { content: ""; position: absolute; inset-inline: 0; bottom: calc(-1 * var(--border-width-thin)); height: var(--border-width-thick); background: var(--foreground); }
+
+/* Buttons: an outline by default; one primary per view; quiet in a toolbar; square for an icon alone. A row's next-step
+   words (.words-next) turn their Copy primary while the row is the current one, as the view's one primary. A fill that
+   turns on or off switches at once, both ways: a fade would pass through tones its text cannot be read on. */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-1_5); min-height: var(--size-control); min-width: var(--size-target); padding: 0 var(--spacing-3); border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-md); background: var(--background); color: var(--foreground); text-decoration: none; white-space: nowrap; cursor: pointer; transition: background-color var(--duration-fast) var(--ease-standard); }
+.btn:hover, .btn[aria-expanded="true"] { background: var(--accent); }
+.btn[aria-pressed="true"], .switch[aria-checked="true"] .switch-state { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.btn:disabled, .btn[aria-disabled="true"] { border-color: var(--border); background: var(--background); color: var(--muted-foreground); cursor: not-allowed; }
+.btn-primary, .btn-primary:hover, [aria-current="true"] .words-next > .btn { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); font-weight: var(--font-weight-semibold); }
+.btn-primary, .words-next > .btn, .btn[aria-pressed] { transition: none; }
+.btn-quiet { border-color: transparent; background: none; color: var(--muted-foreground); }
+.btn-quiet:hover { color: var(--foreground); }
+.btn-icon { width: var(--size-control); padding: 0; }
+.btn-comment { border-color: var(--comment); color: var(--comment); font-weight: var(--font-weight-semibold); }
+.btn-comment[aria-pressed="true"] { background: var(--comment); border-color: var(--comment); color: var(--comment-foreground); }
+.btn-block { width: 100%; }
+:is(.btn-primary, .btn[aria-pressed="true"]) kbd { border-color: currentColor; background: transparent; color: inherit; }
+
+/* Segmented control: one choice from a few, as one control; the chosen segment is filled. */
+.seg { display: inline-flex; max-width: 100%; overflow-x: auto; border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-md); background: var(--background); }
+.seg > button { display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-1_5); flex: none; min-height: calc(var(--size-control) - 2 * var(--border-width-thin)); min-width: var(--size-target); padding: 0 var(--spacing-2); border: 0; background: none; color: var(--muted-foreground); cursor: pointer; }
+.seg > button + button { border-inline-start: var(--border-width-thin) solid var(--border); }
+.seg > button:first-child { border-start-start-radius: calc(var(--radius-md) - var(--border-width-thin)); border-end-start-radius: calc(var(--radius-md) - var(--border-width-thin)); }
+.seg > button:last-child { border-start-end-radius: calc(var(--radius-md) - var(--border-width-thin)); border-end-end-radius: calc(var(--radius-md) - var(--border-width-thin)); }
+.seg > button:hover { color: var(--foreground); }
+/* The segment scrolls on a narrow screen, which would clip an outline outside it: its ring sits inside, on a halo. */
+.seg > button:focus-visible { outline-offset: calc(-1 * var(--focus-width)); box-shadow: inset 0 0 0 calc(2 * var(--focus-width)) var(--background); }
+.seg > button[aria-pressed="true"] { background: var(--primary); color: var(--primary-foreground); }
+.seg > button[aria-pressed="true"] .count { color: inherit; }
+
+/* Links: a link is blue, the one accent, with a soft underline that turns solid on hover; a quiet link in a toolbar or a foot is muted. */
+a, .link { color: var(--link); text-decoration-color: color-mix(in srgb, var(--link) 40%, transparent); text-decoration-thickness: from-font; text-underline-offset: 0.2em; }
+a:hover, .link:hover { text-decoration-color: currentColor; }
+.link { display: inline-flex; align-items: center; min-height: var(--size-target); padding: 0; border: 0; background: none; text-align: start; text-decoration-line: underline; text-decoration-thickness: auto; cursor: pointer; }
+.link-quiet { color: var(--muted-foreground); text-decoration-color: var(--input); }
+.link-quiet:hover { color: var(--foreground); }
+
+/* Fields: a text field, a search, a select; one size, the control's. */
+.field, .select { min-height: var(--size-control); padding: 0 var(--spacing-2); border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-md); background: var(--background); color: var(--foreground); }
+.field { width: 100%; }
+.field::placeholder { color: var(--muted-foreground); opacity: 1; }
+/* A focused field draws no outline and no gap: its border turns to the ring and doubles inside, with a soft halo outside. */
+:is(.field, .select):focus-visible { outline: none; border-color: var(--ring); box-shadow: inset 0 0 0 var(--border-width-thin) var(--ring), 0 0 0 var(--focus-field-halo) var(--ring-halo); }
+textarea.field { min-height: calc(3 * var(--size-control)); padding-block: var(--spacing-1); }
+.select { padding-inline-end: var(--spacing-6); font-weight: var(--font-weight-semibold); cursor: pointer; }
+.label { display: grid; gap: var(--spacing-1); color: var(--muted-foreground); }
+
+/* Switch: on or off, its word beside it in a pill that fills when on. */
+.switch { display: inline-flex; align-items: center; gap: var(--spacing-2); min-height: var(--size-target); padding: 0; border: 0; background: none; color: var(--foreground); font-weight: var(--font-weight-semibold); text-align: start; cursor: pointer; }
+.switch-state { min-width: 2.5em; padding: 0 var(--spacing-1_5); border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-full); color: var(--muted-foreground); font-size: var(--text-meta); font-weight: var(--font-weight-semibold); text-align: center; }
+
+/* kbd: a key to press. */
+kbd { display: inline-block; min-width: 1.75em; padding: 0 var(--spacing-1); border: var(--border-width-thin) solid var(--input); border-bottom-width: var(--border-width-thick); border-radius: var(--radius-sm); background: var(--background); color: var(--muted-foreground); font-family: var(--font-sans); font-size: var(--text-meta); font-weight: var(--font-weight-medium); line-height: var(--text-meta--line-height); text-align: center; }
+
+/* Count: a number in text, after a heading or as "1 of 4". Badge: a number in a pill, on a control or a pin. */
+.count { color: var(--muted-foreground); font-weight: var(--font-weight-normal); }
+.badge { display: inline-flex; align-items: center; justify-content: center; min-width: calc(var(--size-icon) + var(--spacing-0_5)); padding: 0 var(--spacing-1); border-radius: var(--radius-full); background: var(--primary); color: var(--primary-foreground); font-size: var(--text-meta); font-weight: var(--font-weight-semibold); line-height: var(--text-meta--line-height); }
+.badge-comment { background: var(--comment); color: var(--comment-foreground); }
+
+/* Flag: a state in a word, with its icon. Color never carries it alone. */
+.flag { display: inline-flex; align-items: center; gap: var(--spacing-1); font-size: var(--text-meta); font-weight: var(--font-weight-semibold); line-height: var(--text-meta--line-height); white-space: nowrap; color: var(--foreground); }
+.flag svg.icon { width: 1em; height: 1em; stroke-width: 2.2; }
+.flag-muted { color: var(--muted-foreground); font-weight: var(--font-weight-medium); }
+.flag-strong { padding: var(--spacing-0_5) var(--spacing-1_5); border-radius: var(--radius-sm); background: var(--primary); color: var(--primary-foreground); }
+.flag-pending { padding: 0 var(--spacing-1_5); border: var(--border-width-thin) dashed var(--pending); border-radius: var(--radius-sm); color: var(--muted-foreground); }
+.flag-pass { color: var(--pass); }
+.flag-fail { color: var(--fail); }
+.flag-warn { color: var(--warn); }
+.flag-emergency { color: var(--emergency); }
+
+/* Box: a panel that groups. Callout: a box that says something about the page; notice and emergency are its variants. */
+.box { padding: var(--spacing-3) var(--spacing-4); border: var(--border-width-thin) solid var(--border); border-radius: var(--radius-lg); background: var(--muted); }
+.callout { display: flex; gap: var(--spacing-2); align-items: flex-start; padding: var(--spacing-2) var(--spacing-4); border-bottom: var(--border-width-thin) solid var(--border); background: var(--muted); }
+.callout > svg.icon { margin-top: 0.15em; }
+.callout-notice { background: var(--warn-subtle); border-bottom-color: var(--warn); }
+.callout-notice > svg.icon { color: var(--warn); }
+.callout-emergency { background: var(--emergency-subtle); border-bottom: var(--border-width-thick) solid var(--emergency); }
+.callout-emergency > svg.icon { color: var(--emergency); stroke-width: 2; }
+.callout-overdue { background: var(--emergency); border-bottom-color: var(--emergency); color: var(--emergency-foreground); }
+.callout-overdue :is(svg.icon, a, .link, .id, .count, .flag, code) { color: var(--emergency-foreground); }
+.callout-overdue .btn svg.icon { color: inherit; }
+.callout-overdue :focus-visible { outline-color: var(--emergency-foreground); box-shadow: 0 0 0 var(--focus-halo) var(--emergency); }
+.box > .callout, .box .callout { border-radius: var(--radius-md); border: 0; }
+
+/* Table: a header row on the panel's color, hairlines between rows, and a scroll inside its own box on a narrow screen. */
+.table-wrap { max-width: 100%; overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; }
+.table caption { padding-bottom: var(--spacing-1_5); color: var(--muted-foreground); text-align: start; }
+.table th, .table td { padding: var(--spacing-1_5) var(--spacing-2); border-bottom: var(--border-width-thin) solid var(--border); text-align: start; vertical-align: top; }
+.table thead th { background: var(--muted); color: var(--muted-foreground); font-size: var(--text-meta); font-weight: var(--font-weight-semibold); }
+
+/* Facts list: a term and its value per row; one column on a phone. */
+.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--spacing-2) var(--spacing-4); }
+.facts dt { color: var(--muted-foreground); }
+@media (width < 40rem) { .facts { grid-template-columns: minmax(0, 1fr); gap: 0; } .facts dd { margin-bottom: var(--spacing-2); } }
+
+/* Code: ids, paths, and commands in the mono face, never prose. Words to copy: the one line a person pastes, with Copy. */
+code, pre, .mono { font-family: var(--font-mono); font-size: var(--text-meta); }
+code { overflow-wrap: anywhere; }
+pre { margin: 0; padding: var(--spacing-2) var(--spacing-3); border: var(--border-width-thin) solid var(--border); border-radius: var(--radius-md); background: var(--muted); overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.id { color: var(--muted-foreground); font-family: var(--font-mono); font-size: var(--text-meta); white-space: nowrap; }
+.words { display: flex; align-items: stretch; gap: var(--spacing-1_5); min-width: 0; }
+.words > :is(code, pre) { flex: 1; min-width: 0; display: flex; align-items: center; min-height: var(--size-control); padding: var(--spacing-1) var(--spacing-2); border: var(--border-width-thin) solid var(--border); border-radius: var(--radius-md); background: var(--muted); color: var(--foreground); white-space: pre-wrap; user-select: all; }
+.words-label { color: var(--muted-foreground); font-size: var(--text-meta); }
+@media (width < 40rem) { .words { flex-wrap: wrap; } .words > :is(code, pre) { flex-basis: 100%; } .words > .btn { flex: 1; } }
+.diff > span { display: block; padding-inline: var(--spacing-2); }
+.diff .add { background: var(--diff-added); }
+.diff .del { background: var(--diff-removed); }
+
+/* Current and chosen: the row a keyboard cursor points at has a bar and the hover color; a chosen option is filled.
+   Focus stays the ring, so the three never look alike. */
+.row { display: block; padding: var(--spacing-2) var(--spacing-3); border-inline-start: var(--border-width-thick) solid transparent; }
+.row:hover { background: var(--accent); }
+.row[aria-current="true"] { border-inline-start-color: var(--foreground); background: var(--accent); }
+.option { display: flex; align-items: center; gap: var(--spacing-2); width: 100%; min-height: var(--size-control); padding: 0 var(--spacing-2); border: 0; border-radius: var(--radius-md); background: none; text-align: start; cursor: pointer; }
+.option:hover { background: var(--accent); }
+.option[aria-checked="true"], .option[aria-selected="true"] { background: var(--primary); color: var(--primary-foreground); font-weight: var(--font-weight-semibold); }
+
+/* Progress: a hairline track and a primary fill; the words beside it say what it counts, so it is never the only cue. */
+.meter { display: block; height: var(--spacing-1_5); border-radius: var(--radius-full); background: var(--border); overflow: hidden; }
+.meter > span { display: block; height: 100%; background: var(--primary); }
+
+/* Toast: an outcome, for a few seconds, at the foot of the window. The live region says it once. */
+.toast { position: fixed; z-index: 40; inset-inline: 0; bottom: var(--spacing-4); width: max-content; max-width: min(var(--container-dialog), calc(100vw - 2 * var(--spacing-4))); margin-inline: auto; padding: var(--spacing-2) var(--spacing-3); border-radius: var(--radius-md); background: var(--primary); color: var(--primary-foreground); font-weight: var(--font-weight-semibold); text-align: center; box-shadow: var(--shadow-raised); }
+.toast:empty { display: none; }
+
+/* Dialog: the keys list, over a scrim; Esc closes it, and focus returns to the button that opened it. */
+.dialog { width: min(var(--container-dialog), calc(100vw - 2 * var(--spacing-4))); padding: 0; border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-lg); background: var(--popover); color: var(--popover-foreground); box-shadow: var(--shadow-raised); }
+.dialog::backdrop { background: var(--scrim); }
+.dialog-head { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-3); padding: var(--spacing-3) var(--spacing-4); border-bottom: var(--border-width-thin) solid var(--border); }
+.dialog-head h2 { font-size: var(--text-title); }
+.dialog-body { padding: var(--spacing-2) var(--spacing-4) var(--spacing-4); }
+
+/* States: empty says what is missing and the one next step; error says what happened and how to fix it; loading keeps
+   the layout and dims what is not there yet, with no spinner. */
+.state { display: grid; gap: var(--spacing-2); justify-items: start; padding: var(--spacing-4); border: var(--border-width-thin) solid var(--border); border-radius: var(--radius-lg); }
+.state h2 { display: flex; align-items: center; gap: var(--spacing-2); }
+.state-empty h2 > svg.icon { color: var(--pass); }
+.state-error { border-color: var(--warn); background: var(--warn-subtle); }
+.state-error h2 > svg.icon { color: var(--warn); }
+.placeholder { border-radius: var(--radius-sm); background: var(--muted); color: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0ms !important; animation: none !important; }
+}
+/* Forced colors: the system's colors replace these, and a fill vanishes; so a pressed, chosen, or current thing keeps a
+   system highlight, and a flag keeps its edge. */
+@media (forced-colors: active) {
+  :is(.btn[aria-pressed="true"], .seg > button[aria-pressed="true"], .option[aria-checked="true"], .option[aria-selected="true"], .switch[aria-checked="true"] .switch-state, .btn-primary, [aria-current="true"] .words-next > .btn, .flag-strong, .badge) { forced-color-adjust: none; background: SelectedItem; color: SelectedItemText; border-color: SelectedItem; }
+  .row[aria-current="true"] { border-inline-start-color: Highlight; }
+  .tabs > [aria-current="page"]::after, .tabs > [aria-selected="true"]::after { forced-color-adjust: none; background: Highlight; }
+  .meter { border: var(--border-width-thin) solid CanvasText; }
+  .meter > span { background: Highlight; forced-color-adjust: none; }
+  :focus-visible { outline-color: Highlight; }
+  :is(.field, .select):focus-visible { outline: var(--focus-width) solid transparent; }
+}

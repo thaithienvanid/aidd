@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: mvp-skeleton-runs-the-lightest-specify
+context:
+  scaffold_script: fixture.sh

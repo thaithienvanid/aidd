@@ -1,0 +1,26 @@
+/* The exploration page's own layout (`aidd explore`), on the system of aidd's built-in pages: the contents, the directions
+   side by side, the rounds' screenshots in pairs, and the Markdown a direction holds. Every component and every value
+   comes from the system's CSS before this; this file only places things, in tokens. */
+.sprite { position: absolute; }
+.muted, figcaption { color: var(--muted-foreground); }
+.toc ol { display: flex; flex-wrap: wrap; gap: 0 var(--spacing-4); padding: 0; list-style: none; }
+.flow > * + *, .md > * + * { margin-top: var(--spacing-3); }
+.rounds > * + * { margin-top: var(--spacing-6); }
+.md :is(ul, ol), .changes { padding-inline-start: var(--spacing-6); }
+.md li + li, .changes li + li, .changes ul { margin-top: var(--spacing-1); }
+.md :is(p, li, blockquote), .changes { max-inline-size: var(--container-prose); }
+blockquote { margin: 0; padding-inline-start: var(--spacing-3); border-inline-start: var(--border-width-thick) solid var(--border); }
+.directions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--spacing-4); align-items: start; }
+.direction { min-width: 0; }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--spacing-3); align-items: start; }
+img { display: block; max-width: 100%; height: auto; border: var(--border-width-thin) solid var(--border); border-radius: var(--radius-md); }
+figcaption { margin-top: var(--spacing-1); }
+.screens { border-top: var(--border-width-thin) solid var(--border); }
+.screens > details { padding-bottom: var(--spacing-2); border-bottom: var(--border-width-thin) solid var(--border); }
+summary { min-height: var(--size-control); padding-block: var(--spacing-1_5); cursor: pointer; }
+summary > .flag { margin-inline-start: var(--spacing-2); vertical-align: middle; }
+@media print {
+  .skip, .toc { display: none; }
+  details::details-content { content-visibility: visible; display: contents; }
+  img, figure, tr { break-inside: avoid; }
+}
