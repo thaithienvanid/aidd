@@ -2,5 +2,5 @@
 # pyproject.toml keeps a range for anyone building from source; CI and releases build with exactly this.
 # Regenerate build.txt with:
 #   cd .github/requirements && uv pip compile --universal --generate-hashes --python-version 3.11 build.in -o build.txt
-hatchling==1.32.4
+hatchling==1.33.0
 hatch-fancy-pypi-readme==25.1.0
