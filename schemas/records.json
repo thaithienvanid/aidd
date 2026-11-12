@@ -1,0 +1,357 @@
+{
+  "description": "The record types aidd knows: each with what it records and the schema of its `data`. A record is the agent's own account of something that happened, kept as history: never a person's yes, never evidence, and nothing reads it to stop a step. A type changes only by adding optional fields; a breaking change is a new type. aidd keeps and lists a record of a type it does not know, or with a field it does not know, so an older aidd reads a newer one's records. A name or a value that was retired stays readable, and a reader reads it as the new one (`record` rows of schemas/retired-names.json): aidd never rewrites a record.",
+  "types": {
+    "decision": {
+      "description": "A question a person answered: an ask before an action, a choice between options, or an open question. The agent records it after it acts on the answer.",
+      "data": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "question",
+          "answer"
+        ],
+        "properties": {
+          "action": {
+            "$ref": "#/$defs/action",
+            "description": "The risk rule's action the question asked about, such as `git.push.force`. Required on a yes-or-no question."
+          },
+          "question": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "text"
+            ],
+            "description": "The question as the person saw it.",
+            "properties": {
+              "type": {
+                "x-open": true,
+                "enum": [
+                  "yes_no",
+                  "choice",
+                  "text"
+                ],
+                "description": "`yes_no`: yes or no to an action. `choice`: pick from `options`. `text`: an open question."
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The exact words shown, never a summary, and never a secret's value."
+              },
+              "options": {
+                "type": "array",
+                "minItems": 2,
+                "description": "On a choice only: the options shown.",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "label"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              },
+              "multiple": {
+                "type": "boolean",
+                "description": "On a choice only: whether the person may pick more than one option."
+              }
+            },
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "choice"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "options"
+              ]
+            },
+            "else": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "options"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "multiple"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "covers": {
+            "$ref": "#/$defs/covers",
+            "description": "What the yes applies to. A yes holds only for what the question showed."
+          },
+          "answer": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "outcome",
+              "words",
+              "by"
+            ],
+            "description": "The person's answer.",
+            "properties": {
+              "outcome": {
+                "x-open": true,
+                "enum": [
+                  "accept",
+                  "decline",
+                  "cancel"
+                ],
+                "description": "`accept`: yes, or a pick. `decline`: no. `cancel`: the question was dismissed with no answer."
+              },
+              "picked": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                },
+                "description": "On an accepted choice only: the ids of the options picked.",
+                "uniqueItems": true
+              },
+              "words": {
+                "type": "string",
+                "description": "The person's exact reply, so \"yes, but keep the summary\" keeps its \"but\". Empty only on `cancel`."
+              },
+              "by": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Who answered, by their git name. `aidd records add` fills in `git config user.name` when it is left out; the MCP `record` tool never does, so there the agent names them."
+              }
+            },
+            "if": {
+              "properties": {
+                "outcome": {
+                  "const": "cancel"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "words": {
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "if": {
+          "properties": {
+            "question": {
+              "properties": {
+                "type": {
+                  "const": "yes_no"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "action"
+          ]
+        }
+      }
+    },
+    "delegate_answer": {
+      "description": "The delegate's answer to a delegated ask, written by the delegate's MCP `delegate_answer` tool after it ran the check again. An accept stands only while the check still passes. A defer is final for the action on that tree. aidd writes it itself, never `aidd records add` or the MCP `record` tool, and it is never a person's yes.",
+      "data": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "covers",
+          "outcome",
+          "reason",
+          "check",
+          "delegation_commit"
+        ],
+        "properties": {
+          "action": {
+            "$ref": "#/$defs/action"
+          },
+          "covers": {
+            "$ref": "#/$defs/covers"
+          },
+          "outcome": {
+            "x-open": true,
+            "enum": [
+              "accept",
+              "defer"
+            ],
+            "description": "`accept`: the delegate said yes on a passing check. `defer`: the person decides."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "The delegate's reason, in one line."
+          },
+          "check": {
+            "type": "string",
+            "pattern": "^[0-9]{8}T[0-9]{9}Z-[0-9a-f]{8}$",
+            "description": "The `delegate_check` record the answer's own check run wrote."
+          },
+          "delegation_commit": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$",
+            "description": "The default branch's commit whose config held the delegation."
+          }
+        }
+      }
+    },
+    "delegate_check": {
+      "description": "One run of `aidd delegate check`: the action and what it covered, eligible or defer, and why. aidd writes it itself, never `aidd records add` or the MCP `record` tool. It is history: the check recomputes every check each time and reads no record's claims, except a delegate's defer.",
+      "data": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "covers",
+          "outcome",
+          "reasons"
+        ],
+        "properties": {
+          "action": {
+            "$ref": "#/$defs/action"
+          },
+          "covers": {
+            "$ref": "#/$defs/covers"
+          },
+          "outcome": {
+            "x-open": true,
+            "enum": [
+              "eligible",
+              "defer"
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "code",
+                "reserved",
+                "detail"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$",
+                  "description": "A reason code from schemas/delegate-check.schema.json."
+                },
+                "reserved": {
+                  "type": "boolean"
+                },
+                "detail": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              }
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "description": "What the check read, such as the tip commit and the check run's id, for a person to read. Nothing reads it to decide."
+          }
+        }
+      }
+    },
+    "report": {
+      "description": "An action at the `report` level: the agent took it on its own and said what it did.",
+      "data": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "said"
+        ],
+        "properties": {
+          "action": {
+            "$ref": "#/$defs/action",
+            "description": "The risk rule's action, such as `pr.open`."
+          },
+          "covers": {
+            "$ref": "#/$defs/covers",
+            "description": "What the action touched."
+          },
+          "said": {
+            "type": "string",
+            "minLength": 1,
+            "description": "What the agent told the person, in its words."
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "action": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+    },
+    "covers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The command line, never with a secret's value in it."
+        },
+        "paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The paths, relative to the repository root."
+        },
+        "head": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,64}$",
+          "description": "The commit the action ran on."
+        },
+        "tree": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$",
+          "description": "The head commit's tree, so an amend that keeps the tree keeps what the record covered."
+        },
+        "base": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$",
+          "description": "The default branch's tip the action was checked against."
+        },
+        "branch": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The branch the action reached."
+        },
+        "spec": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The Spec a yes covers, such as an approval's."
+        }
+      }
+    }
+  }
+}

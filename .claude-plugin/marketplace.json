@@ -1,0 +1,65 @@
+{
+  "name": "aidd",
+  "owner": {
+    "name": "Van Hoang"
+  },
+  "metadata": {
+    "description": "aidd is a governance layer for AI coding agents. Your agents do the work, and you decide the risky steps. aidd sizes each change, says when to ask, writes ask rules where agents have them, and ties each test run to its commit. It advises and enforces nothing: your harness and branch protection hold the stops. Local, no dependencies, no telemetry."
+  },
+  "plugins": [
+    {
+      "name": "aidd",
+      "source": "./",
+      "description": "The skill and MCP tools of aidd, a governance layer for AI coding agents. They give the route of a change, the risk level of an action, and the checks of a Spec.",
+      "relevance": {
+        "topic": "aidd",
+        "signals": {
+          "cli": [
+            "aidd"
+          ],
+          "filesRead": [
+            "**/.aidd/config.yaml"
+          ]
+        }
+      }
+    },
+    {
+      "name": "aidd-cli",
+      "source": "./plugins/aidd-cli",
+      "description": "Optional: the aidd command on the PATH of Claude Code's Bash tool, with no other install. A plugin of its own, because claude.ai and Cowork do not install a plugin that has a bin/ folder.",
+      "relevance": {
+        "topic": "the aidd command in Claude Code",
+        "signals": {
+          "filesRead": [
+            "**/.aidd/config.yaml"
+          ]
+        }
+      }
+    },
+    {
+      "name": "aidd-team",
+      "source": "./plugins/aidd-team",
+      "description": "An optional part of aidd: run the aidd loop as a development team of agent roles, each applying its discipline's industry standards, with practice skills per kind of work, every standard carrying a checked date (or a reviewed date for a practice), and an edition and source where the document has one. Ships one command per team flow, from onboarding a repository, writing a proposal, or building an MVP, to a quick fix, a rollout, and the retrospective. Needs the aidd plugin.",
+      "dependencies": [
+        "aidd"
+      ],
+      "relevance": {
+        "topic": "an aidd development team",
+        "signals": {
+          "filesRead": [
+            "**/.aidd/config.yaml",
+            "**/.claude/agents/aidd-*.md"
+          ]
+        }
+      }
+    },
+    {
+      "name": "aidd-packs",
+      "source": "./plugins/aidd-packs",
+      "description": "An optional part of aidd-team: the domain packs, one skill per domain (web, APIs, mobile, health, payments, and more), each with the domain's standards, a checklist per loop step, and test commands for a Spec. A role loads a pack by name when aidd risk, the config, or the lead names it. Install it in a project that calls for a pack, because its descriptions share Claude Code's skill listing budget. Needs the aidd-team plugin.",
+      "dependencies": [
+        "aidd-team"
+      ]
+    }
+  ]
+}

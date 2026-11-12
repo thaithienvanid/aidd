@@ -1,0 +1,1475 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:common",
+  "title": "aidd common definitions",
+  "description": "Shared vocabulary for every work item, typed document, and output of aidd. Tokens are snake_case and English.",
+  "$defs": {
+    "aidd_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$",
+      "examples": ["1.0.0"],
+      "description": "The aidd release this record conforms to; the method and the toolkit share one version."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$",
+      "description": "Stable key."
+    },
+    "criterion_id": {
+      "type": "string",
+      "pattern": "^S[1-9][0-9]*$",
+      "examples": ["S1"],
+      "description": "A success criterion's id: `S` and a number from 1, such as `S1`. It is unique in its Intent, never reused, and never renumbered."
+    },
+    "criterion_address": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}#S[1-9][0-9]*$",
+      "examples": ["INTENT-1#S1"],
+      "description": "A success criterion's address: its Intent's id, `#`, and its own id, such as `INTENT-1#S1`."
+    },
+    "from": {
+      "description": "What raised an item: another item's id, a criterion's address, `band:<id>` (an id in the id form), or a link to a ticket or a message. Any other text is refused.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/id"
+        },
+        {
+          "$ref": "#/$defs/criterion_address"
+        },
+        {
+          "type": "string",
+          "pattern": "^https?://\\S+$"
+        }
+      ]
+    },
+    "identity": {
+      "type": "string",
+      "pattern": "^\\S+$",
+      "description": "Who: a typed identity `<type>:<value>`, or a platform login (`@user`, `@org/team`, or a bare login), which is a person unless schemas/agents.json names it an agent or a bot. `x-who` says whether each type names a person or an agent, and `x-meanings` what its value holds. Any form may be qualified with a tenant as `<tenant>:<identity>`, and a type's name is never a tenant's.",
+      "x-who": {
+        "agent": "agent",
+        "email": "person",
+        "role": "agent"
+      },
+      "x-meanings": {
+        "agent": "`agent:<harness>/<model>`: an agent, as its commits' `Assisted-by` name it, such as `agent:claude-code/claude-opus-5-5`.",
+        "email": "`email:<address>`: a person, by their address, unless schemas/agents.json names it an agent's commit address.",
+        "role": "`role:<role>`: a role of the development team, such as `role:architect`, which an agent plays. Never a person."
+      }
+    },
+    "approved_by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The person who said yes, in git's trailer form, like `Co-authored-by`: `Name <email>`, from their `git config user.name` and `git config user.email`. When that identity is a bot's or missing, it is the `Name <email>` or `@handle` the person gives. An Approver's `@handle`, `@org/team`, or `email:<address>` holds too. It names only who: the head, the action, or a delegation goes in the commit body or the decision record (`aidd records add`). `aidd validate` warns about another form, and about an agent or a bot."
+    },
+    "instant": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$",
+      "format": "date-time",
+      "examples": ["2026-04-01T12:00:00Z"],
+      "description": "A moment, as an RFC 3339 date and time, such as `2026-04-01T12:00:00Z`."
+    },
+    "decision": {
+      "type": "object",
+      "required": [
+        "by",
+        "at"
+      ],
+      "description": "A decision, said once: who answered an action on exact content, and when. Every yes, and every no, in a file refers to it, and a decision that has more to say adds its own fields beside `by` and `at`, such as a `reason`. A place that refers to it lists `by` and `at` again, so that place stays closed to any other key. An absent object means no decision yet. An approval holds only by the commit that brought it to the default branch: that commit carries `Approved-by:` with the same person and `Approves:` with the item's exact id in its last paragraph, and changes nothing in the item but its `approval`. A field with no such commit reads as no approval, with an error. `aidd approve <id>` sets it and makes that commit.",
+      "properties": {
+        "by": {
+          "$ref": "#/$defs/approved_by",
+          "description": "The person who decided, in `approved_by`'s form, never an agent."
+        },
+        "at": {
+          "$ref": "#/$defs/instant",
+          "description": "When they decided it."
+        }
+      }
+    },
+    "glob": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$",
+      "examples": ["src/**"],
+      "description": "Repo-relative path glob. `*` stays inside one segment, `**` spans segments, a trailing `/` matches a directory."
+    },
+    "command": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Command vector, one argument per item. Never a shell string."
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12][0-9]|3[01])|(?:0[469]|11)-(?:0[1-9]|[12][0-9]|30)|02-(?:0[1-9]|1[0-9]|2[0-9]))$",
+      "format": "date",
+      "examples": ["2026-04-01"],
+      "description": "Calendar date, YYYY-MM-DD. The pattern rejects an impossible month or day (2026-13-01, 2026-04-31, 2026-02-30) with any validator; February 29 of a year that is not a leap year passes the pattern and fails only `format: date`, which aidd asserts but a stock validator may treat as an annotation."
+    },
+    "citation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "quote"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^https://",
+          "description": "The page the quote was copied from, read on the day in `checked`: a document or release page, never a bare homepage (its URL has a path)."
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "Copied exactly from that page. A registry entry quotes one full sentence (eight words or more, ending in `.`, `!`, or `?`), never the page title, that shows the edition or date. An extension or a library standard may quote the line that shows its pinned release, tag, commit, endpoint, or version. Anything less proves only that a page loaded, so `aidd eval standards` counts a registry entry as unconfirmed."
+        }
+      },
+      "description": "Where a standard's source was read: the page, and the words on it. It makes a `checked` date a check and never a bare assertion. `aidd eval standards --online` fetches `url` again and looks for `quote`."
+    },
+    "route": {
+      "enum": [
+        "minor",
+        "normal",
+        "major",
+        "emergency"
+      ],
+      "description": "How much of the loop a change needs: advice from `aidd risk --paths`, never a control. An area can raise it, and the author may declare a higher one. ITIL 4 has normal and emergency changes; minor and major split normal by impact.",
+      "x-meanings": {
+        "minor": "Small and reversible, one Task, with no risk dimension. No Spec file: implement, verify, review, and Merge approval before the merge to the default branch.",
+        "normal": "Everything that is not minor, major, or emergency. A Spec, with tests that fail on the base commit (red) and pass on head (green), and Spec approval where the profile asks for it.",
+        "major": "Touches data, security, privacy, money, or compliance, edits an area that raises the route to major, or cannot be reverted. A Spec with more: a tech spec, a threat model for security, privacy, or data, a rollout plan, and an observe block.",
+        "emergency": "Production is broken now and this change is the repair. Smoke tests still run, the review comes before the merge, and the Spec and the post-incident review follow by `backfill_due`."
+      },
+      "x-words": {
+        "minor": "no Spec",
+        "normal": "Spec first",
+        "major": "Spec first",
+        "emergency": "repair first"
+      }
+    },
+    "change_type": {
+      "enum": [
+        "feat",
+        "fix",
+        "refactor",
+        "perf",
+        "docs",
+        "test",
+        "build",
+        "ci",
+        "chore"
+      ],
+      "description": "What kind of change this is, in Conventional Commits vocabulary. The type never raises the route: a risk dimension does, as `risk.dimensions` holds it and `aidd risk --dimension` declares it.",
+      "x-meanings": {
+        "feat": "New or changed behavior someone can see. Needs a new-behavior test on normal and major.",
+        "fix": "Restores intended behavior. Needs a test that fails before the fix (red) and passes after (green).",
+        "refactor": "Structure changes, behavior does not. Existing tests must stay green.",
+        "perf": "Same behavior, different cost. Acceptance is a threshold.",
+        "docs": "Documentation, content, or generated reference only.",
+        "test": "Tests only; no behavior changes.",
+        "build": "Build system, packaging, developer tooling, third-party packages, or the infrastructure that runs the service. An infrastructure change also declares the dimension `availability`.",
+        "ci": "Continuous integration or delivery pipelines and agent configuration.",
+        "chore": "Housekeeping that changes no behavior: formatting, renames, cleanup."
+      }
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "ready",
+        "approved",
+        "in_progress",
+        "in_review",
+        "done",
+        "rolled_back",
+        "cancelled"
+      ],
+      "description": "Spec lifecycle status, stored in the Spec's front matter. The agent sets it as the work moves. Blocked is a flag (`waiting_on`), never a status.",
+      "x-meanings": {
+        "draft": "Being written, or sent back by a person's yes to `spec.revise`.",
+        "ready": "Written. On a route that asks for Spec approval, the agent asked and waits for the answer.",
+        "approved": "The person said yes to Spec approval, and the agent set `approved_by` and `approved_at`. Implementation may start.",
+        "in_progress": "The agent implements the Spec's Tasks.",
+        "in_review": "Verify and Review are clean on the head. The change waits for Merge approval.",
+        "done": "Merged. Terminal, unless the observe window fails and the change rolls back.",
+        "rolled_back": "The rollback ran, or the observe window failed (`outcome.rolled_back`, `outcome.observe_result: fail`). Terminal; Learn follows.",
+        "cancelled": "A person stopped the work, or triage declined it. Terminal."
+      },
+      "x-groups": {
+        "draft": "backlog",
+        "ready": "unstarted",
+        "approved": "unstarted",
+        "in_progress": "started",
+        "in_review": "started",
+        "done": "completed",
+        "rolled_back": "completed",
+        "cancelled": "cancelled"
+      },
+      "x-initial": {
+        "status": "draft",
+        "who": "agent",
+        "when": "you start the Spec (`aidd new spec`)"
+      },
+      "x-sets": {
+        "past_approval": {
+          "means": "At or past Spec approval. `approved_by` says who approved the Spec, and a test run decides by the base commit's copy of such a Spec.",
+          "statuses": [
+            "approved",
+            "in_progress",
+            "in_review",
+            "done",
+            "rolled_back"
+          ]
+        },
+        "before_implement": {
+          "means": "Before Implement: the Design stage, where the Spec's tests are expected to fail on the head.",
+          "statuses": [
+            "draft",
+            "ready",
+            "approved"
+          ]
+        },
+        "specifying": {
+          "means": "Specify: the Spec is written, or waits for Spec approval. Work it is `blocked_by` holds Implement, never these.",
+          "statuses": [
+            "draft",
+            "ready"
+          ]
+        },
+        "implementing": {
+          "means": "Implement: the Tasks are built one by one, and Verify follows once every Task is done.",
+          "statuses": [
+            "approved",
+            "in_progress"
+          ]
+        },
+        "can_wait": {
+          "means": "Open work that can still be blocked. Once a Spec is in review, its work is built.",
+          "statuses": [
+            "draft",
+            "ready",
+            "approved",
+            "in_progress"
+          ]
+        },
+        "built": {
+          "means": "Every Task's work is built: the Spec is in review or past it.",
+          "statuses": [
+            "in_review",
+            "done",
+            "rolled_back"
+          ]
+        },
+        "started": {
+          "means": "Work on the Spec started, so the Intent that holds it is active.",
+          "statuses": [
+            "in_progress",
+            "in_review",
+            "done",
+            "rolled_back"
+          ]
+        },
+        "ended": {
+          "means": "The work ended: it merged, was rolled back, or was cancelled. It counts toward its Intent's progress, and work that is `blocked_by` it may start.",
+          "statuses": [
+            "done",
+            "rolled_back",
+            "cancelled"
+          ]
+        },
+        "landed": {
+          "means": "The change reached production, which a hypothesis is measured after.",
+          "statuses": [
+            "done"
+          ]
+        },
+        "asked": {
+          "means": "The Spec asked for approval, so the documents it folds into are due.",
+          "statuses": [
+            "ready",
+            "approved",
+            "in_progress",
+            "in_review",
+            "done"
+          ]
+        },
+        "in_the_srs": {
+          "means": "The Spec's Acceptance is in the SRS.",
+          "statuses": [
+            "approved",
+            "in_progress",
+            "in_review",
+            "done"
+          ]
+        },
+        "acceptance_due": {
+          "means": "The Spec is in review or merged, so a record of manual acceptance is due.",
+          "statuses": [
+            "in_review",
+            "done"
+          ]
+        },
+        "without_triage": {
+          "means": "Work an agent suggested needs no person's triage here: nobody asked for approval yet, or the work was cancelled. At every other status, a person's triage must have accepted it.",
+          "statuses": [
+            "draft",
+            "cancelled"
+          ]
+        }
+      },
+      "x-transitions": [
+        {
+          "from": [
+            "draft"
+          ],
+          "to": "ready",
+          "who": "agent",
+          "when": "the Spec validates, and you ask for Spec approval"
+        },
+        {
+          "from": [
+            "ready"
+          ],
+          "to": "approved",
+          "who": "person",
+          "when": "the person says yes to Spec approval, and you commit it with an `Approved-by:` trailer of the same value (`references/spec.md`)",
+          "requires": [
+            "approved_by",
+            "approved_at"
+          ]
+        },
+        {
+          "from": [
+            "ready"
+          ],
+          "to": "approved",
+          "who": "agent",
+          "when": "you say you go on, where `spec.approve` is `report` or `allow`: the Spec is approved, with `approved_at` and no `approved_by`, as under a delegation",
+          "requires": [
+            "approved_at"
+          ]
+        },
+        {
+          "from": [
+            "approved"
+          ],
+          "to": "in_progress",
+          "who": "agent",
+          "when": "the first commit in a Task's scope"
+        },
+        {
+          "from": [
+            "in_progress"
+          ],
+          "to": "in_review",
+          "who": "agent",
+          "when": "Verify and Review are clean on the head, and you ask for Merge approval or open the PR/MR"
+        },
+        {
+          "from": [
+            "in_review"
+          ],
+          "to": "in_progress",
+          "who": "agent",
+          "when": "a new push after that, until Verify is clean again"
+        },
+        {
+          "from": [
+            "approved",
+            "in_progress",
+            "in_review"
+          ],
+          "to": "draft",
+          "who": "person",
+          "when": "the person says yes to `spec.revise`, and you record what was wrong, when, and who said yes",
+          "requires": [
+            "revisions"
+          ]
+        },
+        {
+          "from": [
+            "in_review"
+          ],
+          "to": "done",
+          "who": "person",
+          "when": "the change is merged into the default branch, or under `batched` into `intent/<ID>`"
+        },
+        {
+          "from": [
+            "done"
+          ],
+          "to": "rolled_back",
+          "who": "person",
+          "when": "the released change is rolled back, on the person's yes"
+        },
+        {
+          "from": [
+            "draft",
+            "ready",
+            "approved",
+            "in_progress",
+            "in_review"
+          ],
+          "to": "cancelled",
+          "who": "person",
+          "when": "a person stops the work, or declines it at triage"
+        }
+      ]
+    },
+    "intent_status": {
+      "enum": [
+        "draft",
+        "approved",
+        "active",
+        "done",
+        "cancelled"
+      ],
+      "description": "An Intent's status. draft, approved, and active are derived from the approval and its slices; done and cancelled are a person's decision, stored. Blocked is a flag, never a status.",
+      "x-meanings": {
+        "draft": "Derived: no slice has started.",
+        "approved": "Derived: a person approved it, its approval holds, and no slice has started.",
+        "active": "Derived: a slice has started (its Spec is in progress or later, or it merged).",
+        "done": "Stored: a person closed it; `aidd status` suggests it once every slice is finished.",
+        "cancelled": "Stored: a person stopped it."
+      },
+      "x-groups": {
+        "draft": "backlog",
+        "approved": "unstarted",
+        "active": "started",
+        "done": "completed",
+        "cancelled": "cancelled"
+      },
+      "x-initial": {
+        "status": "draft",
+        "who": "agent",
+        "when": "you write the Intent (`aidd new intent`)"
+      },
+      "x-sets": {
+        "can_wait": {
+          "means": "Open work that can still be blocked.",
+          "statuses": [
+            "draft",
+            "approved",
+            "active"
+          ]
+        },
+        "in_flight": {
+          "means": "A person approved it, or a slice started: the Intents a team has under way, counted against the limit of the intent order.",
+          "statuses": [
+            "approved",
+            "active"
+          ]
+        },
+        "never_stored": {
+          "means": "Derived from the approval and its slices, and read from no file: a file that says one is read as if it said none.",
+          "statuses": [
+            "approved"
+          ]
+        },
+        "started": {
+          "means": "A slice has started, so the Intent is active.",
+          "statuses": [
+            "active"
+          ]
+        },
+        "ended": {
+          "means": "A person closed it: done or cancelled.",
+          "statuses": [
+            "done",
+            "cancelled"
+          ]
+        },
+        "needs_finished_children": {
+          "means": "Every slice and Spec of the Intent is finished.",
+          "statuses": [
+            "done"
+          ]
+        }
+      },
+      "x-transitions": [
+        {
+          "from": [
+            "draft"
+          ],
+          "to": "approved",
+          "who": "person",
+          "when": "a person approves it (`aidd approve`, which asks first), and `aidd status` derives it from the approval's hold",
+          "requires": [
+            "approval"
+          ]
+        },
+        {
+          "from": [
+            "draft",
+            "approved"
+          ],
+          "to": "active",
+          "who": "agent",
+          "when": "a slice starts: its Spec is in progress or later, or it merged, and `aidd status` derives it"
+        },
+        {
+          "from": [
+            "draft",
+            "approved",
+            "active"
+          ],
+          "to": "done",
+          "who": "person",
+          "when": "a person closes it on their yes, which `aidd status` suggests once every slice is finished"
+        },
+        {
+          "from": [
+            "done"
+          ],
+          "to": "active",
+          "who": "person",
+          "when": "a person reopens it, because a slice is not finished"
+        },
+        {
+          "from": [
+            "draft",
+            "approved",
+            "active"
+          ],
+          "to": "cancelled",
+          "who": "person",
+          "when": "a person stops it, or records `go_no_go: no_go`"
+        }
+      ]
+    },
+    "status_transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "to",
+        "who",
+        "when"
+      ],
+      "description": "One move of a work item's status, a row of a status table's `x-transitions`. A pair of statuses with no row is no move, and no status moves to itself. The statuses are words of the table's `enum`.",
+      "properties": {
+        "from": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The statuses the move leaves. Each status of the list moves to `to` the same way."
+        },
+        "to": {
+          "type": "string",
+          "description": "The status the move reaches."
+        },
+        "who": {
+          "enum": [
+            "agent",
+            "person"
+          ],
+          "description": "Who moves it. `person`: a person decides it, and the agent records it on their yes. `agent`: the agent moves it on its own evidence."
+        },
+        "when": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What moves it, in the words the aidd skill's `references/state.md` shows."
+        },
+        "requires": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "The front-matter fields of the item's own schema that the move leaves set: who decided, and when."
+        }
+      }
+    },
+    "status_set": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "means",
+        "statuses"
+      ],
+      "description": "A named set of statuses that code reads as a fact about them, a row of a status table's `x-sets`. Each status is a word of the table's `enum`.",
+      "properties": {
+        "means": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What it means for a status to be in the set."
+        },
+        "statuses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The statuses in the set, in the order of the table's `enum`."
+        }
+      }
+    },
+    "status_start": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "who",
+        "when"
+      ],
+      "description": "Where a new work item starts, the `x-initial` of a status table: the status it holds before any move, who starts it, and the words that say how. A missing status reads as this one.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "The status a new item holds. A word of the table's `enum`."
+        },
+        "who": {
+          "enum": [
+            "agent",
+            "person"
+          ],
+          "description": "Who starts it, as `who` of a move says."
+        },
+        "when": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What starts it, in the words the aidd skill's `references/state.md` shows."
+        }
+      }
+    },
+    "planned_spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title"
+      ],
+      "description": "A planned Spec: one line in an Intent until its work starts. `aidd new spec <id>` writes the Spec from it and moves `blocked_by` and `development_team` into the Spec, so each fact keeps one owner. A slice carries no route: the route comes from the paths when its Spec is written.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id",
+          "description": "The id its Spec takes, such as SPEC-32. Unique across the Intent's slices."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "One line, the Spec's title to be."
+        },
+        "blocked_by": {
+          "$ref": "#/$defs/blocked_by",
+          "description": "The slices or Specs this one waits for before its work starts. `aidd validate` checks that they form no cycle."
+        },
+        "development_team": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The development team that delivers this slice, when it is not the Intent's: a key of the config's `development_teams`, which `aidd validate` checks."
+        },
+        "repo": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The repository that delivers this slice, when it is not this one. Its Spec sets `trace_id: <home>-<Intent id>`; aidd reads no other repository."
+        },
+        "merged_in": {
+          "$ref": "#/$defs/sha",
+          "description": "The commit that merged a slice with no Spec file: one that routed minor, or one delivered in another repository."
+        },
+        "drafted_in": {
+          "$ref": "#/$defs/sha",
+          "description": "The commit that holds a draft of its Spec, from before it became a slice line. `aidd new spec <id>` starts from that draft."
+        }
+      }
+    },
+    "phase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "specs"
+      ],
+      "description": "An ordered group of an Intent's slices, with a date when a person names one. Phases that run side by side need no field: their slices are ready together. For a client engagement, a phase carries its invoicing hook.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id",
+          "description": "A short key, such as P1."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "A short name, such as \"Walking skeleton\"."
+        },
+        "due": {
+          "$ref": "#/$defs/date",
+          "description": "The date the phase is committed for, only when a person names one."
+        },
+        "finished_on": {
+          "$ref": "#/$defs/date",
+          "description": "The day it finished, as a person records it (the client's acceptance). Never an agent."
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "description": "What is invoiced when it finishes, in `currency`."
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "description": "An ISO 4217 code, such as EUR or USD."
+        },
+        "trigger": {
+          "$ref": "urn:aidd:1:proposal#/$defs/phase/properties/trigger"
+        },
+        "invoice_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The invoice's number once a person sends it."
+        },
+        "specs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/planned_spec"
+          },
+          "maxItems": 50,
+          "description": "The phase's planned Specs, in the order they merge."
+        }
+      },
+      "if": {
+        "required": [
+          "amount"
+        ]
+      },
+      "then": {
+        "required": [
+          "currency"
+        ]
+      }
+    },
+    "tracker": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "id"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+            "description": "The tracker's own word for the record, such as `initiative`, `epic`, or `story`."
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^\\S+$",
+            "description": "The tracker's key, such as PORT-31."
+          }
+        }
+      },
+      "uniqueItems": true,
+      "maxItems": 8,
+      "description": "Only when a tracker holds the record: the tracker's records this item links to, such as `{type: epic, id: PORT-31}`. The tracker owns its hierarchy and its order; the repository owns the words, the Spec, its tests, and every approval. aidd calls no tracker."
+    },
+    "status_group": {
+      "enum": [
+        "backlog",
+        "unstarted",
+        "started",
+        "completed",
+        "cancelled"
+      ],
+      "description": "The group every status falls into, the same five for Specs, Intents, and proposals, so a board or a tracker can mirror any object by its group. `aidd status --json` gives each item's group.",
+      "x-meanings": {
+        "backlog": "Being written: a draft, or a proposal still being qualified.",
+        "unstarted": "Written, waiting for approval or approved; nobody has started it.",
+        "started": "Open work: being built, waiting for a person, or watched after release.",
+        "completed": "Finished: done, rolled back (the work ended and Learn follows), or a proposal the addressee accepted.",
+        "cancelled": "Stopped without delivery: cancelled, rejected, withdrawn, or a no-go."
+      }
+    },
+    "blocked_by": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true,
+      "description": "The work items this one waits for before its work starts, by id. `aidd validate` checks that they form no cycle."
+    },
+    "priority": {
+      "enum": [
+        "urgent",
+        "high",
+        "medium",
+        "low"
+      ],
+      "description": "How soon the work matters, for sorting the open work. Unset, it is medium; an emergency is always urgent. Bookkeeping: it never changes the route, and editing it needs no `spec.revise`.",
+      "x-meanings": {
+        "urgent": "Drop other work for it. Every emergency is urgent.",
+        "high": "Next, before medium work.",
+        "medium": "The default.",
+        "low": "When nothing else waits."
+      }
+    },
+    "owner": {
+      "$ref": "#/$defs/identity",
+      "description": "The person driving the work, whom `aidd status` names as who acts. A person, never an agent or an agent account (`aidd validate` fails one). Bookkeeping: editing it needs no `spec.revise`, and it approves nothing."
+    },
+    "confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "description": "Confidence in the assessment. Write it only as `low`, which stops the run. Unset, it is `high` while `open_questions` is empty and `medium` while it lists facts.",
+      "x-meanings": {
+        "high": "Every fact that could change the route is known. open_questions is empty.",
+        "medium": "Some facts are missing, and none of them could change the route. List them, and go on.",
+        "low": "A missing fact could change the route. Stop and ask."
+      }
+    },
+    "next": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "what"
+      ],
+      "description": "A next step, the same in every output: what it is, with its stable `code` and who takes it when the output knows them.",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/step_code",
+          "description": "A stable code, such as `spec.approve`, that a script may match on."
+        },
+        "who": {
+          "enum": [
+            "agent",
+            "person",
+            "nobody"
+          ],
+          "description": "Who takes the step: an agent, a person, or nobody, when the step waits on other work or the work is finished."
+        },
+        "what": {
+          "type": "string",
+          "description": "The step, in a sentence."
+        },
+        "person": {
+          "type": "string",
+          "description": "For a step a person takes: who answers. The first approver for an approval, else the owner."
+        },
+        "words": {
+          "type": "string",
+          "description": "What a person types to their agent, or the command to run, to take the step. Absent for a step nobody takes, and for an item whose id is not a plain id (the schema's id pattern), because words hold no other text of the repository."
+        },
+        "why": {
+          "type": "string",
+          "description": "Why the step comes next, in one line, read from the data that owns the reason: the loop's routes and decision rights in `schemas/roles.json`, or a schema's meaning. Absent where no data owns one, such as finished work."
+        }
+      }
+    },
+    "step_code": {
+      "x-open": true,
+      "enum": [
+        "setup.missing",
+        "spec.emergency",
+        "spec.triage",
+        "spec.blocked_by",
+        "spec.blocked",
+        "spec.planned",
+        "spec.draft",
+        "spec.ask_approval",
+        "spec.consumers",
+        "spec.approve",
+        "spec.approved",
+        "spec.in_progress",
+        "spec.verify",
+        "pr.merge",
+        "spec.observe",
+        "spec.done",
+        "spec.outcome_due",
+        "spec.rolled_back",
+        "spec.cancelled",
+        "spec.task_person",
+        "product_scope.approve",
+        "product_scope.stalled",
+        "product_scope.review_due",
+        "intent.approve",
+        "intent.slice",
+        "intent.close",
+        "intent.result_due",
+        "exploration.open",
+        "proposal.qualifying",
+        "proposal.drafting",
+        "proposal.signed_off",
+        "proposal.submitted",
+        "proposal.accepted",
+        "flag.overdue",
+        "deprecation.overdue",
+        "nothing_open"
+      ],
+      "description": "A step `aidd status` can give, as the `code` of a next step: `<object>.<state>`, such as `spec.approve`, or one word. They run in the order a work item moves through them. `x-who` says who takes each step, and `x-meanings` what moves it on.",
+      "x-who": {
+        "setup.missing": "person",
+        "spec.emergency": "agent",
+        "spec.triage": "person",
+        "spec.blocked_by": "nobody",
+        "spec.blocked": "person",
+        "spec.planned": "agent",
+        "spec.draft": "agent",
+        "spec.ask_approval": "agent",
+        "spec.consumers": "agent",
+        "spec.approve": "person",
+        "spec.approved": "agent",
+        "spec.in_progress": "agent",
+        "spec.verify": "agent",
+        "pr.merge": "person",
+        "spec.observe": "agent",
+        "spec.done": "nobody",
+        "spec.outcome_due": "person",
+        "spec.rolled_back": "agent",
+        "spec.cancelled": "nobody",
+        "spec.task_person": "person",
+        "product_scope.approve": "person",
+        "product_scope.stalled": "agent",
+        "product_scope.review_due": "person",
+        "intent.approve": "person",
+        "intent.slice": "agent",
+        "intent.close": "person",
+        "intent.result_due": "agent",
+        "exploration.open": "person",
+        "proposal.qualifying": "person",
+        "proposal.drafting": "agent",
+        "proposal.signed_off": "person",
+        "proposal.submitted": "person",
+        "proposal.accepted": "agent",
+        "flag.overdue": "agent",
+        "deprecation.overdue": "agent",
+        "nothing_open": "person"
+      },
+      "x-meanings": {
+        "setup.missing": "aidd is not set up in this repository: run `aidd init`",
+        "spec.emergency": "an emergency Spec is open: restore service inside its scope first, then complete the Spec before its `backfill_due`",
+        "spec.triage": "an agent suggested this work: a person triages it (accepted, declined, or snoozed) before anyone builds it",
+        "spec.blocked_by": "the approved Spec waits for the work its `blocked_by` names: Implement starts when that work finishes",
+        "spec.blocked": "the item names a wait in `waiting_on`, or a Task used its retries: clear the wait and remove `waiting_on`, say \"try again\", or re-plan",
+        "spec.planned": "the Spec is planned, and nobody has started it: Specify writes it and its tests when its turn comes",
+        "spec.draft": "the Spec and its tests are not finished: finish them, run `aidd validate`, then ask for Spec approval",
+        "spec.ask_approval": "the Spec has no placeholder and `aidd validate` finds no error: set `status: ready`, then ask for Spec approval",
+        "spec.consumers": "the revised Spec provides an interface that open Specs consume: finish it, then name those Specs and their owners in the Spec approval question",
+        "spec.approve": "the Spec, its tests, and its design wait for a person's yes: the agent asked, and the person answers",
+        "spec.approved": "the Spec is approved: implement it inside its Tasks' scope",
+        "spec.in_progress": "the Spec is being built: finish its Tasks and get the tests green with `aidd test`",
+        "spec.verify": "the Tasks are built and the head is not yet `in_review`: Verify and Review run side by side, and the agent sets the Spec `in_review` once both are clean",
+        "pr.merge": "the built change waits for a person's Merge approval: they read the report, then say yes, or review the PR/MR",
+        "spec.observe": "the change merged and its observe window is open: watch it against its rollback trigger, then record `outcome.observe_result`",
+        "spec.done": "the Spec is done: nothing to do",
+        "spec.outcome_due": "the Spec's hypothesis is past due: measure its metric and record `outcome.hypothesis_result`",
+        "spec.rolled_back": "the change was rolled back: write the postmortem",
+        "spec.cancelled": "the Spec was cancelled: nothing to do",
+        "spec.task_person": "a Task is assigned to a person: they do it, then record `done: true` on it",
+        "product_scope.approve": "a change to the BRD, the PRD, the standing outcomes, or the intent order waits for a person's yes: they read what changed, then say yes in the chat, and the agent records `approved_by` and `approved_at`",
+        "product_scope.stalled": "an active product outcome has no approved or active Intent, or, with only a BRD, an active requirement, or an active standing outcome, has none: propose the smallest Intents that serve it, for a person to agree to",
+        "product_scope.review_due": "the product scope's `review_due` has passed: draft each active item's actual and a suggested decision, and a person decides each row",
+        "intent.approve": "the Intent's outcome and planned Specs wait for a person's approval: they read it, then say yes in the chat, and the agent records `approval` and commits it with the person's `Approved-by:` and `Approves:` lines, or they run `aidd approve <id>` in their own terminal",
+        "intent.slice": "a slice of the approved Intent is ready and has no Spec yet: write its Spec with `aidd new spec <id>`",
+        "intent.close": "every slice of the Intent is finished: a person sets its status `done` (or `cancelled`)",
+        "intent.result_due": "a finished Intent's success criteria are due for measurement: read each number from its source, never guess it, and draft each due criterion's `result` for a person to confirm",
+        "exploration.open": "an exploration waits for a person's pick: they read its options and its recommendation, then pick one in the chat",
+        "proposal.qualifying": "a proposal waits for its go/no-go decision, which its decision maker records",
+        "proposal.drafting": "the proposal is being drafted: `/aidd-team:propose`, then `aidd validate`",
+        "proposal.signed_off": "the proposal is signed off: send it to its addressee, then record `outcome: submitted`",
+        "proposal.submitted": "the proposal waits for its addressee to decide: record their answer in `outcome`",
+        "proposal.accepted": "the proposal was accepted: plan the delivery work as an Intent and its phases",
+        "flag.overdue": "a feature flag is past its `cleanup_due`: write the cleanup Spec that lists it in `removes_flags`",
+        "deprecation.overdue": "a deprecation is past its `sunset`: write the removal Spec that lists it in `removes_deprecations`",
+        "nothing_open": "nothing is open: describe the next change to the agent, or run `aidd status --all-branches` to see work on other branches"
+      }
+    },
+    "stop_code": {
+      "enum": [
+        "none",
+        "confidence",
+        "ask",
+        "scope",
+        "retries",
+        "untrusted_text",
+        "untestable",
+        "harness",
+        "quota",
+        "waiting",
+        "blocked"
+      ],
+      "description": "Why a run stopped, as the first word of a handoff note's `stopped_at`: `none` when the step is done, else the code the aidd skill's stop rule names, in the order of those rules. A note's `stopped_at` is one code, alone or with `: ` and a detail."
+    },
+    "severity": {
+      "enum": [
+        "error",
+        "warning",
+        "note"
+      ],
+      "description": "`error`: the check fails. `warning`: something is likely wrong and the check still passes. `note`: for information."
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "severity",
+        "message"
+      ],
+      "description": "One thing a check found. A script matches `code`, never `message`. Outputs adopt this shape one by one.",
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
+          "description": "A stable code, `<group>.<code>`, such as `delegate.delegation_review_due`. `schemas/findings.json` lists each one with its meaning and next step."
+        },
+        "severity": {
+          "$ref": "#/$defs/severity",
+          "description": "How serious it is."
+        },
+        "message": {
+          "type": "string",
+          "description": "What was found, in a sentence a person reads."
+        },
+        "path": {
+          "type": "string",
+          "description": "The file the finding is about, repository-relative."
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The line in `path`, counted from 1."
+        },
+        "next": {
+          "$ref": "#/$defs/next",
+          "description": "What to do about it."
+        },
+        "data": {
+          "type": "object",
+          "description": "The facts behind the finding, such as the ids or paths it names."
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "error"
+      ],
+      "description": "The error a `--json` command prints on stdout before it exits 2, with the human text on stderr. Commands adopt it one by one.",
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "description": "The version of this output's shape."
+        },
+        "error": {
+          "$ref": "#/$defs/finding",
+          "description": "What went wrong."
+        }
+      }
+    },
+    "dimension": {
+      "enum": [
+        "data",
+        "security",
+        "privacy",
+        "financial",
+        "compliance",
+        "availability",
+        "third_party",
+        "cost",
+        "performance"
+      ],
+      "description": "Blast-radius dimension, in words any role uses. `data`, `security`, `privacy`, `financial`, and `compliance` force major and name the specialist pool that reviews; every dimension rules out minor. Irreversibility is `risk.irreversible: true`, which also forces major.",
+      "x-meanings": {
+        "data": "Reads, writes, migrates, or deletes persistent or production data. Forces major; the `data` pool reviews.",
+        "security": "Who can do what, and what can leak: authentication, authorization, roles, tokens, secrets, cryptography, attack surface. Forces major; the `security` pool reviews.",
+        "privacy": "Personal data: collection, retention, sharing, deletion, consent. Forces major; the `privacy` pool reviews.",
+        "financial": "Money moves or prices change: billing, payouts, pricing, ledgers, tax. Forces major; the `finance` pool reviews.",
+        "compliance": "A legal, contractual, or regulatory control. Forces major; the `compliance` pool reviews.",
+        "availability": "Can take a service down or degrade it: infrastructure, capacity, timeouts, limits. Rules out minor.",
+        "third_party": "Adds or changes third-party code, services, images, or build inputs. Rules out minor.",
+        "cost": "Can change spend materially: compute, storage, paid APIs, model tokens. Rules out minor.",
+        "performance": "Can make a hot path slower or heavier: a new query, a loop over remote calls, a page asset, data that grows. Rules out minor; `aidd validate` warns until an Acceptance item states the budget and a test command covers it."
+      }
+    },
+    "profile": {
+      "enum": [
+        "solo",
+        "team"
+      ],
+      "description": "The profile (schemas/profiles.json): its risk rules on top of the built-in ones, which set when the agent asks for Spec approval. `team` asks on more routes than `solo`. A lock freezes it; a child cannot raise it."
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Facts still unknown at assessment. Leave it out when none is."
+    },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "dimensions",
+        "irreversible"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Blast radius in one or two sentences: who or what changes behavior."
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dimension"
+          },
+          "uniqueItems": true,
+          "description": "Every dimension the change touches. Empty means none."
+        },
+        "irreversible": {
+          "type": "boolean",
+          "description": "True when a revert does not restore the prior state, such as a destructive migration or an external side effect. True forces major."
+        },
+        "residual": {
+          "type": "string",
+          "description": "What stays true after release. `none` when nothing remains. A threat that stays is named by its id in the threat model, never restated."
+        },
+        "cost_estimate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "monthly"
+          ],
+          "properties": {
+            "monthly": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40,
+              "description": "What it costs to run each month at today's load, with its currency, such as `40 EUR`."
+            },
+            "at_10x": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40,
+              "description": "The same at ten times today's load, such as `300 EUR`."
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Where the numbers come from: `infracost diff`, a provider's pricing calculator, or a load test."
+            }
+          },
+          "description": "What the change will cost to run, which the architect estimates in Specify: the one place for it. `aidd validate` warns on a Spec that changes infrastructure code, or whose risk names `cost`, and gives none. It also warns on a monthly estimate above `project.budget.max_infra_per_month`, the person's ceiling. Latency and availability belong in the SLO and `observe`."
+        }
+      },
+      "description": "Blast radius: what changes, which dimensions it touches, whether a revert restores the prior state, what stays true after release, and what it costs to run."
+    },
+    "test_command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "command"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$",
+          "description": "Stable name used in evidence."
+        },
+        "command": {
+          "$ref": "#/$defs/command"
+        },
+        "runs_in": {
+          "$ref": "#/$defs/repo_path",
+          "description": "The folder the command runs in, as a path in the repository, such as `packages/api`. Omit it to run at the repository's top. `when_changed` and `report` stay relative to the top. A folder outside the repository, or one reached through a link, is refused."
+        },
+        "new_behavior": {
+          "type": "boolean",
+          "description": "True when this command proves new or fixed behavior. It must fail on the base commit (red) and pass on head (green)."
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400,
+          "description": "Wall-clock limit. A timeout is a fail.",
+          "default": 1800
+        },
+        "smoke": {
+          "type": "boolean",
+          "description": "In the config's `tests`: part of the smoke set, the only repository commands an emergency change runs (with its own). When no command is marked, an emergency runs the whole suite."
+        },
+        "reruns": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "description": "How many more times a failing run on head runs again. Every run is kept in the evidence; a pass after a failure passes, marked flaky, and the flaky test is a finding. A red run on the base commit never runs again.",
+          "default": 0
+        },
+        "when_changed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/glob"
+          },
+          "minItems": 1,
+          "description": "Run and require this command only when a changed path matches. Omit to run it on every change."
+        },
+        "related_tests": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command",
+            "sees"
+          ],
+          "properties": {
+            "command": {
+              "$ref": "#/$defs/command",
+              "description": "The command that runs only the tests the runner relates to the changed files, through the runner's own mode, such as `[npx, jest, --passWithNoTests, --findRelatedTests, \"{changed_paths}\"]`. It holds `{changed_paths}`, an argument of its own that becomes each changed path from the command's folder, or `{base_commit}`, which becomes the commit the branch left the base at, or both. A command with neither, or another word in braces, fails the config's load."
+            },
+            "sees": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/glob"
+              },
+              "minItems": 1,
+              "description": "The paths the runner traces to their tests, from the repository's top, such as `src/**/*.ts`. A changed path the command covers that matches none of them, such as a lock file, a config, or a fixture, runs the full command."
+            }
+          },
+          "description": "In the config's `tests`: how `aidd test --changed` runs only the tests related to the change. It runs `related_tests.command` when every changed path the command covers matches `sees`, is a file in the working tree, and lies inside the command's folder; else it runs the full command and says why. A full `aidd test`, `--require-green`, and every red run always run the full command. Omit it to run the full command under `--changed` too."
+        },
+        "report": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$))[^\\u0000]*[^/\\u0000]$",
+          "description": "A JUnit XML report this command writes, as a path in the repository (pytest `--junitxml`, Vitest `--reporter=junit`, jest-junit, gotestsum, cargo-nextest, PHPUnit `--log-junit`). `aidd test` reads it after each run and records the test cases that failed, so a red run can be told from \"no tests found\". A missing, stale, or unreadable report is a finding. The exit code stays the evidence."
+        },
+        "covers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^A[1-9][0-9]{0,3}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "In a Spec: the Acceptance items this command proves, by id (`A1`, `A2`, ...). Optional; once any command declares it, `aidd validate` warns about an Acceptance item no command covers, and about an id the Acceptance section does not have."
+        }
+      },
+      "description": "One test command. Exit 0 is the only pass."
+    },
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "files",
+        "commands"
+      ],
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/glob"
+          },
+          "description": "The acceptance test files, and the configuration they run through. Frozen at Spec approval: changing them after is `spec.revise`, which asks. Never inside a Task's scope, which holds the unit tests written with the code. A test section of `pyproject.toml` or `package.json` is frozen by itself as `<path>#<dotted key>`, such as `pyproject.toml#tool.pytest` or `package.json#scripts.test`, so a dependency bump is not a change to the tests."
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/test_command"
+              },
+              {
+                "not": {
+                  "required": [
+                    "related_tests"
+                  ]
+                }
+              }
+            ],
+            "description": "A Spec's command. It has no `related_tests`: a Spec's own tests run in full whenever they run."
+          },
+          "minItems": 1,
+          "description": "Commands the runner executes. Exit 0 is the only pass."
+        }
+      },
+      "description": "How the change is proven: the test files and the commands that run them."
+    },
+    "emergency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "type",
+        "commander",
+        "backfill_due"
+      ],
+      "properties": {
+        "severity": {
+          "enum": [
+            "sev1",
+            "sev2",
+            "sev3"
+          ],
+          "description": "Incident severity."
+        },
+        "type": {
+          "enum": [
+            "outage",
+            "degradation",
+            "security",
+            "data"
+          ],
+          "description": "What is broken in production."
+        },
+        "commander": {
+          "$ref": "#/$defs/identity",
+          "description": "The incident commander, a human. Named before the repair starts."
+        },
+        "incident": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The incident's ticket or page id, such as INC-481: what the repair answers, and what the post-incident review and the backfill Spec link. Required on an emergency change."
+        },
+        "backfill_due": {
+          "$ref": "#/$defs/date",
+          "description": "Date the postmortem and the backfill Spec are due. From the day after, until `outcome.learn_ref` records the review, `aidd validate` fails."
+        }
+      },
+      "description": "The incident an emergency change repairs. Required on the emergency route."
+    },
+    "observe": {
+      "type": "object",
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "window",
+            "rollback_trigger"
+          ],
+          "not": {
+            "required": [
+              "not_applicable"
+            ]
+          }
+        },
+        {
+          "required": [
+            "not_applicable"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "window"
+                ]
+              },
+              {
+                "required": [
+                  "rollback_trigger"
+                ]
+              },
+              {
+                "required": [
+                  "command"
+                ]
+              },
+              {
+                "required": [
+                  "signals"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "not_applicable": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Why nothing runs to watch after release, such as \"a CLI and its docs: no running service\". It takes the place of the other fields, so the person asked for approval sees the reason."
+        },
+        "command": {
+          "$ref": "#/$defs/command",
+          "description": "Post-release check. Exit 0 means healthy."
+        },
+        "signals": {
+          "type": "string",
+          "description": "Dashboards, SLOs, or queries a human watches."
+        },
+        "window": {
+          "type": "string",
+          "pattern": "^[0-9]+[mhd]$",
+          "description": "How long to watch, such as 30m, 24h, or 7d."
+        },
+        "rollback_trigger": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The condition that starts the rollback."
+        }
+      },
+      "description": "What to watch after release, for how long, and when to roll back."
+    },
+    "repo_path": {
+      "type": "string",
+      "pattern": "^(?!/)(?!\\./)(?!.*\\\\)(?!.*[*?])(?!.*(^|/)\\.\\.(/|$)).+$",
+      "description": "A plain repo-relative file path: no leading `./` or `/`, no backslashes, no wildcards."
+    },
+    "trace_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$",
+      "description": "Cross-system correlation id."
+    },
+    "sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40,64}$",
+      "description": "A 40- or 64-character lowercase hex git object ID."
+    },
+    "test_status": {
+      "enum": [
+        "passed",
+        "failed",
+        "timeout",
+        "not_started"
+      ],
+      "description": "Outcome of one test command."
+    },
+    "red_green": {
+      "enum": [
+        "green",
+        "red"
+      ],
+      "description": "green runs on head; red runs the head's tests against the base code."
+    },
+    "goal": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The goal of the work, in one sentence of what will be true once it is reached."
+    },
+    "term": {
+      "description": "A word the aidd skill, the CLI's messages, and the docs use that no other data names, with the first sentence of the glossary's meaning (docs/GLOSSARY.md owns the whole meaning, and a test holds the two together).",
+      "x-meanings": {
+        "evidence": "`.aidd/evidence/evidence.json`, which `aidd test` writes: the exit code of each command on the head, and of each new-behavior command on the base, bound to the head commit.",
+        "frozen": "A test that Spec approval froze: an acceptance test, or a test file listed in the Spec's `tests.files`.",
+        "headless": "A session with nobody at the prompt, such as CI, a cloud session, or a scheduled run.",
+        "limit": "A named number that changes what aidd decides or shows, such as the retries a Task gets or the paths an answer lists.",
+        "method": "How aidd works: the loop, the routes, the risk rules, Conventional Commits types, and `Assisted-by:`.",
+        "outcome": "What will be true once an Intent is done, in one sentence: its `outcome`, which its `## Proposed outcome` section tells in full.",
+        "recall": "A search of what the team already wrote: the records, the Specs, the ADRs, the glossary, the product brief, the improvement log, and the commit subjects.",
+        "stop code": "The first word of a handoff note's `stopped_at`, which says why the run stopped, such as `none`, `ask`, or `retries`, alone or with `: ` and a detail.",
+        "stop rule": "One condition in the aidd skill's Stop and hand back list, such as an `ask` that waits for the person or a third failed retry.",
+        "success criterion": "One way to know an Intent's outcome was reached, a line under its Intent and no work item: an `id` (`S1`), a `metric`, and the days to wait after the last release, with its own `result` once measured.",
+        "work item": "A Spec, an Intent, or a proposal (`spec`, `intent`, `proposal`): a file with a status group and a next step in `aidd status`."
+      }
+    }
+  }
+}

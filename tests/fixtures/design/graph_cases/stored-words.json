@@ -1,0 +1,117 @@
+{
+  "design": "the loop's design (d4-whole-loop), as revised after its first build package",
+  "table": "C.2, the Spec's stored words: 7 rows",
+  "rows": [
+    {
+      "id": "C2-W1",
+      "title": "The agent asked for approval",
+      "says": "keep the word `ready`",
+      "status_package": "today",
+      "facts": {"spec": {"status": "ready"}},
+      "reads": {"status": "ready"}
+    },
+    {
+      "id": "C2-W2",
+      "title": "Implement started",
+      "says": "keep the word `in_progress`; `aidd test` excuses failing tests only before it",
+      "status_package": "C3",
+      "facts": {
+        "spec": {
+          "status": "in_progress",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": false, "scope": ["src/checkout/"]}]
+        }
+      },
+      "reads": {"status": "in_progress"}
+    },
+    {
+      "id": "C2-W3",
+      "title": "Every Task is built",
+      "says": "the stored word `built`, held by the ticks",
+      "status_package": "C4",
+      "facts": {
+        "spec": {
+          "status": "built",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+        }
+      },
+      "reads": {"status": "built"}
+    },
+    {
+      "id": "C2-W4",
+      "title": "Verify and Review are clean",
+      "says": "no word: an entry in `reviews`, and the evidence, each read against the newest commit",
+      "status_package": "C4",
+      "next_package": "C5",
+      "facts": {
+        "spec": {
+          "status": "built",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+          "reviews": [{"type": "code", "by": "agent:claude-code/claude-opus-5-5", "at": "2026-12-01T14:02:00Z", "commit": "b7d20f4", "open": 0}]
+        },
+        "evidence": {"commit": "b7d20f4", "passed": true},
+        "git": {"commits": [{"name": "b7d20f4", "on": "feat", "changes": ["src/checkout/discount.py"]}]}
+      },
+      "reads": {"status": "built", "line": "S12", "acts": "agent", "action": ["pr.merge", "git.merge"]}
+    },
+    {
+      "id": "C2-W5",
+      "title": "A revise sent it back",
+      "says": "keep the word `draft`, with a `revisions` entry",
+      "status_package": "today",
+      "facts": {"spec": {"status": "draft", "revisions": [{"why": "a person asked for a change"}]}},
+      "reads": {"status": "draft"}
+    },
+    {
+      "id": "C2-W6",
+      "title": "It merged",
+      "says": "read from the trunk; nobody writes it",
+      "status_package": "C4",
+      "facts": {
+        "spec": {
+          "status": "built",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+        },
+        "trunk": {
+          "spec": {
+            "status": "built",
+            "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+            "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+          }
+        },
+        "config": {"environments": [{"name": "production", "production": true}]}
+      },
+      "reads": {"status": "merged"}
+    },
+    {
+      "id": "C2-W7",
+      "title": "It was released, and it rolled back",
+      "says": "stored in a release file of its own, never in the merged Spec",
+      "status_package": "C4",
+      "facts": {
+        "spec": {
+          "status": "built",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+        },
+        "trunk": {
+          "spec": {
+            "status": "built",
+            "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+            "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+          }
+        },
+        "config": {"environments": [{"name": "production", "production": true}]},
+        "releases": [
+          {"environment": "production", "released_at": "2026-11-20T16:40:00Z", "commit": "1b2c3d4", "specs": [], "rolled_back": ["SPEC-1"]},
+          {"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}
+        ],
+        "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]}
+      },
+      "reads": {"status": "rolled_back"}
+    }
+  ]
+}

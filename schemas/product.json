@@ -1,0 +1,13 @@
+{
+  "description": "What aidd says about itself, in one place. `aidd gen-docs` writes `long` into the package metadata (pyproject.toml and the package docstring), the Claude Code plugin and marketplace manifests, and llms.txt, and `short` into README.md; `aidd --help` reads `short`. `keywords` go into pyproject.toml and the plugin manifest. Edit this file, then run `aidd gen-docs`, never the copies.",
+  "long": "aidd is a governance layer for AI coding agents. Your agents do the work, and you decide the risky steps. aidd sizes each change, says when to ask, writes ask rules where agents have them, and ties each test run to its commit. It advises and enforces nothing: your harness and branch protection hold the stops. Local, no dependencies, no telemetry.",
+  "short": "aidd is a governance layer for AI coding agents. Your agents do the work, and you decide the risky steps.",
+  "keywords": [
+    "ai-governance",
+    "human-in-the-loop",
+    "spec-driven-development",
+    "coding-agents",
+    "agent-skills",
+    "mcp"
+  ]
+}

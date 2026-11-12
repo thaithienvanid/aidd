@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:item-types",
+  "title": "aidd item types",
+  "description": "The format of schemas/item-types.json: one row for each type of thing aidd tracks or writes, with its group, its form, its id, its folder, its templates, its schema, and its statuses. A new type is a row and no code that lists types. A schema or a skill that must spell a list of types out has a test that holds it equal to the rows.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["description", "groups", "common_documents", "types"],
+  "properties": {
+    "description": { "type": "string" },
+    "groups": {
+      "type": "object",
+      "description": "The groups `aidd new --list` prints, each a key and the words `aidd new --list` says it by, in the order it prints them. A group says how `aidd new` writes its types.",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "common_documents": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "The documents `aidd new --help` names after the work items, one or more for each role that writes most, in the order it names them. Each is a type of `types`."
+    },
+    "types": {
+      "type": "object",
+      "description": "One row for each type, keyed by the word a person types in `aidd new <type>` and the value of a front matter's or a Spec `docs` entry's `type`. The order of the rows is the order `aidd new` lists the types in.",
+      "additionalProperties": { "$ref": "#/$defs/type" }
+    }
+  },
+  "$defs": {
+    "template": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "description": "A file name in the skill's `assets/`, with no folder."
+    },
+    "type": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group", "form"],
+      "properties": {
+        "group": { "type": "string", "minLength": 1, "description": "The key of the group `aidd new --list` files the type under. It decides how `aidd new` writes it." },
+        "form": {
+          "enum": ["work_item", "typed_document", "document"],
+          "description": "`work_item`: a Spec, an Intent, or a proposal, which has a status group and a next step. `typed_document`: another file whose front matter's top-level `type` names it. `document`: a file with no `type` of its own."
+        },
+        "noun": { "type": "string", "minLength": 1, "description": "The type as a sentence names it, with its article, such as `a Spec`." },
+        "backlog": { "type": "boolean", "description": "True for a work item that a development team owns and that other work waits for, with `blocked_by` and a parent: a Spec and an Intent." },
+        "id_prefix": { "type": "string", "pattern": "^[A-Z]+$", "description": "The prefix of the id `aidd new` numbers, such as `SPEC` for `SPEC-<n>`. A type with none takes the id a person gives." },
+        "parent": { "type": "string", "minLength": 1, "description": "The one type this type's `parent` names. Each is a type of `types`." },
+        "schema": { "type": "string", "pattern": "^[a-z-]+\\.schema\\.json$", "description": "The schema of the type's front matter, a file in `schemas/`." },
+        "statuses": {
+          "type": "string",
+          "pattern": "^[a-z-]+\\.schema\\.json#(/[A-Za-z_$]+)+$",
+          "description": "Where the type's status words are: a schema file and a pointer to the node that holds `enum`, `x-meanings`, and `x-groups`."
+        },
+        "explained_by_schema": { "type": "boolean", "description": "True when `aidd explain <type>` answers with the first sentence of the type's schema. Another type is answered from `graph.documents` in `schemas/roles.json`, or not at all." },
+        "inside_work_item": { "type": "boolean", "description": "True for a document that lives in a work item's folder and is never a work item itself, whatever its front matter says." },
+        "folder": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Where the type's files live. `{specs}`, `{proposals}`, `{docs}`, and `{product}` stand for the config's `specs_dir`, `proposals_dir`, `docs.dir`, and `product_dir`, and the config key wins over its default. `<graph.documents>` says `graph.documents.<type>.files` in `schemas/roles.json` gives the one folder. A path with none of them is the same in every repository. A type with no folder has its files in `files`, or lives beside its Spec, or has the place the command that writes it gives."
+        },
+        "templates": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/template" },
+          "description": "The templates `aidd new` starts the type from, by variant. `default` is the one every type has; `short`, `living`, and `change_order` are the variant a command picks for a short Spec, a living plan, and a contract's change order."
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The files of a document the repository has one of, each at a path with `{docs}` for the docs folder, `{product}` for the config's `product_dir`, or `<graph.documents>` for the one path `schemas/roles.json` gives, and the template it starts from. A file with no `.md` template is copied as it is.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "template"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "template": { "$ref": "#/$defs/template" }
+            }
+          }
+        },
+        "next": { "type": "string", "minLength": 1, "description": "What `aidd new` says to do next once it has written the type." },
+        "without_spec": { "type": "string", "minLength": 1, "description": "Why a document that no one Spec links refuses `--spec`." }
+      }
+    }
+  }
+}

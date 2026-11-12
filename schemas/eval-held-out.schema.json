@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:eval-held-out",
+  "title": "aidd eval held-out lock",
+  "description": "The format of evals/held-out.lock.json: one entry for each eval case whose `tier` is `held-out`. A held-out case is read once, at a release, and never tuned against. The entry holds a hash of the case's content, and the date its score was first read, or null before that. A case whose content differs from its hash after the first read date fails a test.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["description", "cases"],
+  "properties": {
+    "description": { "type": "string" },
+    "cases": {
+      "type": "array",
+      "description": "One entry for each held-out case, sorted by suite, then case.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["suite", "case", "content_sha256", "first_read_on"],
+        "properties": {
+          "suite": { "enum": ["routing", "roles", "plugin", "team"], "description": "The suite that holds the case." },
+          "case": { "type": "string", "minLength": 1, "description": "The case's id (routing, roles) or its folder name (plugin, team)." },
+          "content_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "A SHA-256 over the whole case: its fields, or every file of its folder." },
+          "first_read_on": {
+            "oneOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+            "description": "The UTC date a run first scored the case, or null while it is unread."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:design-manifest",
+  "title": "Design manifest",
+  "description": "What the prototype tool prints for a design: `aidd prototype --screens` prints its screens, `aidd prototype --components` prints its component contract, and `aidd prototype --shots` prints the fidelity pass's views, each as JSON read from the design, never kept by hand. A person or an agent reads it instead of parsing the design's HTML, and `stories` checks the built UI's stories against the components. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "oneOf": [{ "$ref": "#/$defs/screens" }, { "$ref": "#/$defs/components" }, { "$ref": "#/$defs/shots" }],
+  "$defs": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it. It is the version of this output, and the design names its own format on its `<html>` (`data-aidd-prototype`)."
+    },
+    "names": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "screens": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "screens"],
+      "description": "`--screens`: the design's screens in the order it draws them.",
+      "properties": {
+        "schema_version": { "$ref": "#/$defs/schema_version" },
+        "screens": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "title", "parent", "initial", "states"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1, "description": "The screen's id. In the product prototype it is `<flow>:<screen>`, as a link names it." },
+              "title": { "type": "string", "description": "The screen's title, as the design names it." },
+              "parent": {
+                "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }],
+                "description": "The id of the screen this one returns to, or null when the screen names none."
+              },
+              "initial": {
+                "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }],
+                "description": "The state the viewer opens first: the one the design declares when the screen has it, else its first state. Null when the screen has no state."
+              },
+              "states": { "$ref": "#/$defs/names", "description": "The screen's states, in the order the screen draws them." }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "components"],
+      "description": "`--components`: every part the design names, so the built UI's components and stories match it by name. Each list is sorted, so the same design always gives the same output.",
+      "properties": {
+        "schema_version": { "$ref": "#/$defs/schema_version" },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "variants", "screens", "testids"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1, "description": "The component's name, lowercase words joined by hyphens." },
+              "variants": { "$ref": "#/$defs/names", "description": "Each variant the design names. A component with none has `default`." },
+              "screens": { "$ref": "#/$defs/names", "description": "The screens that use it. None means the chrome, on every screen." },
+              "testids": { "$ref": "#/$defs/names", "description": "The test ids its parts carry." }
+            }
+          }
+        }
+      }
+    },
+    "shots": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "shots"],
+      "description": "`--shots`: the views the fidelity pass takes, sized to the change, in the order to take them. The prototyping skill's design review says which change takes which. It never lists none: a component or a screen the design does not have is a problem the command names.",
+      "properties": {
+        "schema_version": { "$ref": "#/$defs/schema_version" },
+        "shots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["screen", "state", "frame", "theme", "text", "dir", "purpose", "link", "file"],
+            "properties": {
+              "screen": { "type": "string", "minLength": 1, "description": "The screen's id, as `--screens` gives it." },
+              "state": { "type": "string", "minLength": 1, "description": "The state the view shows." },
+              "frame": { "type": "string", "minLength": 1, "description": "The device frame, by its id in the device table." },
+              "theme": { "enum": ["light", "dark"], "description": "The product theme." },
+              "text": { "enum": ["100", "200"], "description": "The text size, in percent: 200 checks text resized to 200% (WCAG 2.2 SC 1.4.4)." },
+              "dir": { "enum": ["ltr", "rtl"], "description": "The text direction: `rtl` checks a right-to-left layout." },
+              "purpose": {
+                "enum": ["matrix", "text-200", "rtl", "overview", "states", "narrow"],
+                "description": "Why the view is taken. `matrix`: a state of a new or reshaped screen. `text-200` and `rtl`: a screen's fullest state at 200% text or right to left, or the changed component at 200% text. `overview`: a screen a changed component appears on, as a person sees it first. `states`: where the state check reads the component's interaction states, on one variant. `narrow`: the component at the narrowest frame (WCAG 2.2 SC 1.4.10)."
+              },
+              "component": { "type": "string", "minLength": 1, "description": "With `states`: the changed component." },
+              "variant": { "type": "string", "minLength": 1, "description": "With `states`: its variant, `default` when it names none." },
+              "link": { "type": "string", "pattern": "^#", "description": "The view's deep link in the viewer, at actual size: open the page's address with it." },
+              "file": {
+                "type": "string",
+                "pattern": "\\.png$",
+                "description": "The screenshot's name: `<screen>-<state>-<frame>-<theme>`, then `-text-200`, `-rtl`, or `-<component>-<variant>`, then `.png`."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

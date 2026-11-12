@@ -1,0 +1,70 @@
+---
+name: test-design
+description: "Practice skill: turn Acceptance into tests before code. Use in an aidd repository when writing or reviewing a Spec's or a fix's tests, or someone asks what to test or says tests are flaky."
+metadata:
+  checked: "2026-10-22"
+---
+
+# Test design
+
+**Use it when** you write a Spec's acceptance tests in Specify or the unit tests in Implement, or judge their strength in Review.
+
+**Do not use when** the change under review *is* a test file the verifier wrote before Spec approval, which nobody may edit after; or to choose a test framework, which the repository already has.
+
+## Standards
+
+<!-- aidd:gen practice:test-design -->
+| Standard | Edition | Checked | Source |
+| --- | --- | --- | --- |
+| ISTQB test design techniques (equivalence partitioning, boundary values, decision tables, state transitions) | CTFL v4.0.1, 2024 | 2026-10-16 | <https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/> |
+| ISO/IEC/IEEE 29119 (test conditions to test cases) | ISO/IEC/IEEE 29119-4:2021 | 2026-10-16 | <https://www.iso.org/standard/79430.html> |
+| BDD and ATDD with Gherkin | — | 2026-10-16 | <https://cucumber.io/docs/gherkin/reference/> |
+| The test pyramid, with consumer-driven contract tests between services | — | 2026-10-16 | <https://martinfowler.com/articles/practical-test-pyramid.html> |
+| FIRST principles (fast, isolated, repeatable, self-validating, timely) | — | 2026-10-16 | — |
+| Property-based testing and fuzzing for invariants and parsers | — | 2026-10-22 | <https://hypothesis.readthedocs.io/en/latest/> |
+| Mutation testing to judge test strength | — | 2026-10-22 | <https://stryker-mutator.io/docs/> |
+| Pairwise (combinatorial) testing: every pair of parameter values in a small suite, with constraints | NIST SP 800-142 (2010) | 2026-11-05 | <https://csrc.nist.gov/pubs/sp/800/142/final> |
+<!-- aidd:end -->
+
+## Specify
+
+- From each Acceptance line derive test conditions, then cases: equivalence partitions, boundary values, decision tables, state transitions. Where the Spec holds a decision table, read it as written: one test per row, its id in `covers`.
+- Where several parameters combine, such as a browser, a locale, and a plan, cover every pair of their values in a small pairwise suite, with constraints that rule out impossible pairs, rather than every combination. A pairwise generator such as ACTS, allpairspy, or PICT writes it.
+- Where the inputs are open-ended, such as order, paths, names, or the set of commands, a few examples of your own prove little. State the invariant in one sentence, then assert it over a table of cases or a generated input (the property tests below), including the awkward ones: empty, repeated, reordered, and misspelled.
+- Every `feat` or `fix` has at least one `new_behavior: true` test seen failing on the current code; a refactor keeps `new_behavior: false`. A control, invariant, or cost test with no red run on the base is also seen failing once, with its fault seeded. The author lists the result ([references/test-value.md](references/test-value.md)).
+- Tests are independent, deterministic, and fast, with the clock, seed, and time zone set. No assertion reads a duration. Hold a cost by counting the work at two or three sizes and asserting how the count grows, unless a timeout is the thing under test. Fixtures are minimal, made up, never personal data, and named for what they set up; a test's name states the behavior and the condition. A performance test seeds the row counts its budget names (`aidd-team:performance`).
+- Each run gets its own database, schema, or namespace. When it cannot be made, the run fails with the reason, and never falls back to a shared or local one.
+- At integration level, a database, queue, or cache the repository runs is real, not mocked: a throwaway container per run, seeded by the tests ([references/real-dependencies.md](references/real-dependencies.md)).
+- Tests against production are read-only smoke tests; any write goes only to a dedicated test tenant or account that reporting, billing, and analytics exclude.
+- Add the tests other specialists asked for: the threat model's abuse cases, the design's visual and accessibility tests, the AI thresholds' evals.
+- Put the commands in `tests.commands` and the files, including test configuration the runner reads, in `tests.files`, for Spec approval to freeze.
+- In Specify, write only the acceptance tests. Write at most one per Acceptance item, black-box at the public edge (HTTP, the CLI, a UI route). Add one per authorization matrix cell and abuse case. A unit, golden, recording, or performance-harness test written before the design binds guesses about it. So the builder writes those with the code, each red first.
+- Assert identifiers, structure, and counts, never prose. Write the tests for open questions last.
+- A flaky, unclear, deleted, or weakened test follows [references/test-value.md](references/test-value.md).
+- When a suite is slow, measure where the time goes before you change a test. The time goes to setup, waits, and I/O, or to the product's own repeated work. Fixing that work also serves the person who runs the product ([references/test-value.md](references/test-value.md)).
+
+## Review
+
+- Are the builder's unit tests sized to the risk? Would each test fail if the change were reverted or subtly wrong? Would it pass if only the wording changed? Does it test behavior, not implementation? Does an assertion read a duration? For a test of a control, an invariant, or a cost with no red run on the base, ask for its seeded fault's result. A green run is no proof. Are error paths and boundaries covered? Surviving mutants name missing cases. Does a production-facing test write outside the test tenant?
+
+## Test commands
+
+| Command | Proves | How |
+| --- | --- | --- |
+| Property tests | invariants and parsers hold for generated inputs | Hypothesis, fast-check, or jqwik |
+| Mutation run | the tests fail when the code is subtly wrong | a mutation tool, such as mutmut, Stryker, or PIT, on the changed modules, failing below the `mutation-floor` choice ([references/open-choices.md](references/open-choices.md)); `aidd test` runs it as a `tests` command, and the reviewer reads its result |
+| Flake check | a new test passes every time | run each new test ten times in the project's test runner; under `aidd test` `reruns`, a pass after a failure passes marked `flaky`, and the flaky test is a finding to fix (`schemas/common.schema.json`) |
+| Coverage and sanitizers | coverage holds its floor, and unsafe code shows no undefined behavior | the `coverage-tool` and `undefined-behavior-check` choices ([references/open-choices.md](references/open-choices.md)) in CI |
+
+- From `aidd-packs:apis-and-services`: Contract tests.
+
+## Stop if
+
+- A `feat` or `fix` has no test seen failing on the current code.
+- A test would pass on a shared or production store when its own cannot be made.
+- A test mocks the dependency the Acceptance is about.
+- A test of a control, an invariant, or a cost still passes with its fault seeded.
+
+## Hand off
+
+- Done: the test files and commands, red on base. Next role: Spec approval, then the builder. Needs: a runner or fixture the repository lacks. Stopped at: none, or the stop rule's code.

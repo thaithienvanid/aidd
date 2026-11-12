@@ -1,0 +1,14 @@
+{
+  "description": "The packages that bring the loop's design in, in the order they land. An exception of the data rules and a row of the loop's cases each name the package that removes or satisfies it.",
+  "packages": {
+    "today": "the current code, which already reads the row right",
+    "C2": "the Intent's shape, `aidd approve` and `aidd cancel` with their holds, and the planned Spec",
+    "C3": "the approval object on a Spec and on each product scope file, with the delegate's form",
+    "C4": "release files, nothing stored on a merged Spec, the Spec's last stored word `built`, and its `reviews`",
+    "C5": "the lines, the events, and who acts, with the step codes gone",
+    "C6": "new work: `from`, one open item for each cause, a cap on drafts, the approval of a result, and the cancel of an item",
+    "C7": "the text and the three skills, written once on the new model",
+    "1.1": "the release after 1.0.0, where the design keeps an exception until then",
+    "for good": "an exception the design keeps, with its reason"
+  }
+}

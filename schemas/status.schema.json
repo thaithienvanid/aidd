@@ -1,0 +1,706 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:status",
+  "title": "aidd status --json",
+  "description": "The open work: each Spec, Intent, and proposal with its stored status and its next step, then what is past due. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "items",
+    "due"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "root_blocker": {
+      "type": "string",
+      "description": "Present only when open work exists and no open step is a person's: the line `aidd status` ends with. It names each item that Specs wait behind and how many, with the move that frees them and the choice, such as `SPEC-1 blocks 23 Specs: finish it, or choose a Spec to specify.` Or it names the ring of items that wait on each other. A script that shows what waits on a person shows this line when the list is empty."
+    },
+    "items": {
+      "type": "array",
+      "description": "The open work items, started first, then urgent ones, then by id.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "title",
+          "path",
+          "status",
+          "group"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The item's id, such as `SPEC-3`."
+          },
+          "type": {
+            "enum": [
+              "spec",
+              "intent",
+              "proposal"
+            ],
+            "description": "The type of work item."
+          },
+          "title": {
+            "type": "string",
+            "description": "The item's title."
+          },
+          "path": {
+            "type": "string",
+            "description": "The item's file, relative to the repository's top."
+          },
+          "status": {
+            "type": "string",
+            "description": "The status the item's front matter stores, or an Intent's status from its slices."
+          },
+          "group": {
+            "enum": [
+              "backlog",
+              "unstarted",
+              "started",
+              "completed",
+              "cancelled"
+            ],
+            "description": "The status group, from the schemas' `x-groups`."
+          },
+          "route": {
+            "enum": [
+              "minor",
+              "normal",
+              "major",
+              "emergency"
+            ],
+            "description": "The route the item declares."
+          },
+          "progress": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "finished",
+              "total"
+            ],
+            "description": "An Intent's slices: how many finished (merged or ended), of how many.",
+            "properties": {
+              "finished": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "parent": {
+            "type": "string",
+            "description": "The Intent a Spec names as its `parent`."
+          },
+          "stage": {
+            "type": "string",
+            "minLength": 1,
+            "description": "For a Spec: the stage it stands in, a name in `graph.stages` of `schemas/roles.json`, from its stored status, its Tasks' `done`, and its observe window. Absent for a cancelled Spec."
+          },
+          "phases": {
+            "type": "array",
+            "description": "For an Intent: its phases, in order, by their ids (a person reads each as \"Phase <n> · <name>\", by its place), each with its planned Specs, their status (`planned` for a Spec with no file yet), and once started, their stage.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "specs"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "due": {
+                  "type": "string"
+                },
+                "finished_on": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "The day a person recorded the phase finished."
+                },
+                "specs": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "title",
+                      "status"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "Its Spec's status, `done` for a slice its line records as merged, or `planned`."
+                      },
+                      "stage": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "branch_state": {
+                        "$ref": "#/$defs/branch_state",
+                        "description": "For a Spec under a `batched` Intent: where its `spec/<ID>` branch stands against the Intent's `intent/<ID>`, as git says on each run (never stored). `merged`: nothing is left to merge into `intent/<ID>`, as `git branch --merged` reads it, so a branch with no commits of its own counts. `unmerged`: both branches exist and `spec/<ID>` holds more. `missing`: git has no such branch, local or remote-tracking. `remote_only`: only a remote-tracking branch of that name exists, so check it out. `invalid_name`: the id cannot be a branch name. `intent_branch_missing`: the Intent's own `branch_state` is not `local`, `merged`, or `unmerged`, so see it. A slice with no Spec yet, and a finished Spec whose branch is gone, have none."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "criteria": {
+            "type": "array",
+            "description": "For an Intent: its success criteria, in the order it lists them. A criterion is a line under its Intent, not a work item, so it has no status of its own.",
+            "items": {
+              "$ref": "#/$defs/criterion"
+            }
+          },
+          "criteria_note": {
+            "type": "string",
+            "minLength": 1,
+            "description": "For an Intent: why the day of some of its work cannot be read here, so a criterion's `measure_from` is null and no result counts. Work built in another repository is read from no commit, and a `merged_in` commit this clone lacks (a shallow clone) is not checked: fetch the history. Absent when every day was read."
+          },
+          "branch_state": {
+            "$ref": "#/$defs/branch_state",
+            "description": "For a `batched` Intent: where its `intent/<ID>` branch stands, as git says on each run (never stored). `unmerged`: the branch exists and is not merged into the default branch, so its one Merge approval is pending and nothing counts as shipped. `merged`: merged into the default branch. `local`: the branch exists and the default branch cannot be found. `remote_only`: only a remote-tracking branch exists. `missing`: git has no such branch. `invalid_name`: the id cannot be a branch name."
+          },
+          "blocked_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "The items it still waits for, read now: the unfinished ones among its own `blocked_by`, its slice line's, its parent Intent's, and each item that says it `blocks` it. The `blocked_by` a Spec stores holds only what that Spec names, finished or not, so this list can differ from it."
+          },
+          "next": {
+            "$ref": "#/$defs/step"
+          },
+          "owner": {
+            "type": "string",
+            "description": "The person driving the work, as its front matter names them."
+          },
+          "development_team": {
+            "type": "string",
+            "description": "The development team that owns the work, as its front matter names it."
+          },
+          "teams_in_scope": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "With `development_teams` in the config: the teams the item is in the scope of, by the rule `--development-team` uses (an Intent or a Spec whose `development_team` names the team, a Spec under such an Intent, or a Spec whose Task scope touches the team's areas)."
+          },
+          "waiting_on": {
+            "type": "string",
+            "description": "The item's `waiting_on` text, as written: the role, person, or interface it waits on, which a person must clear."
+          },
+          "open_decisions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/open_decision_state"
+            },
+            "description": "Each `open_decisions` entry of the Spec's handoff notes that reads, in the notes' order, with whether a later note answers it. A delegated approval or merge defers while one is `open` or `needs_person`. An entry that does not read, such as one with no `id`, is left to `aidd validate`, and still defers. It is the agent's account, never a yes."
+          },
+          "tasks": {
+            "type": "array",
+            "description": "A Spec's Tasks, each with its state: `todo`, `blocked` (it waits for another Task or for Spec approval), `stopped` (it used its retries, so a person re-plans it), or `done`.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "title",
+                "status",
+                "retry_count"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "todo",
+                    "blocked",
+                    "stopped",
+                    "done"
+                  ]
+                },
+                "retry_count": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "The retries the Task used."
+                },
+                "why": {
+                  "type": "string",
+                  "description": "Why the Task is blocked or stopped."
+                }
+              }
+            }
+          },
+          "emergency": {
+            "$ref": "urn:aidd:1:common#/$defs/emergency",
+            "description": "The Spec's `emergency` object: the incident an emergency change repairs."
+          },
+          "backfill_overdue": {
+            "type": "boolean",
+            "description": "On the emergency route: whether the backfill is overdue, from the day after `emergency.backfill_due` until `outcome.learn_ref` records the review. `aidd validate` fails on the same reading."
+          },
+          "last_test_run": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "commit",
+              "head",
+              "result",
+              "at"
+            ],
+            "description": "A summary of the worktree's last `aidd test` run, set on each Spec the run answered to, as its evidence names them. It is for a person to read and is never evidence: the runner's exit code on the head is.",
+            "properties": {
+              "commit": {
+                "type": "string",
+                "description": "The short sha of the commit the run tested."
+              },
+              "head": {
+                "type": "string",
+                "description": "The short sha of the branch's head now."
+              },
+              "behind": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "How many commits the head is past the tested commit. Absent when the head is the tested commit, or the tested commit is not an ancestor of the head."
+              },
+              "result": {
+                "enum": [
+                  "passed",
+                  "failed",
+                  "partial",
+                  "untested"
+                ],
+                "description": "The verdict `aidd test` exits on: `failed` for a bad result, or for a full run in a dirty tree; `partial` for a `--changed` or `--no-red` run that has no bad result; `untested` for a full run in which no test command applied to the changed paths, which is no pass."
+              },
+              "dirty_tree": {
+                "const": true,
+                "description": "Present when the run's tree differed from the commit it tested (uncommitted changes, untracked files), so no result in it is evidence for the commit. A green run with it still reads `failed`, unless it was a quick check."
+              },
+              "emergency_subset": {
+                "type": "boolean",
+                "description": "Present when the run's repository suite ran as its `smoke` set alone, because a Spec the run answers to has the emergency route (the run's `emergency_subset`). A green result then does not cover the rest of the suite."
+              },
+              "revised_frozen": {
+                "type": "array",
+                "maxItems": 50,
+                "items": {
+                  "type": "string"
+                },
+                "description": "The Specs the change revises whose frozen files it also changes (the run's `revised_frozen`). The run passed those changes with a note, because the head wrote the revision, so a person approves each Spec again before it merges."
+              },
+              "at": {
+                "type": "string",
+                "description": "When the run wrote its evidence, in UTC (`2026-11-05T03:24:47Z`)."
+              }
+            }
+          },
+          "unsaved": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "branch",
+              "count",
+              "paths"
+            ],
+            "description": "Set on the item this worktree's branch is for, such as SPEC-1 on `spec/SPEC-1`, when the worktree holds changes in no commit yet. Removing the worktree loses that work, so the next step is to commit it on that branch.",
+            "properties": {
+              "branch": {
+                "type": "string",
+                "description": "The branch checked out."
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "How many paths hold uncommitted changes, new files too."
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "description": "The first of them, as git names them."
+              }
+            }
+          },
+          "places": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "With --all-branches: the places that hold this version of the item, `worktree:<path>` or `branch:<name>`. Two places that hold different versions give two items."
+          },
+          "history": {
+            "type": "array",
+            "description": "With an id: the item's history, newest first, then the documents it links. Its decisions and reports from the records (the agent's account, never a yes), the commits on HEAD whose message names its id, and its `docs`. It never changes the next step.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "at",
+                "what",
+                "ref"
+              ],
+              "properties": {
+                "type": {
+                  "enum": [
+                    "decision",
+                    "report",
+                    "record",
+                    "commit",
+                    "doc"
+                  ]
+                },
+                "at": {
+                  "type": "string",
+                  "description": "When, in UTC (`2026-11-05T03:24:47Z`); empty for a document."
+                },
+                "what": {
+                  "type": "string",
+                  "description": "One line: the action and the question with its outcome, what was reported, a commit's subject, or a document's type and path."
+                },
+                "ref": {
+                  "type": "string",
+                  "description": "The record's id, the commit's short sha, or the document's path."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "trace": {
+      "description": "With one work item's id, a Spec or an Intent: what stands behind it, as `aidd status <path>` gives a path.",
+      "$ref": "urn:aidd:1:trace"
+    },
+    "due": {
+      "type": "array",
+      "description": "What is past due: a feature flag past its `cleanup_due`, a deprecation past its sunset.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "what",
+          "next"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The work item that names it."
+          },
+          "what": {
+            "type": "string",
+            "description": "What is due, in a sentence."
+          },
+          "next": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      }
+    },
+    "handoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch",
+        "commit"
+      ],
+      "description": "Where the work on this branch stopped, from the handoff note in its last commit's message, when no Spec the branch is for holds a note: a change with no Spec before its PR/MR. Only on a branch of one's own. It is the agent's account, never a yes.",
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "The branch checked out."
+        },
+        "commit": {
+          "type": "string",
+          "description": "The short sha of the commit whose message holds the note."
+        },
+        "done": {
+          "type": "string",
+          "description": "The note's `done`, on one line."
+        },
+        "next_role": {
+          "type": "string",
+          "description": "The note's `next_role`, on one line."
+        },
+        "needs": {
+          "type": "string",
+          "description": "The note's `needs`, on one line."
+        },
+        "stopped_at": {
+          "type": "string",
+          "description": "The note's `stopped_at`, on one line."
+        },
+        "open_decisions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/open_decision_state"
+          },
+          "description": "Each `open_decisions` entry of the commit message's notes that reads, with whether a later note there answers it."
+        }
+      }
+    },
+    "explorations": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Present only when an exploration's `status` is `open`: a person owes its pick, so a person has a step. Each gives its file, its question, the work item whose folder holds it, and the step.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "question",
+          "next"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The exploration's file, relative to the repository's top."
+          },
+          "question": {
+            "type": "string",
+            "description": "The question the exploration answers, as its front matter writes it."
+          },
+          "item": {
+            "type": "string",
+            "description": "The id of the work item whose folder holds it; absent for one under `specs/explore/`."
+          },
+          "next": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      }
+    },
+    "running_roles": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Present only when a role's status file in `.aidd/tmp/roles/` does not end with a `DONE` line: each role still running, by its file's name, with its last line and the minutes since the file last changed. The lead reads it to tell a role at work from a quiet one. A line is a role's text, so it is data.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "last_line", "quiet_minutes"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "description": "The role's name: its status file's name without `.log`." },
+          "last_line": { "type": "string", "description": "The file's last line, such as `14:02 Implement: aidd test --changed`, on one line." },
+          "quiet_minutes": { "type": "integer", "minimum": 0, "description": "Whole minutes since the file last changed." }
+        }
+      }
+    },
+    "unreadable": {
+      "type": "array",
+      "description": "A work item whose front matter does not parse, with the reason: still open work, which `aidd validate` names in full.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "error"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "place": {
+            "type": "string",
+            "description": "With --all-branches: the place that holds the file."
+          }
+        }
+      }
+    },
+    "duplicate_ids": {
+      "type": "array",
+      "description": "Work item files within one place that share an id: set aside until each file holds its own id, which `aidd validate` checks.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "paths"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "paths": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "string"
+            }
+          },
+          "place": {
+            "type": "string",
+            "description": "With --all-branches: the place that holds the files."
+          }
+        }
+      }
+    },
+    "development_teams": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "With `development_teams` in the config: the team names, in the config's order, so a team with no open work still has its lane."
+    },
+    "product_scope": {
+      "$ref": "urn:aidd:1:product-status#/$defs/summary",
+      "description": "Present only when the repository has a product scope: its stalled items, each with the agent's next step, and the Intents in flight against the intent order's limit. `aidd status product` shows the whole map."
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/finding"
+      },
+      "description": "What status found while it read: a config that does not load, each work item in `unreadable`, each entry of `duplicate_ids`, and each entry of `due`, in that order. A script matches `code`, never `message`."
+    },
+    "next": {
+      "$ref": "#/$defs/step",
+      "description": "With nothing open: what to do next."
+    }
+  },
+  "$defs": {
+    "criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "address",
+        "metric_name",
+        "measure_from",
+        "result"
+      ],
+      "description": "One success criterion of an Intent, as aidd reads it from the files and git.",
+      "properties": {
+        "id": {
+          "$ref": "urn:aidd:1:common#/$defs/criterion_id"
+        },
+        "address": {
+          "$ref": "urn:aidd:1:common#/$defs/criterion_address",
+          "description": "The criterion's Intent and its id, such as `INTENT-1#S1`."
+        },
+        "metric_name": {
+          "type": "string",
+          "description": "What the criterion measures, as its metric names it."
+        },
+        "measure_from": {
+          "oneOf": [
+            {
+              "$ref": "urn:aidd:1:common#/$defs/date"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The day the measure is read, or null before the Intent's work is released. It is the last release of that work where users are, or the day of its `merged_in` commit, plus `measure_after_days`; a `measure_on` replaces it unless it is earlier than that release. Never stored."
+        },
+        "result": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "measured_on",
+                "decision"
+              ],
+              "properties": {
+                "measured_on": {
+                  "$ref": "urn:aidd:1:product-scope#/$defs/measured_on"
+                },
+                "decision": {
+                  "$ref": "urn:aidd:1:product-scope#/$defs/result/properties/decision"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "What the criterion read and what a person decided, or null while it has no result that counts. A drafted result older than the last release is discarded with it."
+        }
+      }
+    },
+    "branch_state": {
+      "enum": [
+        "merged",
+        "unmerged",
+        "local",
+        "remote_only",
+        "missing",
+        "invalid_name",
+        "intent_branch_missing"
+      ],
+      "description": "Where a `batched` Intent's or a Spec's branch stands, as git says on each run. A Spec's branch is never `local`, and an Intent's is never `intent_branch_missing`."
+    },
+    "step": {
+      "$ref": "urn:aidd:1:common#/$defs/next",
+      "required": [
+        "code",
+        "who",
+        "what"
+      ],
+      "description": "A next step of a work item or an exploration: its stable code, who takes it, and what it is."
+    },
+    "open_decision_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entry",
+        "status"
+      ],
+      "description": "One entry a role left for the lead, and where its answer stands.",
+      "properties": {
+        "entry": {
+          "$ref": "urn:aidd:1:handoff#/$defs/open_decision",
+          "description": "The entry as its note holds it: its `id`, `what`, and `options`."
+        },
+        "status": {
+          "enum": [
+            "open",
+            "needs_person",
+            "answered"
+          ],
+          "description": "`answered`: a later note's `answered` holds the entry's `id` and one of its choices. `needs_person`: it is not answered, and a later note's `needs` names its `id`, so a person chooses. `open`: neither."
+        },
+        "choice": {
+          "type": "string",
+          "description": "With `answered`: the choice the later note took."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:intent",
+  "title": "Intent",
+  "description": "Work bigger than one Spec: what a person wants, in their words, with its outcome, and its slices grouped into phases. A person agrees to it before Specify starts on a slice, and each slice becomes a Spec when its work starts. The team writes it from a request, the person's own words. Aliases: Theme, Program.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "id",
+    "title",
+    "outcome"
+  ],
+  "properties": {
+    "type": {
+      "const": "intent",
+      "description": "Object type. Always `intent`."
+    },
+    "id": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "examples": ["INTENT-1"],
+      "description": "Intent key, such as INTENT-3."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "One line. The language in the project's AGENTS.md may apply."
+    },
+    "outcome": {
+      "type": "string",
+      "minLength": 1,
+      "description": "One sentence of what will be true once the Intent is done. The measures that say so are its `success_criteria`."
+    },
+    "serves": {
+      "type": "string",
+      "oneOf": [
+        {
+          "$ref": "urn:aidd:1:product-scope#/$defs/outcome_id"
+        },
+        {
+          "$ref": "urn:aidd:1:product-scope#/$defs/requirement_id"
+        }
+      ],
+      "description": "The one item of the product scope this Intent serves: a product outcome or a standing outcome (`Outcome-n`), or a requirement (`Requirement-n`) of a BRD when there is no PRD and no standing outcomes. Never an objective: it is served through the outcome or requirement that serves it. Once a product scope exists, `aidd validate` errors on an Intent with none, and on an id that is missing, retired, or of the wrong kind."
+    },
+    "success_criteria": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/criterion"
+      },
+      "maxItems": 50,
+      "description": "How a person will know the outcome was reached: one measure for each criterion, each with its own day to read it. Required with `serves`. A criterion is a line under its Intent, not a work item: it has no status of its own, and its address (`INTENT-1#S1`) names it in `from`."
+    },
+    "request": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The request it answers, the person's own words: a path, such as `BRIEF.md` or a saved chat request, `specs/requests/<yyyy-mm-dd>-<slug>.md`, or a link. aidd never changes it."
+    },
+    "from": {
+      "$ref": "urn:aidd:1:common#/$defs/from",
+      "description": "What raised this Intent: an item id, a criterion's address (`INTENT-1#S1`), `band:<id>`, or a link. Leave it out when a person asked for the work. An Intent that a proposal raised names the proposal in `proposal` or here, never in both."
+    },
+    "status": {
+      "$ref": "urn:aidd:1:common#/$defs/intent_status",
+      "description": "Only a person closes an Intent, because only a person can say its goal is met or dropped: they set `done`, or `cancelled` to stop it. Draft, approved, and active are derived from the approval and the slices. `approved` has no stored form, because nothing a person writes sets it: `approval` and the commit that holds it do, and a file that says `status: approved` is refused."
+    },
+    "approval": {
+      "allOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/decision"
+        }
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "by": {
+          "$ref": "urn:aidd:1:common#/$defs/approved_by"
+        },
+        "at": {
+          "$ref": "urn:aidd:1:common#/$defs/instant"
+        }
+      },
+      "description": "A person's yes to the Intent: `{by, at}`, set by `aidd approve <id>`, never an agent. It holds only by its commit, as the common schema's `decision` says. A change to the Intent after it, apart from the fields an agent keeps current, such as `blocked_by` and a slice's `merged_in`, warns until they approve again."
+    },
+    "waiting_on": {
+      "type": "string",
+      "description": "Role, person, or interface the Intent waits on. While `waiting_on` names one, the Intent is blocked: `aidd status` shows it as a flag, not a status."
+    },
+    "blocked_by": {
+      "$ref": "urn:aidd:1:common#/$defs/blocked_by",
+      "description": "The work items this Intent waits for before its work starts, by id: no Spec under it starts until they finish. `aidd validate` checks that they form no cycle."
+    },
+    "owner": {
+      "$ref": "urn:aidd:1:common#/$defs/owner"
+    },
+    "development_team": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The development team accountable for the outcome: a key of the config's `development_teams`, which `aidd validate` checks. Its Specs are the team's work too. A slice may name another team in its own `development_team`."
+    },
+    "trace_id": {
+      "$ref": "urn:aidd:1:common#/$defs/trace_id",
+      "description": "Joins this Intent with the Specs of other repositories that deliver its slices: each sets `trace_id: <home>-<Intent id>`."
+    },
+    "reaches": {
+      "enum": [
+        "incremental",
+        "flagged",
+        "batched"
+      ],
+      "default": "incremental",
+      "description": "How the work reaches users, agreed with the Intent. `incremental` (the default): each Spec merges by itself. `flagged`: each merges behind a flag that stays off until the last slice of the last phase, whose Merge approval is the launch, which a person always decides. `batched`: the Specs build on `intent/<ID>`, which one Merge approval merges."
+    },
+    "covers": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/id"
+      },
+      "uniqueItems": true,
+      "description": "The ids of the proposal needs this Intent delivers, when it came from an accepted proposal."
+    },
+    "proposal": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "description": "The accepted proposal this Intent delivers, so every change under it traces back to what was promised."
+    },
+    "start_on": {
+      "$ref": "urn:aidd:1:common#/$defs/date",
+      "description": "The day a person chose for the work to start."
+    },
+    "go_no_go": {
+      "$ref": "urn:aidd:1:proposal#/properties/go_no_go",
+      "description": "A person's decision to pursue the Intent or not, in the proposal's shape; `no_go` derives `cancelled`. Never an agent's."
+    },
+    "phases": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/phase"
+      },
+      "maxItems": 50,
+      "description": "The phases, in order, each an ordered group of slices. An Intent with one phase lists that one."
+    },
+    "tracker": {
+      "$ref": "urn:aidd:1:common#/$defs/tracker",
+      "description": "The tracker's records this Intent links to, such as `{type: epic, id: PORT-31}`. aidd calls no tracker."
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "urn:aidd:1:proposal#/$defs/raid_item"
+          }
+        ],
+        "required": [
+          "likelihood",
+          "impact"
+        ]
+      },
+      "description": "The R of the RAID log, copied from the accepted proposal and kept current here."
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:proposal#/$defs/raid_item"
+      },
+      "description": "The A of the RAID log, copied from the accepted proposal and kept current here."
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:proposal#/$defs/raid_item"
+      },
+      "description": "The I of the RAID log, copied from the accepted proposal and kept current here."
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:proposal#/$defs/raid_item"
+      },
+      "description": "The D of the RAID log, copied from the accepted proposal and kept current here."
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:proposal#/$defs/decision"
+      },
+      "description": "The scope decisions log, copied from the accepted proposal and kept current here. Each entry is a person's decision."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "const": "approved"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "status": false
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "serves"
+        ]
+      },
+      "then": {
+        "required": [
+          "success_criteria"
+        ],
+        "properties": {
+          "success_criteria": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "metric",
+        "measure_after_days"
+      ],
+      "description": "One way to know the outcome was reached, and when to read it.",
+      "properties": {
+        "id": {
+          "$ref": "urn:aidd:1:common#/$defs/criterion_id"
+        },
+        "metric": {
+          "$ref": "urn:aidd:1:product-scope#/$defs/metric"
+        },
+        "measure_after_days": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The days after the last release of the Intent's work, where users are, when the measure is read. Its day is read from that release, never stored."
+        },
+        "measure_on": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "A day a person chose to read the measure. It wins over `measure_after_days`, unless it is earlier than the last release, and then aidd ignores it."
+        },
+        "result": {
+          "$ref": "#/$defs/criterion_result"
+        }
+      }
+    },
+    "criterion_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "measured_on",
+        "decision"
+      ],
+      "description": "What the measure read, and what a person decided from it. The agent drafts it on the criterion's day from the metric's source, and a person approves it. A decision to retire the criterion is the one result that needs no number.",
+      "properties": {
+        "measured_on": {
+          "$ref": "urn:aidd:1:product-scope#/$defs/measured_on"
+        },
+        "actual": {
+          "$ref": "urn:aidd:1:product-scope#/$defs/actual"
+        },
+        "source": {
+          "$ref": "urn:aidd:1:product-scope#/$defs/source"
+        },
+        "decision": {
+          "$ref": "urn:aidd:1:product-scope#/$defs/result/properties/decision"
+        },
+        "approval": {
+          "allOf": [
+            {
+              "$ref": "urn:aidd:1:common#/$defs/decision"
+            }
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "by": {
+              "$ref": "urn:aidd:1:common#/$defs/approved_by"
+            },
+            "at": {
+              "$ref": "urn:aidd:1:common#/$defs/instant"
+            }
+          },
+          "description": "A person's yes to this result."
+        }
+      },
+      "if": {
+        "required": [
+          "decision"
+        ],
+        "properties": {
+          "decision": {
+            "const": "retire"
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "actual",
+          "source"
+        ]
+      }
+    }
+  }
+}

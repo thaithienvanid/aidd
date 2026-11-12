@@ -1,0 +1,326 @@
+"""tests/run.py, the parallel runner: a file passes only when its process exits 0 and it ran at least one test.
+
+Python 3.11's unittest exits 0 when it collects no tests, and 3.12 and later exit 5, so the exit code alone would pass a
+file that proves nothing on 3.11. The runner reads the count from unittest's summary on stderr as well.
+"""
+
+import ast
+import contextlib
+import importlib.util
+import io
+import os
+import subprocess
+import sys
+import tempfile
+import time
+import unittest
+from pathlib import Path
+from unittest import mock
+
+import run
+
+TWO_TESTS_ONE_SKIPPED = """import unittest
+
+
+class T(unittest.TestCase):
+    def test_one(self):
+        print("Ran 9 tests")
+
+    @unittest.skip("on purpose")
+    def test_two(self):
+        pass
+"""
+
+
+class RunnerVerdictTests(unittest.TestCase):
+    def test_a_file_passes_only_with_exit_0_and_a_test_run(self):
+        self.assertTrue(run.Result("t", 0, 0.1, 3, 0, "").passed)
+        self.assertFalse(run.Result("t", 0, 0.1, 0, 0, "").passed)  # Python 3.11, no tests collected
+        self.assertFalse(run.Result("t", 5, 0.1, 0, 0, "").passed)  # Python 3.12 and later, no tests collected
+        self.assertFalse(run.Result("t", 1, 0.1, 3, 0, "").passed)
+
+    def test_the_counts_come_from_the_last_summary(self):
+        summary = "...\n" + "-" * 70 + "\nRan 4 tests in 0.010s\n\nOK (skipped=2)\n"
+        self.assertEqual(run.counts(summary), (4, 2))
+        self.assertEqual(run.counts("Ran 9 tests\n" + summary), (4, 2))  # a line a test printed comes first
+        self.assertEqual(run.counts("Ran 1 test in 0.001s\n\nFAILED (failures=1, skipped=1)\n"), (1, 1))
+        self.assertEqual(run.counts("Ran 0 tests in 0.000s\n\nNO TESTS RAN\n"), (0, 0))
+        self.assertEqual(run.counts("Traceback: the interpreter never reached unittest\n"), (0, 0))
+
+    def test_the_counts_read_this_python_s_own_summary(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "test_tiny.py").write_text(TWO_TESTS_ONE_SKIPPED, encoding="utf-8")
+            done = subprocess.run(
+                [sys.executable, "-m", "unittest", "discover", "-s", d, "-p", "test_tiny.py"], capture_output=True, text=True, check=False, timeout=60
+            )
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(run.counts(done.stderr), (2, 1), done.stderr)
+
+    def test_a_file_that_collects_no_tests_fails_on_every_python(self):
+        result = run.run_one(Path("test_no_such_file_for_the_runner.py"), coverage=False)
+        self.assertEqual(result.ran, 0, result.output)
+        self.assertFalse(result.passed, result.output)
+        if result.code == 0:  # Python 3.11: the runner says why it fails
+            self.assertIn("ran no tests", result.output)
+        else:
+            self.assertEqual(result.code, 5, result.output)
+
+
+HANGING_FILE = """import subprocess
+import sys
+import time
+import unittest
+
+
+class T(unittest.TestCase):
+    def test_hangs(self):
+        subprocess.Popen([sys.executable, "-c", "import time; time.sleep(300)"])  # a child that holds the output open
+        time.sleep(300)
+"""
+
+
+class RunnerTimeoutTests(unittest.TestCase):
+    def test_a_hung_file_is_killed_with_its_children_and_fails(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "test_hangs.py").write_text(HANGING_FILE, encoding="utf-8")
+            started = time.monotonic()
+            result = run.run_one(Path("test_hangs.py"), coverage=False, folder=d, timeout=2)
+        self.assertLess(time.monotonic() - started, 60)  # the child did not keep the runner waiting
+        self.assertTrue(result.timed_out)
+        self.assertFalse(result.passed)
+        self.assertIn("test_hangs.py timed out after 2s", result.output)
+
+    def test_a_file_that_ends_before_the_kill_still_fails_as_timed_out(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "test_hangs.py").write_text(HANGING_FILE, encoding="utf-8")
+            real_killpg = os.killpg
+
+            def kill_then_vanish(pid, sig):
+                real_killpg(pid, sig)
+                raise ProcessLookupError  # as if the group ended just before the kill landed
+
+            with mock.patch.object(run.os, "killpg", kill_then_vanish), mock.patch.object(run, "KILL_GRACE_SECONDS", 3):
+                result = run.run_one(Path("test_hangs.py"), coverage=False, folder=d, timeout=2)
+        self.assertTrue(result.timed_out)
+        self.assertFalse(result.passed)
+
+    def test_a_child_outside_the_group_holding_the_output_does_not_hang_the_runner(self):
+        escaped = HANGING_FILE.replace('time.sleep(300)"])', 'time.sleep(8)"], start_new_session=True)')
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "test_hangs.py").write_text(escaped, encoding="utf-8")
+            started = time.monotonic()
+            with mock.patch.object(run, "KILL_GRACE_SECONDS", 1):
+                result = run.run_one(Path("test_hangs.py"), coverage=False, folder=d, timeout=2)
+            took = time.monotonic() - started
+        self.assertLess(took, 6, "the runner gave up on the output after the grace period")
+        self.assertTrue(result.timed_out)
+        self.assertFalse(result.passed)
+
+    def test_git_never_waits_for_a_password_in_a_test_file(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "test_env.py").write_text(
+                "import os, unittest\n\n\nclass T(unittest.TestCase):\n    def test_it(self):\n        self.assertEqual(os.environ.get('GIT_TERMINAL_PROMPT'), '0')\n",
+                encoding="utf-8",
+            )
+            result = run.run_one(Path("test_env.py"), coverage=False, folder=d, timeout=60)
+        self.assertTrue(result.passed, result.output)
+
+
+class EmptyChangedSelectionTests(unittest.TestCase):
+    def test_an_empty_selection_runs_the_smoke_set_and_says_so(self):
+        seen: list[list[str]] = []
+
+        def no_files(names):
+            seen.append(names)
+            return []
+
+        out = io.StringIO()
+        with (
+            mock.patch.object(run, "select_changed", return_value=([], "0 of 9 test files read what changed")),
+            mock.patch.object(run, "files", side_effect=no_files),
+            contextlib.redirect_stdout(out),
+        ):
+            code = run.main(["--changed"])
+        self.assertEqual(code, 0)
+        self.assertEqual(seen, [list(run.SMOKE_FILES)])
+        self.assertIn("runs the smoke set instead of nothing", out.getvalue())
+        self.assertTrue(all((run.TESTS / f"test_{name}.py").is_file() for name in run.SMOKE_FILES))
+
+
+def names_the_driver(source: str) -> bool:
+    """Whether code in a file (not a string or a comment) names `browser_driver` or `needs_chrome`, as an import, a name, or an attribute."""
+    words = {"browser_driver", "needs_chrome"}
+    for node in ast.walk(ast.parse(source)):
+        if (
+            (isinstance(node, ast.Name) and node.id in words)
+            or (isinstance(node, ast.Attribute) and node.attr in words)
+            or (isinstance(node, ast.alias) and node.name.partition(".")[0] in words)
+            or (isinstance(node, ast.ImportFrom) and (node.module or "").partition(".")[0] in words)
+        ):
+            return True
+    return False
+
+
+class BrowserSelectionTests(unittest.TestCase):
+    """CI runs the browser files in a job of their own, and every other job skips their browser tests. So a file that
+    drives a browser and is missing from `--browser` would never run its browser tests in CI."""
+
+    def test_every_file_that_needs_chrome_is_a_browser_file(self):
+        uses = {p.stem for p in run.TESTS.glob("test_*.py") if names_the_driver(p.read_text(encoding="utf-8"))}
+        self.assertGreater(len(uses), 5, "the browser files still mark their tests with needs_chrome")
+        self.assertLessEqual(uses, set(run.browser_files()))
+        self.assertIn("test_viewer_design", run.browser_files(), "it imports the driver itself")
+        self.assertIn("test_viewer_axe_boards", run.browser_files(), "through test_viewer_axe, which imports the driver")
+        self.assertNotIn("test_work_page_phases", run.browser_files(), "it reads the page as text")
+
+    def test_imports_are_read_in_every_form_and_at_any_depth(self):
+        source = "import os, browser_driver\nfrom helpers import ROOT\nfrom a.b import c\nfrom . import d\n\ndef f():\n    import late as x\n"
+        self.assertEqual(run.imported_modules(source), {"os", "browser_driver", "helpers", "a", "late"})
+        self.assertEqual(run.imported_modules("def broken(:\n"), set())
+
+    def test_browser_runs_the_browser_files_and_only_when_they_would_run(self):
+        seen: list[list[str]] = []
+
+        def no_files(names):
+            seen.append(names)
+            return []
+
+        with mock.patch.object(run, "files", side_effect=no_files), contextlib.redirect_stdout(io.StringIO()):
+            with mock.patch.dict(os.environ, {"AIDD_BROWSER_TESTS": "1"}):
+                self.assertEqual(run.main(["--browser"]), 0)
+            err = io.StringIO()
+            with mock.patch.dict(os.environ, {"AIDD_BROWSER_TESTS": ""}), contextlib.redirect_stderr(err), self.assertRaises(SystemExit):
+                run.main(["--browser"])
+        self.assertEqual(seen, [run.browser_files()])
+        self.assertIn("AIDD_BROWSER_TESTS=1 python3 tests/run.py --browser", err.getvalue())
+
+
+class DurationRecordTests(unittest.TestCase):
+    def test_the_record_forgets_a_file_that_no_longer_exists(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            record = Path(tmp) / "run-durations.json"
+            record.write_text('{"test_runner": 9.0, "test_action_shape": 2.0, "test_removed_long_ago": 30.0}\n', encoding="utf-8")
+            with mock.patch.object(run, "DURATIONS", record):
+                run.keep_durations([run.Result("test_runner", 0, 7.31, 1, 0, "")])
+                self.assertEqual(run.last_durations(), {"test_runner": 7.3, "test_action_shape": 2.0})
+
+
+def load_read_record():
+    """tests/record_reads/sitecustomize.py under another name, so it records nothing here and only lends its rules."""
+    spec = importlib.util.spec_from_file_location("record_reads_rules", run.RECORDER / "sitecustomize.py")
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class ChangedSelectionTests(unittest.TestCase):
+    """`--changed` runs a file when it read what changed. A file it skips must be one the change cannot affect."""
+
+    RECORD = {
+        "files": {
+            "test_reads_x": ["src/aidd/x.py", "schemas/a.json"],
+            "test_anything": ["*", "# bash: it runs inside the checkout"],
+            "test_checks_new": ["?docs/new.md"],
+            "test_lists_docs": ["docs/"],
+            "test_reads_y": ["src/aidd/y.py"],
+        }
+    }
+    EVERY = ["test_reads_x", "test_anything", "test_checks_new", "test_lists_docs", "test_reads_y", "test_unrecorded"]
+
+    def test_the_files_a_change_can_affect(self):
+        cases = [
+            ({"src/aidd/x.py"}, set(), {"test_reads_x"}),
+            ({"schemas/a.json"}, set(), {"test_reads_x"}),
+            ({"docs/new.md"}, {"docs/new.md"}, {"test_checks_new", "test_lists_docs"}),
+            ({"docs/guides/new.md"}, {"docs/guides/new.md"}, {"test_lists_docs"}),  # a new folder shows in its parent's list
+            ({"docs/old.md"}, set(), set()),
+            ({"tests/test_reads_y.py"}, set(), {"test_reads_y"}),
+            (set(), set(), set()),
+        ]
+        for changed, moved, expected in cases:
+            with self.subTest(changed=changed, moved=moved):
+                picked = run.affected(self.RECORD, changed, moved, self.EVERY)
+                self.assertEqual(picked, expected | {"test_anything", "test_unrecorded"})
+
+    def test_a_child_whose_reads_the_record_cannot_see(self):
+        rules = load_read_record()
+        root = str(run.ROOT)
+        with tempfile.TemporaryDirectory() as outside:
+            env = {"PATH": "/usr/bin:/bin", "HOME": outside}
+            traced = {**env, rules.LOG: f"{outside}/log", "PYTHONPATH": os.pathsep.join([f"{root}/src", rules.HERE])}
+            cases = [
+                (["git", "status"], outside, env, False),
+                (["git", "ls-files"], root, env, True),
+                (["git", "-c", "core.quotePath=false", "rev-parse", "--show-toplevel"], root, env, False),  # git's own state only
+                (["git", "init", "-q", f"{outside}/repo"], root, env, False),
+                (["rm", "-rf", f"{outside}/repo"], root, env, False),
+                (["rm", "-rf", "build"], root, env, True),
+                (["bash", "-c", f"cat {root}/README.md"], outside, env, True),
+                (["sh"], outside, env, True),  # its commands come on standard input
+                (["env", "-i", "python3", "-m", "aidd"], outside, env, True),
+                ([sys.executable, "-m", "aidd", "gate"], outside, traced, False),
+                ([sys.executable, "-I", "-c", f"import sys; sys.path[:0] = ['{root}/src']"], outside, traced, True),
+                ([sys.executable, "-m", "aidd", "gate"], outside, {**env, "PYTHONPATH": f"{root}/src"}, True),
+                (["node", "hook.js"], outside, {**env, "CLAUDE_PLUGIN_ROOT": f"{root}/plugins/aidd-team"}, True),
+            ]
+            for argv, cwd, environ, expected in cases:
+                with self.subTest(argv=argv, cwd=cwd):
+                    self.assertEqual(bool(rules.unseen(argv[0], argv, cwd, environ)), expected)
+            # Listing the checkout's file names reads its folders, not everything; with content ids it reads more.
+            self.assertEqual(rules.unseen("git", ["git", "ls-files", "-z"], root, env), rules.LISTS_CHECKOUT)
+            self.assertNotIn(rules.unseen("git", ["git", "ls-files", "-s"], root, env), ("", rules.LISTS_CHECKOUT))
+            self.assertEqual(rules.unseen("git", ["git", "-C", f"{outside}/repo", "log"], root, env), "")
+            self.assertEqual(rules.unseen("ssh-keygen", ["ssh-keygen", "-q", "-t", "ed25519", "-f", f"{outside}/key"], root, env), "")
+
+    def test_a_child_that_reads_only_the_files_it_names(self):
+        """A syntax check (`sh -n <file>`) reads the file it names and runs nothing, and `jq` with one filter reads only its
+        standard input: each is recorded as the reads it makes, never as may-read-anything. Any other form, or an environment that
+        names the checkout, still is."""
+        rules = load_read_record()
+        root = str(run.ROOT)
+        with tempfile.TemporaryDirectory() as outside:
+            env = {"PATH": "/usr/bin:/bin", "HOME": outside}
+            cases = [
+                (["sh", "-n", f"{root}/install.sh"], env, rules.READS_ONLY + f"{root}/install.sh"),
+                (["bash", "-n", "install.sh"], env, rules.READS_ONLY + f"{root}/install.sh"),
+                (["jq", "-r", ".items[] | .id"], env, ""),
+                (["sh", "-n"], env, "*"),  # no file: its commands come on standard input
+                (["sh", "-n", f"{root}/no-such-file.sh"], env, "*"),
+                (["sh", "-n", "-c", "cat README.md"], env, "*"),
+                (["sh", "-n", f"{root}/install.sh"], {**env, "BASH_ENV": f"{root}/tests/helpers.sh"}, "*"),
+                (["sh", f"{root}/install.sh"], env, "*"),  # it runs the script
+                (["jq", "-r", ".a", f"{root}/x.json"], env, "*"),
+                (["jq", "-L", root, 'import "m" as m; m::f'], env, "*"),
+                (["jq", "--rawfile", "a", f"{root}/x", "$a"], env, "*"),
+                (["jq", 'include "m"; .'], env, "*"),
+            ]
+            for argv, environ, expected in cases:
+                with self.subTest(argv=argv, environ=environ):
+                    got = rules.unseen(argv[0], argv, root, environ)
+                    self.assertEqual(got if expected != "*" else ("*" if got and not got.startswith(rules.READS_ONLY) else got), expected)
+
+    def test_python_options_that_skip_the_record(self):
+        rules = load_read_record()
+        for argv, expected in [
+            (["python3", "-I", "-c", "x"], True),
+            (["python3", "-Ic", "x"], True),
+            (["python3", "-X", "importtime", "-E", "x.py"], True),
+            (["python3", "-c", "-I"], False),
+            (["python3", "-m", "aidd", "-I"], False),
+            (["python3", "-u", "x.py"], False),
+        ]:
+            with self.subTest(argv=argv):
+                self.assertEqual(rules.isolated(argv), expected)
+
+    def test_the_budget_names_each_slow_file_and_the_wall_time(self):
+        results = [run.Result("test_slow", 0, run.FILE_BUDGET_SECONDS + 5, 1, 0, ""), run.Result("test_quick", 0, 1.0, 1, 0, "")]
+        over = "\n".join(run.budget_report(results, run.WALL_BUDGET_SECONDS + 30))
+        self.assertIn("test_slow", over)
+        self.assertNotIn("test_quick", over)
+        self.assertIn("30.0s over", over)
+        self.assertIn("inside the budget", "\n".join(run.budget_report(results[1:], 60)))
+
+
+if __name__ == "__main__":
+    unittest.main()

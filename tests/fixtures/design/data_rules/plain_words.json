@@ -1,0 +1,4 @@
+{
+  "description": "aidd's plain words for a kind of thing. A name of two words or more that ends in one of them, in a parent that holds no property by that plain word, carries a qualifier: the check finds it, and a person decides once whether the qualifier is the thing itself (kept, with its reason) or a scope that a rename removes (an exception, with its package).",
+  "words": ["action", "approval", "status", "state", "type", "result", "reason", "code", "id", "name", "level", "policy", "mode"]
+}

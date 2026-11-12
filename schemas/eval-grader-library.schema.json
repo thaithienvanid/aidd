@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:eval-grader-library",
+  "title": "aidd eval grader library",
+  "description": "The format of evals/library/graders.json: the graders that more than one live-suite case holds, named by purpose. `claude plugin eval` has no include, so each case keeps its own copy of a shared grader. Each entry lists the cases that hold a copy, and the text of the grader is evals/library/graders/<name>.md. A test fails on a copy that differs from its library file.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["description", "graders"],
+  "properties": {
+    "description": { "type": "string" },
+    "graders": {
+      "type": "object",
+      "description": "Each shared grader by name, in sorted order.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["uses"],
+        "properties": {
+          "uses": {
+            "type": "array",
+            "description": "The cases that hold a copy, each as `suite/case/file-stem`: the suite is plugin or team, and the stem is the file name in the case's graders folder without `.md`.",
+            "items": { "type": "string", "pattern": "^(?:plugin|team)/[a-z0-9-]+/[a-z0-9-]+$" },
+            "minItems": 2,
+            "uniqueItems": true
+          }
+        }
+      }
+    }
+  }
+}

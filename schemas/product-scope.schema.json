@@ -1,0 +1,617 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:product-scope",
+  "title": "Product scope",
+  "description": "The front matter of the files of a product scope: the BRD, the PRD, the standing outcomes, and the intent order. The items a person approves are objectives, requirements, and product outcomes, each with an id, a metric that names where it is measured, and the results measured since. An item's status is derived from its latest result and never stored. The prose of each file stays in its body.",
+  "type": "object",
+  "required": [
+    "type"
+  ],
+  "properties": {
+    "type": {
+      "enum": [
+        "brd",
+        "prd",
+        "standing-outcomes",
+        "intent-order"
+      ],
+      "description": "The type of the file: `brd`, `prd`, `standing-outcomes`, or `intent-order`. A BRD holds the requirements, and the objectives they serve when there are any. A PRD holds product outcomes, and the objectives and requirements when no BRD exists. Standing outcomes are outcomes held to a threshold, for a product with neither document, and they may hold the requirements when no BRD exists. A product's requirements live in one of these files. The intent order holds the order of the Intents, their limit in flight, and their product owner."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "const": "brd"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/brd"
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "const": "prd"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/prd"
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "const": "standing-outcomes"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/standing_outcomes"
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "const": "intent-order"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/intent_order"
+      }
+    }
+  ],
+  "$defs": {
+    "objective_id": {
+      "type": "string",
+      "pattern": "^Objective-[1-9][0-9]*$",
+      "description": "The id of an objective: `Objective-` and the next free number. It is unique in one product scope and never reused, so `aidd validate` errors when an id that the last approved version held is gone."
+    },
+    "requirement_id": {
+      "type": "string",
+      "pattern": "^Requirement-[1-9][0-9]*$",
+      "description": "The id of a requirement: `Requirement-` and the next free number. It is unique in one product scope and never reused, so `aidd validate` errors when an id that the last approved version held is gone."
+    },
+    "outcome_id": {
+      "type": "string",
+      "pattern": "^Outcome-[1-9][0-9]*$",
+      "description": "The id of a product outcome or a standing outcome: `Outcome-` and the next free number. It is unique in one product scope and never reused, so `aidd validate` errors when an id that the last approved version held is gone."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "One line that says what the item is."
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Where the number is read: a report, a query, or the person who counts. A number with no source is a guess."
+    },
+    "actual": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What was measured, with its unit, as written at the source. aidd never sets it."
+    },
+    "measured_on": {
+      "$ref": "urn:aidd:1:common#/$defs/date",
+      "description": "The day the number was read."
+    },
+    "approved_by": {
+      "$ref": "urn:aidd:1:common#/$defs/approved_by",
+      "description": "The person who approved the last change to this file, in `approved_by`'s form, never an agent. The agent sets it, with `approved_at`, on the person's yes, and commits with an `Approved-by:` trailer of the same value."
+    },
+    "approved_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$",
+      "format": "date-time",
+      "description": "When the person approved the last change to this file (RFC 3339). The diff says what changed."
+    },
+    "approval": {
+      "description": "A file names who approved it and when, or neither.",
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "approved_by"
+            ]
+          },
+          "then": {
+            "required": [
+              "approved_at"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "approved_at"
+            ]
+          },
+          "then": {
+            "required": [
+              "approved_by"
+            ]
+          }
+        }
+      ]
+    },
+    "review_due": {
+      "$ref": "urn:aidd:1:common#/$defs/date",
+      "description": "The day this file's results are next reviewed. Once it has passed, the next step is `product_scope.review_due`: a person reviews the results."
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "source",
+        "target"
+      ],
+      "description": "How an item is measured: what, where, from where it starts, and to what value. The person sets each number, and an agent never fills one.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What is measured, in words, such as `Support tickets answered within a day`."
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "baseline": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Where the measure stands before the work, in its own unit. A product with nothing to measure yet writes `none: new product`."
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The value the person chose, in the unit of `actual`. For a standing outcome it is the threshold the measure must hold."
+        }
+      }
+    },
+    "metric_with_baseline": {
+      "description": "A metric that also says where it starts, for an item the work moves.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/metric"
+        },
+        {
+          "required": [
+            "baseline"
+          ]
+        }
+      ]
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "measured_on",
+        "decision"
+      ],
+      "description": "One measurement of an item and what a person decided from it. A measurement names its number and its source, so a decision to retire an item is the one entry that needs neither.",
+      "properties": {
+        "measured_on": {
+          "$ref": "#/$defs/measured_on"
+        },
+        "actual": {
+          "$ref": "#/$defs/actual"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "decision": {
+          "enum": [
+            "met",
+            "continue",
+            "change_target",
+            "retire"
+          ],
+          "description": "What the person decided at the review.",
+          "x-meanings": {
+            "met": "The target is reached, so the item is met.",
+            "continue": "The target stands and the work goes on.",
+            "change_target": "The target changes, and the metric's `target` is edited in the same approval.",
+            "retire": "The item is dropped, so it is retired."
+          }
+        }
+      },
+      "if": {
+        "required": [
+          "decision"
+        ],
+        "properties": {
+          "decision": {
+            "const": "retire"
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "actual",
+          "source"
+        ]
+      }
+    },
+    "requirement_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "measured_on",
+        "decision"
+      ],
+      "description": "One review of a requirement and what a person decided from it. A requirement has no metric, so a result need not name a number, and a `met` one names where it is shown.",
+      "properties": {
+        "measured_on": {
+          "$ref": "#/$defs/measured_on"
+        },
+        "actual": {
+          "$ref": "#/$defs/actual"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "decision": {
+          "$ref": "#/$defs/result/properties/decision"
+        }
+      },
+      "if": {
+        "required": [
+          "decision"
+        ],
+        "properties": {
+          "decision": {
+            "const": "met"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "source"
+        ]
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/result"
+      },
+      "description": "The measurements of the item, oldest first. The latest by `measured_on` gives its status: `met` or `retired` from its decision, else `active`. Entries on one day count in the order written."
+    },
+    "requirement_results": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirement_result"
+      },
+      "description": "The reviews of the requirement, oldest first. The latest by `measured_on` gives its status: `met` or `retired` from its decision, else `active`."
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "metric",
+        "due"
+      ],
+      "description": "What the business wants, with the measure that says it is wanted.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/objective_id"
+        },
+        "title": {
+          "$ref": "#/$defs/title"
+        },
+        "metric": {
+          "$ref": "#/$defs/metric_with_baseline"
+        },
+        "due": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "The day the target is due, set by the person."
+        },
+        "results": {
+          "$ref": "#/$defs/results"
+        }
+      }
+    },
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title"
+      ],
+      "description": "What the product must be able to do, or must satisfy. It serves an objective where the product scope holds objectives.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/requirement_id"
+        },
+        "title": {
+          "$ref": "#/$defs/title"
+        },
+        "serves": {
+          "$ref": "#/$defs/objective_id",
+          "description": "The objective this requirement serves. `aidd validate` errors on a missing one where the product scope holds objectives."
+        },
+        "results": {
+          "$ref": "#/$defs/requirement_results"
+        }
+      }
+    },
+    "product_outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "metric"
+      ],
+      "description": "What changes for the people who use the product, with the measure that says it changed. An Intent serves one.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/outcome_id"
+        },
+        "title": {
+          "$ref": "#/$defs/title"
+        },
+        "metric": {
+          "$ref": "#/$defs/metric_with_baseline"
+        },
+        "serves": {
+          "type": "string",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/requirement_id"
+            },
+            {
+              "$ref": "#/$defs/objective_id"
+            }
+          ],
+          "description": "The requirement this outcome serves, or an objective when no BRD exists. `aidd validate` errors on a missing one when a BRD exists, and on one that is retired."
+        },
+        "results": {
+          "$ref": "#/$defs/results"
+        }
+      }
+    },
+    "standing_outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "metric"
+      ],
+      "description": "What must stay true of the product, held to a threshold, when neither a BRD nor a PRD exists. An Intent serves one.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/outcome_id"
+        },
+        "title": {
+          "$ref": "#/$defs/title"
+        },
+        "metric": {
+          "$ref": "#/$defs/metric",
+          "description": "Its `target` is the threshold; there is no start to name, so `baseline` is optional."
+        },
+        "results": {
+          "$ref": "#/$defs/results"
+        }
+      }
+    },
+    "brd": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "sponsor",
+        "requirements"
+      ],
+      "description": "The business requirements document: why the business wants the product and what it must be able to do. A person outside the product team approves money, scope, or risk through it.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/approval"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "brd"
+        },
+        "sponsor": {
+          "$ref": "urn:aidd:1:common#/$defs/approved_by",
+          "description": "The person who decides what this document holds, in `approved_by`'s form. Their yes approves a change to it."
+        },
+        "approved_by": {
+          "$ref": "#/$defs/approved_by"
+        },
+        "approved_at": {
+          "$ref": "#/$defs/approved_at"
+        },
+        "review_due": {
+          "$ref": "#/$defs/review_due"
+        },
+        "objectives": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/objective"
+          },
+          "description": "The objectives, each with its id. A short brief with no measure leaves them out."
+        },
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/requirement"
+          },
+          "description": "The requirements, each with its id and, where objectives exist, the objective it serves."
+        }
+      }
+    },
+    "prd": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "outcomes"
+      ],
+      "description": "The product requirements document: who the product is for and the product outcomes it must bring about, in a page or two. Features, stories, and acceptance criteria live in Intents and Specs.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/approval"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "prd"
+        },
+        "approved_by": {
+          "$ref": "#/$defs/approved_by"
+        },
+        "approved_at": {
+          "$ref": "#/$defs/approved_at"
+        },
+        "review_due": {
+          "$ref": "#/$defs/review_due"
+        },
+        "objectives": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/objective"
+          },
+          "description": "The objectives, only when no BRD exists. With a BRD they live there, and `aidd validate` errors on both."
+        },
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/requirement"
+          },
+          "description": "The requirements, only when no BRD exists. With a BRD they live there, and `aidd validate` errors on both."
+        },
+        "outcomes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/product_outcome"
+          },
+          "description": "The product outcomes, each with its id."
+        }
+      }
+    },
+    "standing_outcomes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "outcomes"
+      ],
+      "description": "The standing outcomes: what must stay true of a product that has neither a BRD nor a PRD.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/approval"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "standing-outcomes"
+        },
+        "approved_by": {
+          "$ref": "#/$defs/approved_by"
+        },
+        "approved_at": {
+          "$ref": "#/$defs/approved_at"
+        },
+        "review_due": {
+          "$ref": "#/$defs/review_due"
+        },
+        "outcomes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/standing_outcome"
+          },
+          "description": "The standing outcomes, each with its id."
+        },
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/requirement"
+          },
+          "description": "The requirements, only when no BRD or PRD exists. With one of them they live there, and `aidd validate` errors on both."
+        }
+      }
+    },
+    "intent_order": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "owner",
+        "order"
+      ],
+      "description": "The intent order: the order of the Intents, which the product owner changes by moving a line, as a product scope approval.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/approval"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "intent-order"
+        },
+        "owner": {
+          "$ref": "urn:aidd:1:common#/$defs/approved_by",
+          "description": "The person who orders the Intents, in `approved_by`'s form. Their yes approves a change to this file."
+        },
+        "approved_by": {
+          "$ref": "#/$defs/approved_by"
+        },
+        "approved_at": {
+          "$ref": "#/$defs/approved_at"
+        },
+        "max_in_flight": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The most Intents approved or active at once. Unset, there is no limit. More is advice, never a block."
+        },
+        "review_every_days": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 30,
+          "description": "The days between results reviews. An Intent still open that long after its agreement is a warning: it is probably several goals."
+        },
+        "order": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/id"
+          },
+          "uniqueItems": true,
+          "description": "The Intents, first to last. `aidd validate` errors on an id that is no Intent, and warns about an approved Intent left out."
+        }
+      }
+    }
+  }
+}

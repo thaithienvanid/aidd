@@ -1,0 +1,1328 @@
+{
+  "design": "the loop's design (d4-whole-loop), as revised after its first build package",
+  "table": "A.12, the whole loop as one transition table: 35 rows, T1 to T34 and T18a",
+  "rows": [
+    {
+      "id": "T1",
+      "title": "scope file: none, draft",
+      "next_package": "C5",
+      "facts": {"scope": {"type": "brd", "path": "product/brd.md"}},
+      "reads": {"line": "PS1", "acts": "agent", "action": "product_scope.approve"}
+    },
+    {
+      "id": "T2",
+      "title": "scope file: draft or changed, approved",
+      "next_package": "C5",
+      "facts": {"scope": {"type": "brd", "path": "product/brd.md", "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"}}},
+      "reads": {"line": "PS2", "acts": "agent", "action": null}
+    },
+    {
+      "id": "T3",
+      "title": "scope item: not met, met or retired",
+      "status_package": "C3",
+      "next_package": "C5",
+      "facts": {
+        "scope": {
+          "type": "prd",
+          "path": "product/prd.md",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "items": [{"id": "O1", "results": [{"decision": "met"}]}]
+        }
+      },
+      "reads": {"status": "met", "line": "none", "acts": null, "action": null}
+    },
+    {
+      "id": "T4",
+      "title": "Intent: none, draft",
+      "status_package": "C2",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "a placeholder",
+          "facts": {"intent": {"id": "INTENT-1", "title": "Let guests book online", "placeholder": true}},
+          "reads": {"status": "draft", "line": "I1", "acts": "agent", "action": null}
+        },
+        {
+          "name": "it validates",
+          "facts": {"intent": {"id": "INTENT-1", "title": "Let guests book online"}},
+          "reads": {"status": "draft", "line": "I2", "acts": "agent", "action": "intent.approve"}
+        }
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "Intent: draft, approved",
+      "status_package": "C2",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "no criteria",
+          "facts": {"intent": {"id": "INTENT-1", "title": "Let guests book online", "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"}}},
+          "reads": {"status": "approved", "line": "I4", "acts": "agent", "action": null}
+        },
+        {
+          "name": "one criterion",
+          "facts": {
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "success_criteria": [
+                {
+                  "id": "S1",
+                  "metric": {"name": "Share of bookings made online", "source": "bookings table", "baseline": "40%", "target": "60%"},
+                  "measure_after_days": 14
+                }
+              ]
+            }
+          },
+          "reads": {
+            "status": "approved",
+            "item_lines": {"INTENT-1": {"line": "I4", "acts": "agent", "action": null}, "INTENT-1#S1": {"line": "I7", "acts": null, "action": null}}
+          }
+        }
+      ]
+    },
+    {
+      "id": "T6",
+      "title": "Intent: approved, approved again",
+      "status_package": "C2",
+      "next_package": "C5",
+      "facts": {
+        "intent": {
+          "id": "INTENT-1",
+          "title": "Let guests book online",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "phases": [{"specs": ["SPEC-1", "SPEC-2"]}]
+        },
+        "git": {
+          "commits": [
+            {"name": "plan", "on": "feat", "changes": ["product/intents/INTENT-1.md#phases"]},
+            {
+              "name": "reapprove",
+              "on": "feat",
+              "trailers": {"Approved-by": "Mai <mai@example.com>", "Approves": "INTENT-1"},
+              "changes": ["product/intents/INTENT-1.md#approval"]
+            }
+          ]
+        }
+      },
+      "reads": {"status": "approved", "line": "I4", "acts": "agent", "action": null}
+    },
+    {
+      "id": "T7",
+      "title": "Intent: approved, draft",
+      "says": "read: its approval lost its hold, as when a squash dropped its trailer",
+      "status_package": "C2",
+      "next_package": "C5",
+      "facts": {
+        "intent": {"id": "INTENT-2", "title": "Let guests book online", "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"}},
+        "git": {"commits": [{"name": "squash", "on": "main", "changes": ["product/intents/INTENT-2.md#approval"]}]}
+      },
+      "reads": {
+        "status": "draft",
+        "findings": ["its approval has no hold: the squash merge dropped its trailer. Run aidd approve INTENT-2"],
+        "line": "I2",
+        "acts": "agent",
+        "action": "intent.approve"
+      }
+    },
+    {
+      "id": "T8",
+      "title": "Spec: none, draft; an emergency Spec enters at built, in its repair's own change",
+      "status_package": "today",
+      "next_package": "today",
+      "variants": [
+        {
+          "name": "a new draft with its placeholders",
+          "facts": {"spec": {"status": "draft", "placeholder": true}},
+          "reads": {"status": "draft", "line": "S5", "acts": "agent", "action": null}
+        },
+        {
+          "name": "an emergency Spec",
+          "facts": {"spec": {"status": "built", "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}], "route": "emergency"}},
+          "reads": {"status": "built", "line": "S1", "acts": "agent", "action": null},
+          "status_package": "C4",
+          "next_package": "C5"
+        }
+      ]
+    },
+    {
+      "id": "T9",
+      "title": "Spec: draft, ready",
+      "status_package": "today",
+      "next_package": "C5",
+      "facts": {"spec": {"status": "ready"}},
+      "reads": {"status": "ready", "line": "S7", "acts": "agent", "action": "spec.approve"}
+    },
+    {
+      "id": "T10",
+      "title": "Spec: ready, draft",
+      "unphrased": "a finding that names the step",
+      "status_package": "C4",
+      "next_package": "C5",
+      "facts": {"spec": {"status": "ready", "placeholder": true}},
+      "reads": {"status": "draft", "line": "S5", "acts": "agent", "action": null}
+    },
+    {
+      "id": "T11",
+      "title": "Spec: ready, approved",
+      "status_package": "C3",
+      "next_package": "C3",
+      "facts": {
+        "spec": {
+          "status": "approved",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": false, "scope": ["src/checkout/"]}]
+        }
+      },
+      "reads": {"status": "approved", "line": "S8", "acts": "agent", "action": null}
+    },
+    {
+      "id": "T12",
+      "title": "Spec: approved, in_progress",
+      "status_package": "C3",
+      "next_package": "C3",
+      "facts": {
+        "spec": {
+          "status": "in_progress",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": false, "scope": ["src/checkout/"]}]
+        }
+      },
+      "reads": {"status": "in_progress", "line": "S8", "acts": "agent", "action": null}
+    },
+    {
+      "id": "T13",
+      "title": "Spec: approved or in_progress, built",
+      "says": "the lines of a built Spec: a clone with no evidence and no review goes on to S11, and says the tests did not run here",
+      "status_package": "C4",
+      "next_package": "C5",
+      "facts": {
+        "spec": {
+          "status": "built",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+        },
+        "evidence": null
+      },
+      "reads": {"status": "built", "findings": ["tests: not run on this clone"], "line": "S11", "acts": "agent", "action": null}
+    },
+    {
+      "id": "T14",
+      "title": "Spec, built: the acceptance by a run (Verify)",
+      "status_package": "C4",
+      "next_package": "C5",
+      "facts": {
+        "spec": {
+          "status": "built",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+        },
+        "evidence": {"commit": "c-build", "passed": true},
+        "git": {"commits": [{"name": "c-build", "on": "feat", "changes": ["src/checkout/discount.py"]}]}
+      },
+      "reads": {"status": "built", "line": "S11", "acts": "agent", "action": null}
+    },
+    {
+      "id": "T15",
+      "title": "Spec, built: a review type, not met, met",
+      "status_package": "C4",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "another type is still needed",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "reviews": [{"type": "code", "by": "agent:claude-code/claude-opus-5-5", "at": "2026-12-01T14:02:00Z", "commit": "b7d20f4", "open": 0}],
+              "risk": {"dimensions": ["security"]}
+            },
+            "evidence": {"commit": "b7d20f4", "passed": true},
+            "git": {"commits": [{"name": "b7d20f4", "on": "feat", "changes": ["src/checkout/discount.py"]}]}
+          },
+          "reads": {"status": "built", "line": "S11", "acts": "agent", "action": null}
+        },
+        {
+          "name": "every type is met",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "reviews": [{"type": "code", "by": "agent:claude-code/claude-opus-5-5", "at": "2026-12-01T14:02:00Z", "commit": "b7d20f4", "open": 0}]
+            },
+            "evidence": {"commit": "b7d20f4", "passed": true},
+            "git": {"commits": [{"name": "b7d20f4", "on": "feat", "changes": ["src/checkout/discount.py"]}]}
+          },
+          "reads": {"status": "built", "line": "S12", "acts": "agent", "action": ["pr.merge", "git.merge"]}
+        }
+      ]
+    },
+    {
+      "id": "T16",
+      "title": "Spec, built: met, not met",
+      "status_package": "C4",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "an entry with a finding open",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "reviews": [{"type": "code", "by": "agent:claude-code/claude-opus-5-5", "at": "2026-12-01T14:02:00Z", "commit": "b7d20f4", "open": 1}]
+            },
+            "evidence": {"commit": "b7d20f4", "passed": true},
+            "git": {"commits": [{"name": "b7d20f4", "on": "feat", "changes": ["src/checkout/discount.py"]}]}
+          },
+          "reads": {"status": "built", "line": "S11a", "acts": "agent", "action": null}
+        },
+        {
+          "name": "a new commit that changes more than the Spec's own facts",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "reviews": [{"type": "code", "by": "agent:claude-code/claude-opus-5-5", "at": "2026-12-01T14:02:00Z", "commit": "b7d20f4", "open": 0}]
+            },
+            "evidence": {"commit": "b7d20f4", "passed": true},
+            "git": {
+              "commits": [
+                {"name": "b7d20f4", "on": "feat", "changes": ["src/checkout/discount.py"]},
+                {"name": "a91c3e5", "on": "feat", "changes": ["src/checkout/total.py"]}
+              ]
+            }
+          },
+          "reads": {"status": "built", "line": "S10a", "acts": "agent", "action": null}
+        }
+      ]
+    },
+    {
+      "id": "T17",
+      "title": "Spec: built, in_progress",
+      "status_package": "C3",
+      "next_package": "C3",
+      "facts": {
+        "spec": {
+          "status": "in_progress",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": false, "scope": ["src/checkout/"]}]
+        }
+      },
+      "reads": {"status": "in_progress", "line": "S8", "acts": "agent", "action": null}
+    },
+    {
+      "id": "T18",
+      "title": "Spec: approved, in_progress, or built, back to draft",
+      "status_package": "today",
+      "next_package": "today",
+      "facts": {"spec": {"status": "draft", "revisions": [{"why": "a person asked for a change"}]}},
+      "reads": {"status": "draft", "line": "S5", "acts": "agent", "action": null}
+    },
+    {
+      "id": "T18a",
+      "title": "Spec: a word past ready, ready",
+      "unphrased": "a finding that names the step",
+      "status_package": "C4",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "a revisions entry is newer than the approval",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "revisions": [{"why": "a person asked for a change", "at": "2026-11-17T08:00:00Z"}]
+            }
+          },
+          "reads": {"status": "ready", "line": "S7", "acts": "agent", "action": "spec.approve"}
+        },
+        {
+          "name": "the approval lost its hold",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+            },
+            "git": {"commits": [{"name": "squash", "on": "main", "changes": ["specs/SPEC-1.md#approval"]}]}
+          },
+          "reads": {"status": "ready", "line": "S7", "acts": "agent", "action": "spec.approve"}
+        }
+      ]
+    },
+    {
+      "id": "T19",
+      "title": "Spec: built, merged",
+      "status_package": "C4",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "every review is met, and production is not live",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "reviews": [{"type": "code", "by": "agent:claude-code/claude-opus-5-5", "at": "2026-12-01T14:02:00Z", "commit": "b7d20f4", "open": 0}]
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+              }
+            },
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "git": {"commits": [{"name": "b7d20f4", "on": "feat", "changes": ["src/checkout/discount.py"]}]}
+          },
+          "reads": {"status": "merged", "line": "S13", "acts": "agent", "action": "deploy.run"}
+        },
+        {
+          "name": "a review is missing, and a person merged it",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+              }
+            },
+            "config": {"environments": [{"name": "production", "production": true}]}
+          },
+          "reads": {"status": "merged", "line": "S13", "acts": "agent", "action": "deploy.run"}
+        },
+        {
+          "name": "no environment deploys",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "reviews": [{"type": "code", "by": "agent:claude-code/claude-opus-5-5", "at": "2026-12-01T14:02:00Z", "commit": "b7d20f4", "open": 0}]
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+              }
+            },
+            "config": {"environments": []},
+            "git": {"commits": [{"name": "b7d20f4", "on": "feat", "changes": ["src/checkout/discount.py"]}]}
+          },
+          "reads": {"status": "done", "line": "none", "acts": null, "action": null}
+        }
+      ]
+    },
+    {
+      "id": "T20",
+      "title": "Spec in an environment: not live, live; a hotfix on an environment branch enters here before it merges",
+      "status_package": "C4",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "live, and the observe window is open",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "observe": {"window": "24h"}
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "observe": {"window": "24h"}
+              }
+            },
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "day": "2026-11-20"
+          },
+          "reads": {"status": "merged", "line": "S14", "acts": "agent", "action": null}
+        },
+        {
+          "name": "live, with no observe window",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+              }
+            },
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]}
+          },
+          "reads": {"status": "done", "line": "none", "acts": null, "action": null}
+        },
+        {
+          "name": "a hotfix live from an environment branch",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+            },
+            "trunk": {"spec": null},
+            "config": {"environments": [{"name": "production", "production": true, "branches": ["hotfix"]}]},
+            "releases": [{"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "8e4f2a6", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "8e4f2a6", "on": "hotfix", "holds": ["SPEC-1"]}]}
+          },
+          "reads": {"status": "built", "findings": ["released, not merged"], "line": "S12", "acts": "agent", "action": ["pr.merge", "git.merge"]}
+        }
+      ]
+    },
+    {
+      "id": "T21",
+      "title": "Spec: merged, done",
+      "status_package": "C4",
+      "next_package": "C5",
+      "facts": {
+        "spec": {
+          "status": "built",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+          "observe": {"window": "24h"}
+        },
+        "trunk": {
+          "spec": {
+            "status": "built",
+            "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+            "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+            "observe": {"window": "24h"}
+          }
+        },
+        "config": {"environments": [{"name": "production", "production": true}]},
+        "releases": [{"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+        "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+        "day": "2026-11-22"
+      },
+      "reads": {"status": "done", "line": "none", "acts": null, "action": null}
+    },
+    {
+      "id": "T22",
+      "title": "Spec in an environment: live, rolled back",
+      "status_package": "C4",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "a newer release lists it under rolled_back, and no postmortem is from it",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+              }
+            },
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [
+              {"environment": "production", "released_at": "2026-11-20T16:40:00Z", "commit": "1b2c3d4", "specs": [], "rolled_back": ["SPEC-1"]},
+              {"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}
+            ],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]}
+          },
+          "reads": {"status": "rolled_back", "line": "S15", "acts": "agent", "action": null}
+        },
+        {
+          "name": "the same, with its postmortem in draft",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+              }
+            },
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [
+              {"environment": "production", "released_at": "2026-11-20T16:40:00Z", "commit": "1b2c3d4", "specs": [], "rolled_back": ["SPEC-1"]},
+              {"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}
+            ],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "postmortems": [{"id": "PM-1", "status": "draft", "from": "SPEC-1"}]
+          },
+          "reads": {"status": "rolled_back", "line": "O3", "acts": "agent", "action": "postmortem.publish"}
+        },
+        {
+          "name": "where production deploys on merge, a trunk that lost the Spec",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+            },
+            "trunk": {"spec": null},
+            "config": {"environments": [{"name": "production", "production": true, "branches": ["main"]}]},
+            "git": {
+              "commits": [{"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}, {"name": "revert", "on": "main", "holds": [], "changes": ["specs/SPEC-1.md"]}]
+            }
+          },
+          "reads": {"status": "rolled_back", "line": "S15", "acts": "agent", "action": null}
+        }
+      ]
+    },
+    {
+      "id": "T23",
+      "title": "Spec in an environment: rolled back, live",
+      "says": "a later release that holds it, and lists it in `specs` after a rollback by a flag",
+      "status_package": "C4",
+      "next_package": "C5",
+      "facts": {
+        "spec": {
+          "status": "built",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+        },
+        "trunk": {
+          "spec": {
+            "status": "built",
+            "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+            "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}]
+          }
+        },
+        "config": {"environments": [{"name": "production", "production": true}]},
+        "releases": [
+          {"environment": "production", "released_at": "2026-11-21T09:00:00Z", "commit": "5d7e2b8", "specs": ["SPEC-1"]},
+          {"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]},
+          {"environment": "production", "released_at": "2026-11-20T16:40:00Z", "commit": "3f2c1a9", "specs": [], "rolled_back": ["SPEC-1"]}
+        ],
+        "git": {"commits": [{"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}, {"name": "5d7e2b8", "on": "main", "holds": ["SPEC-1"]}]},
+        "day": "2026-11-23"
+      },
+      "reads": {"status": "done", "line": "none", "acts": null, "action": null}
+    },
+    {
+      "id": "T24",
+      "title": "Spec, not merged: any, cancelled",
+      "status_package": "C2",
+      "next_package": "C5",
+      "facts": {"spec": {"status": "draft", "cancellation": {"by": "Mai <mai@example.com>", "at": "2026-12-01T09:00:00Z", "reason": "duplicate of SPEC-4"}}},
+      "reads": {"status": "cancelled", "line": "none", "acts": null, "action": null}
+    },
+    {
+      "id": "T25",
+      "title": "a person's acceptance: in 1.0 no move; after the tag, the record, drafted, approved",
+      "says": "1.0: nothing; a warning stays until each row's Accepted and By cells are filled",
+      "unphrased": "the warning, which the design words no further",
+      "status_package": "C4",
+      "facts": {
+        "spec": {
+          "status": "built",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+          "manual_acceptance": true
+        },
+        "docs": [{"type": "acceptance", "path": "specs/SPEC-1/acceptance-staging.md", "rows_filled": false}]
+      },
+      "reads": {"status": "built"}
+    },
+    {
+      "id": "T26",
+      "title": "Intent: approved, shipped",
+      "status_package": "C2",
+      "next_package": "C5",
+      "facts": {
+        "spec": {
+          "status": "built",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+          "parent": "INTENT-1"
+        },
+        "trunk": {
+          "spec": {
+            "status": "built",
+            "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+            "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+            "parent": "INTENT-1"
+          }
+        },
+        "config": {"environments": [{"name": "production", "production": true}]},
+        "releases": [{"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+        "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+        "day": "2026-11-22",
+        "intent": {
+          "id": "INTENT-1",
+          "title": "Let guests book online",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "phases": [{"specs": ["SPEC-1"]}],
+          "success_criteria": [
+            {
+              "id": "S1",
+              "metric": {"name": "Share of bookings made online", "source": "bookings table", "baseline": "40%", "target": "60%"},
+              "measure_after_days": 14
+            }
+          ]
+        }
+      },
+      "reads": {"status": "shipped", "item_lines": {"INTENT-1#S1": {"line": "I8", "acts": null, "action": null}}}
+    },
+    {
+      "id": "T27",
+      "title": "Intent: shipped, approved",
+      "status_package": "C2",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "a Spec rolled back, and no open item is from it",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [
+              {"environment": "production", "released_at": "2026-11-20T16:40:00Z", "commit": "1b2c3d4", "specs": [], "rolled_back": ["SPEC-1"]},
+              {"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}
+            ],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "day": "2026-11-22",
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1"]}]
+            }
+          },
+          "reads": {"status": "approved", "line": "I6", "acts": "agent", "action": "intent.cancel"}
+        },
+        {
+          "name": "a Spec rolled back, and an open item is from it",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [
+              {"environment": "production", "released_at": "2026-11-20T16:40:00Z", "commit": "1b2c3d4", "specs": [], "rolled_back": ["SPEC-1"]},
+              {"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}
+            ],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "day": "2026-11-22",
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1"]}]
+            },
+            "specs": {"SPEC-2": {"status": "draft", "from": "SPEC-1", "parent": "INTENT-1"}}
+          },
+          "reads": {"status": "approved", "line": "I5", "acts": null, "action": null}
+        },
+        {
+          "name": "a new planned Spec was approved, and has no file",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "day": "2026-11-22",
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1", "SPEC-2"]}]
+            }
+          },
+          "reads": {"status": "approved", "line": "I4", "acts": "agent", "action": null}
+        },
+        {
+          "name": "a new planned Spec was approved, and its file is open",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "day": "2026-11-22",
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1", "SPEC-2"]}]
+            },
+            "specs": {"SPEC-2": {"status": "draft", "parent": "INTENT-1"}}
+          },
+          "reads": {"status": "approved", "line": "I5", "acts": null, "action": null}
+        }
+      ]
+    },
+    {
+      "id": "T28",
+      "title": "criterion: waits, due",
+      "status_package": "C4",
+      "next_package": "C5",
+      "facts": {
+        "config": {"environments": [{"name": "production", "production": true}]},
+        "releases": [{"environment": "production", "released_at": "2026-12-04T10:00:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+        "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+        "spec": {
+          "status": "built",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+          "parent": "INTENT-1"
+        },
+        "trunk": {
+          "spec": {
+            "status": "built",
+            "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+            "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+            "parent": "INTENT-1"
+          }
+        },
+        "intent": {
+          "id": "INTENT-1",
+          "title": "Let guests book online",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "phases": [{"specs": ["SPEC-1"]}],
+          "success_criteria": [
+            {
+              "id": "S1",
+              "metric": {"name": "Share of bookings made online", "source": "bookings table", "baseline": "40%", "target": "60%"},
+              "measure_after_days": 14
+            }
+          ]
+        },
+        "day": "2026-12-18"
+      },
+      "reads": {"criteria": {"S1": {"measure_from": "2026-12-18"}}, "item_lines": {"INTENT-1#S1": {"line": "I9", "acts": "agent", "action": null}}}
+    },
+    {
+      "id": "T29",
+      "title": "criterion: due, result drafted; also from waiting, when a person asks to measure early",
+      "status_package": "C4",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "its day came, and the result is drafted",
+          "facts": {
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-12-04T10:00:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1"]}],
+              "success_criteria": [
+                {
+                  "id": "S1",
+                  "metric": {"name": "Share of bookings made online", "source": "bookings table", "baseline": "40%", "target": "60%"},
+                  "measure_after_days": 14,
+                  "result": {"measured_on": "2026-12-18", "actual": "63%", "source": "bookings table", "decision": "met"}
+                }
+              ]
+            },
+            "day": "2026-12-18"
+          },
+          "reads": {
+            "criteria": {"S1": {"measure_from": "2026-12-18", "result": {"measured_on": "2026-12-18", "decision": "met"}}},
+            "item_lines": {"INTENT-1#S1": {"line": "I10", "acts": "agent", "action": "result.approve"}}
+          }
+        },
+        {
+          "name": "a person asked to measure early",
+          "facts": {
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-12-04T10:00:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1"]}],
+              "success_criteria": [
+                {
+                  "id": "S1",
+                  "metric": {"name": "Share of bookings made online", "source": "bookings table", "baseline": "40%", "target": "60%"},
+                  "measure_after_days": 14,
+                  "result": {"measured_on": "2026-12-18", "actual": "63%", "source": "bookings table", "decision": "met"}
+                }
+              ]
+            },
+            "day": "2026-12-10",
+            "told": ["a person asks the agent to measure early"]
+          },
+          "reads": {
+            "criteria": {"S1": {"measure_from": "2026-12-18", "result": {"measured_on": "2026-12-18", "decision": "met"}}},
+            "item_lines": {"INTENT-1#S1": {"line": "I10", "acts": "agent", "action": "result.approve"}}
+          },
+          "needs_person": true
+        }
+      ]
+    },
+    {
+      "id": "T30",
+      "title": "criterion: drafted, answered",
+      "status_package": "C2",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "met",
+          "facts": {
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-12-04T10:00:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1"]}],
+              "success_criteria": [
+                {
+                  "id": "S1",
+                  "metric": {"name": "Share of bookings made online", "source": "bookings table", "baseline": "40%", "target": "60%"},
+                  "measure_after_days": 14,
+                  "result": {
+                    "measured_on": "2026-12-18",
+                    "actual": "63%",
+                    "source": "bookings table",
+                    "decision": "met",
+                    "approval": {"by": "Mai <mai@example.com>", "at": "2026-12-19T08:30:00Z"}
+                  }
+                }
+              ]
+            },
+            "day": "2026-12-19"
+          },
+          "reads": {"status": "done", "item_lines": {"INTENT-1#S1": {"line": "none", "acts": null, "action": null}}}
+        },
+        {
+          "name": "continue, with no follow-up",
+          "facts": {
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-12-04T10:00:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1"]}],
+              "success_criteria": [
+                {
+                  "id": "S1",
+                  "metric": {"name": "Share of bookings made online", "source": "bookings table", "baseline": "40%", "target": "60%"},
+                  "measure_after_days": 14,
+                  "result": {
+                    "measured_on": "2026-12-18",
+                    "actual": "52%",
+                    "source": "bookings table",
+                    "decision": "continue",
+                    "approval": {"by": "Mai <mai@example.com>", "at": "2026-12-19T08:30:00Z"}
+                  }
+                }
+              ]
+            },
+            "day": "2026-12-19"
+          },
+          "reads": {"status": "shipped", "item_lines": {"INTENT-1#S1": {"line": "I11", "acts": "agent", "action": null}}}
+        }
+      ]
+    },
+    {
+      "id": "T31",
+      "title": "criterion: continue, followed up",
+      "status_package": "C2",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "the follow-up is approved",
+          "facts": {
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-12-04T10:00:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1"]}],
+              "success_criteria": [
+                {
+                  "id": "S1",
+                  "metric": {"name": "Share of bookings made online", "source": "bookings table", "baseline": "40%", "target": "60%"},
+                  "measure_after_days": 14,
+                  "result": {
+                    "measured_on": "2026-12-18",
+                    "actual": "52%",
+                    "source": "bookings table",
+                    "decision": "continue",
+                    "approval": {"by": "Mai <mai@example.com>", "at": "2026-12-19T08:30:00Z"}
+                  }
+                }
+              ]
+            },
+            "day": "2026-12-19",
+            "intents": {
+              "INTENT-2": {
+                "id": "INTENT-2",
+                "title": "Let guests book online",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "from": "INTENT-1#S1"
+              }
+            }
+          },
+          "reads": {"statuses": {"INTENT-1": "shipped", "INTENT-2": "approved"}, "item_lines": {"INTENT-1#S1": {"line": "none", "acts": null, "action": null}}}
+        },
+        {
+          "name": "the follow-up is cancelled",
+          "facts": {
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-12-04T10:00:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1"]}],
+              "success_criteria": [
+                {
+                  "id": "S1",
+                  "metric": {"name": "Share of bookings made online", "source": "bookings table", "baseline": "40%", "target": "60%"},
+                  "measure_after_days": 14,
+                  "result": {
+                    "measured_on": "2026-12-18",
+                    "actual": "52%",
+                    "source": "bookings table",
+                    "decision": "continue",
+                    "approval": {"by": "Mai <mai@example.com>", "at": "2026-12-19T08:30:00Z"}
+                  }
+                }
+              ]
+            },
+            "day": "2026-12-19",
+            "intents": {
+              "INTENT-2": {
+                "id": "INTENT-2",
+                "title": "Let guests book online",
+                "cancellation": {"by": "Mai <mai@example.com>", "at": "2026-12-20T09:00:00Z", "reason": "not worth it"},
+                "from": "INTENT-1#S1"
+              }
+            }
+          },
+          "reads": {
+            "statuses": {"INTENT-1": "shipped", "INTENT-2": "cancelled"},
+            "item_lines": {"INTENT-1#S1": {"line": "none", "acts": null, "action": null}}
+          }
+        },
+        {
+          "name": "the follow-up is a draft alone",
+          "facts": {
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-12-04T10:00:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1"]}],
+              "success_criteria": [
+                {
+                  "id": "S1",
+                  "metric": {"name": "Share of bookings made online", "source": "bookings table", "baseline": "40%", "target": "60%"},
+                  "measure_after_days": 14,
+                  "result": {
+                    "measured_on": "2026-12-18",
+                    "actual": "52%",
+                    "source": "bookings table",
+                    "decision": "continue",
+                    "approval": {"by": "Mai <mai@example.com>", "at": "2026-12-19T08:30:00Z"}
+                  }
+                }
+              ]
+            },
+            "day": "2026-12-19",
+            "intents": {"INTENT-2": {"id": "INTENT-2", "title": "Let guests book online", "from": "INTENT-1#S1"}}
+          },
+          "reads": {"statuses": {"INTENT-1": "shipped", "INTENT-2": "draft"}, "item_lines": {"INTENT-1#S1": {"line": "I11", "acts": "agent", "action": null}}}
+        }
+      ]
+    },
+    {
+      "id": "T32",
+      "title": "Intent: shipped, done",
+      "status_package": "C2",
+      "next_package": "C5",
+      "variants": [
+        {
+          "name": "every result is approved",
+          "facts": {
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-12-04T10:00:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1"]}],
+              "success_criteria": [
+                {
+                  "id": "S1",
+                  "metric": {"name": "Share of bookings made online", "source": "bookings table", "baseline": "40%", "target": "60%"},
+                  "measure_after_days": 14,
+                  "result": {
+                    "measured_on": "2026-12-18",
+                    "actual": "63%",
+                    "source": "bookings table",
+                    "decision": "met",
+                    "approval": {"by": "Mai <mai@example.com>", "at": "2026-12-19T08:30:00Z"}
+                  }
+                }
+              ]
+            },
+            "day": "2026-12-19"
+          },
+          "reads": {"status": "done", "line": "none", "acts": null, "action": null}
+        },
+        {
+          "name": "no criteria, at shipping",
+          "facts": {
+            "spec": {
+              "status": "built",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+              "parent": "INTENT-1"
+            },
+            "trunk": {
+              "spec": {
+                "status": "built",
+                "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+                "tasks": [{"id": "T1", "done": true, "scope": ["src/checkout/"]}],
+                "parent": "INTENT-1"
+              }
+            },
+            "config": {"environments": [{"name": "production", "production": true}]},
+            "releases": [{"environment": "production", "released_at": "2026-11-20T15:10:00Z", "commit": "3f2c1a9", "specs": ["SPEC-1"]}],
+            "git": {"commits": [{"name": "1b2c3d4", "on": "main", "holds": []}, {"name": "3f2c1a9", "on": "main", "holds": ["SPEC-1"]}]},
+            "day": "2026-11-22",
+            "intent": {
+              "id": "INTENT-1",
+              "title": "Let guests book online",
+              "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+              "phases": [{"specs": ["SPEC-1"]}]
+            }
+          },
+          "reads": {"status": "done", "line": "none", "acts": null, "action": null}
+        }
+      ]
+    },
+    {
+      "id": "T33",
+      "title": "Intent, not done: any, cancelled",
+      "status_package": "C2",
+      "next_package": "C5",
+      "facts": {
+        "intent": {
+          "id": "INTENT-1",
+          "title": "Let guests book online",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "cancellation": {"by": "Mai <mai@example.com>", "at": "2026-12-01T09:00:00Z", "reason": "the market moved"}
+        },
+        "spec": {
+          "status": "in_progress",
+          "approval": {"by": "Mai <mai@example.com>", "at": "2026-11-16T10:05:00Z"},
+          "tasks": [{"id": "T1", "done": false, "scope": ["src/checkout/"]}],
+          "parent": "INTENT-1"
+        }
+      },
+      "reads": {"statuses": {"INTENT-1": "cancelled"}, "item_lines": {"SPEC-1": {"line": "S3", "acts": "agent", "action": "spec.cancel"}}}
+    },
+    {
+      "id": "T34",
+      "title": "postmortem: draft or in_review, published",
+      "status_package": "C5",
+      "next_package": "C5",
+      "facts": {"postmortems": [{"id": "PM-1", "status": "published", "spec": "SPEC-1", "actions": [{"text": "add an alert", "done": false}]}]},
+      "reads": {"statuses": {"PM-1": "published"}, "item_lines": {"PM-1": {"line": "O4", "acts": "person", "action": null}}}
+    }
+  ]
+}

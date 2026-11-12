@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:retired-names",
+  "title": "aidd retired names",
+  "description": "The format of schemas/retired-names.json: the names aidd retired, and what replaced each. A row says where a name stood (`surface` and `old`), what it became (`new`, null for a cut), and how `aidd upgrade` moves it (`rule`). `aidd upgrade --yes` moves every file in an old shape to today's, and the loaders name the row when they meet an old name. A rename, a cut, or a move of a name a person writes adds a row here and no code.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["description", "retired"],
+  "properties": {
+    "description": { "type": "string" },
+    "retired": {
+      "type": "array",
+      "description": "One row for each retired name, by surface in the order the `surface` enum lists them, then by `old`.",
+      "items": { "$ref": "#/$defs/row" },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "path": {
+      "type": "string",
+      "description": "A path into a file's YAML: keys joined by dots. `name[]` is each item of the list at `name`, and `*` is any key of the mapping. For a `cli_value` row, a flag and its value as a person types them, such as `--example-flag old`, or `explain` and the word it takes, such as `explain old-word`. For a `standard_id` row, a library standard's id.",
+      "minLength": 1
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "surface", "old", "new", "retired_in", "rule", "note"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "The row's name, unique in the file. A `value` rule is the function in `aidd.setup.migrating` that has this id."
+        },
+        "surface": {
+          "enum": ["config", "spec", "intent", "proposal", "runbook", "postmortem", "release", "exploration", "handoff", "standard", "record", "cli_value", "standard_id"],
+          "description": "Where the name stood: `config` is `.aidd/config.yaml` and the parents it extends from the repository, `spec`, `intent`, `proposal`, `runbook`, `postmortem`, `release`, and `exploration` are the front matter of a work item or a typed document, `handoff` is an `aidd-handoff` block in a Spec, `standard` is the front matter of an edited copy of a library standard, `record` is a record file in `.git/aidd/records/`, which aidd never rewrites, `cli_value` is a value a person types after a flag of the CLI or gives to the MCP tool of the same name, or the word `aidd explain` takes, and `standard_id` is the id of a library standard that a project copied."
+        },
+        "old": { "$ref": "#/$defs/path", "description": "The retired name, as a path." },
+        "new": {
+          "oneOf": [{ "$ref": "#/$defs/path" }, { "type": "null" }],
+          "description": "What replaced it, as a path, or null when nothing did. A `rename` keeps the parent and changes the last key."
+        },
+        "retired_in": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "description": "The aidd version that stopped reading the old name."
+        },
+        "rule": {
+          "enum": ["rename", "cut", "value", "read_both", "manual"],
+          "description": "How `aidd upgrade` moves it. `rename` changes the last key and keeps its value, its place, and its comment. `cut` removes the key, with a line that shows its value. `value` runs the function with this row's `id`, for a change that moves a value to another place or another file, or changes the value itself, such as to its opposite. A `value` row that changes only values names its key as both `old` and `new`. `read_both` is for a record, which aidd never rewrites: a reader reads the old name, or each old value in `read_as`, as the new one. `manual` is for a value a person types, which no file holds: the CLI refuses it and names `new`, what to type now."
+        },
+        "read_as": {
+          "type": "object",
+          "description": "Only with `read_both`, for a retired value: each old value of the key `old` names, and the value a reader reads it as. The writer never writes an old value.",
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Why it was retired and where its fact lives now. A cut prints it, and a loader adds it to the error for the old name."
+        }
+      },
+      "allOf": [
+        { "if": { "properties": { "rule": { "const": "rename" } } }, "then": { "properties": { "new": { "type": "string" } } } },
+        { "if": { "properties": { "rule": { "const": "cut" } } }, "then": { "properties": { "new": { "type": "null" } } } },
+        { "if": { "properties": { "rule": { "const": "read_both" } } }, "then": { "properties": { "new": { "type": "string" }, "surface": { "const": "record" } } } },
+        { "if": { "properties": { "surface": { "const": "record" } } }, "then": { "properties": { "rule": { "const": "read_both" } } } },
+        { "if": { "required": ["read_as"] }, "then": { "properties": { "rule": { "const": "read_both" } } } },
+        { "if": { "properties": { "surface": { "const": "cli_value" } } }, "then": { "properties": { "rule": { "const": "manual" }, "new": { "type": "string" } } } },
+        { "if": { "properties": { "rule": { "const": "manual" } } }, "then": { "properties": { "surface": { "const": "cli_value" } } } }
+      ]
+    }
+  }
+}

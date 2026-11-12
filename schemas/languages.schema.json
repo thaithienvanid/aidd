@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:languages",
+  "title": "aidd languages",
+  "description": "The format of schemas/languages.json: what aidd knows about each language. Supporting another language is a row and no code.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["description", "languages", "manifests_of_any_language"],
+  "properties": {
+    "description": { "type": "string" },
+    "languages": {
+      "type": "object",
+      "description": "One row for each language, keyed by a lower-case id, in alphabetical order.",
+      "additionalProperties": { "$ref": "#/$defs/language" }
+    },
+    "manifests_of_any_language": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/manifest" },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Manifests that name a project in any language, such as a Makefile that holds its test target. A manifest in a language row is not listed here."
+    }
+  },
+  "$defs": {
+    "manifest": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "description": "A manifest's file name, with no folder. `aidd init` opens a file of this name and no other."
+    },
+    "language": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["extensions"],
+      "properties": {
+        "extensions": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^\\.[a-z0-9]+$" },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The extensions of its source files, each with the dot and in lower case. A file that ends with one is source code. The first is the usual one, where a test writes one file of the language, and the rest follow in alphabetical order."
+        },
+        "gitignore": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The `.gitignore` lines for what this language's own tools write into the working tree when its tests run."
+        },
+        "manifests": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/manifest" },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The manifests that name a project in it, in alphabetical order. One file name belongs to one language."
+        }
+      }
+    }
+  }
+}

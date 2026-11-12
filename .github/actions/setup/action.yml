@@ -1,0 +1,42 @@
+# The setup this repository's workflows repeat: Python, and for the browser tests Chrome's sandbox and axe-core. The
+# checkout stays a step of each job, since a local action is read from the checked-out tree. aidd-tests.yml and the files
+# under templates/github/ keep their own steps: an adopter copies each of those files alone. Every action here is
+# pinned by SHA, so a version bump is one line.
+name: setup
+description: Python for a job, and optionally what the browser tests need on a Linux runner
+inputs:
+  python-version:
+    description: "What actions/setup-python takes: one version, or one per line"
+    required: true
+  allow-prereleases:
+    description: "Take a prerelease, such as the newest Python before it ships"
+    default: "false"
+  cache:
+    description: "The package manager whose cache setup-python keeps, or empty for none"
+    default: ""
+  cache-dependency-path:
+    description: "The lock file that keys that cache"
+    default: ""
+  browser:
+    description: "On a Linux runner: let Chrome make its sandbox, and install axe-core, for the tests that drive a browser"
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: ${{ inputs.python-version }}
+        allow-prereleases: ${{ inputs.allow-prereleases }}
+        cache: ${{ inputs.cache }}
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+    # Ubuntu 24.04 stops a program from making the user namespaces Chrome's sandbox needs, unless AppArmor names it.
+    # The runner is a throwaway machine, so lift that limit for the run and keep Chrome's own sandbox on.
+    - name: Let Chrome make its sandbox
+      if: inputs.browser == 'true'
+      shell: bash
+      run: if [ -e /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0; fi
+    # The work-items page's accessibility test injects axe-core (MPL-2.0), locked in tools/axe. Node is on the runner; no script runs at install.
+    - name: Install axe-core
+      if: inputs.browser == 'true'
+      shell: bash
+      run: npm ci --prefix tools/axe --ignore-scripts
