@@ -1,0 +1,25 @@
+{
+  "id": "20261101T100000000Z-a0000001",
+  "type": "decision",
+  "recorded_at": "2026-11-01T10:00:00Z",
+  "by": "agent:claude-code/claude-opus-5-5",
+  "written_with": "cli",
+  "subject": "SPEC-4",
+  "data": {
+    "action": "git.push",
+    "question": {
+      "type": "yes_no",
+      "text": "Push feat/refunds to origin?"
+    },
+    "covers": {
+      "command": "git push origin feat/refunds",
+      "head": "ab1d6f9",
+      "branch": "feat/refunds"
+    },
+    "answer": {
+      "outcome": "accept",
+      "words": "yes, push it",
+      "by": "Ada"
+    }
+  }
+}

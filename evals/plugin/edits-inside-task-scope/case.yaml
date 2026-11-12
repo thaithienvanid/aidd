@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: edits-inside-task-scope
+context:
+  scaffold_script: fixture.sh

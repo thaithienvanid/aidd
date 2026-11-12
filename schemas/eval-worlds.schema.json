@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:eval-worlds",
+  "title": "aidd eval worlds",
+  "description": "The format of evals/worlds.json: the worlds an eval case's project can be set in. A world is a programming language and a business domain, with a small project that builds it, so the cases are not all set in the one world their author knew. A live case names its world in a `world:<name>` tag. The file also holds the share of the live cases any one world, language, or domain may have, and the shares that are over it today.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["description", "cap", "languages", "worlds", "over_cap"],
+  "properties": {
+    "description": { "type": "string" },
+    "cap": {
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 1,
+      "description": "The most any one world, language, or domain may have of the live cases, as a share."
+    },
+    "languages": {
+      "type": "object",
+      "description": "Each programming language a world may use, with the file names and suffixes that show a project holds it. `none` is a project with no source file. Markup, styles, and shell scripts show no language.",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["markers"],
+        "properties": {
+          "markers": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 },
+            "description": "A suffix, such as `.py`, or a file name, such as `package.json`. A project holds the language when one of its files has a marker."
+          }
+        }
+      }
+    },
+    "worlds": {
+      "type": "object",
+      "description": "Each world by its name, `<language>-<domain>`, in the order of the languages, then the domains.",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)+$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["language", "domain", "means", "seed", "risk"],
+        "properties": {
+          "language": { "type": "string", "minLength": 1, "description": "A key of `languages`: the one language the world's project is written in." },
+          "domain": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "What the world's project is about, such as `commerce`. `general` says it is about no business."
+          },
+          "means": { "type": "string", "minLength": 1, "description": "What the world's project is, in one sentence." },
+          "seed": { "type": "string", "pattern": "^evals/worlds/[a-z0-9-]+/world\\.sh$", "description": "The script that builds the world's project in an empty folder, as a case's `fixture.sh` does." },
+          "risk": {
+            "type": "array",
+            "minItems": 1,
+            "description": "What `aidd risk --paths` says of planned paths in the built project: each row is one run and the route it must give.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["paths", "route"],
+              "properties": {
+                "paths": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+                "route": { "enum": ["minor", "normal", "major"] }
+              }
+            }
+          }
+        }
+      }
+    },
+    "over_cap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["world", "language", "domain"],
+      "description": "The worlds, languages, and domains that have more than `cap` of the live cases today, each with its case count. A count may only fall, and a row goes when its count is under the cap.",
+      "properties": {
+        "world": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 1 } },
+        "language": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 1 } },
+        "domain": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 1 } }
+      }
+    }
+  }
+}

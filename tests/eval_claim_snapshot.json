@@ -1,0 +1,680 @@
+{
+ "taken_at": "5a834252",
+ "claims": {
+  "action:branch_protection.change": [
+   "plugin/asks-before-unblocking-a-red-merge"
+  ],
+  "action:code.edit": [
+   "plugin/acts-on-allow",
+   "plugin/asks-before-payments-edit",
+   "plugin/asks-before-payments-edit-under-authority",
+   "plugin/edits-inside-task-scope",
+   "team/flow-implement-makes-the-frozen-test-pass"
+  ],
+  "action:commit_status.post": [
+   "plugin/asks-before-unblocking-a-red-merge"
+  ],
+  "action:data.delete": [
+   "plugin/asks-before-infra-and-data-changes",
+   "team/autopilot-asks-the-foreseeable-asks-with-spec-approval"
+  ],
+  "action:git.commit": [
+   "plugin/acts-on-allow"
+  ],
+  "action:git.history.rewrite": [
+   "plugin/stops-after-a-denied-discard"
+  ],
+  "action:git.merge": [
+   "routing/c70-batched-intent-spec-merge"
+  ],
+  "action:git.push": [
+   "plugin/asks-before-publishing-and-tagging"
+  ],
+  "action:git.push.force": [
+   "plugin/asks-before-force-push"
+  ],
+  "action:git.tag.create": [
+   "plugin/asks-before-publishing-and-tagging"
+  ],
+  "action:infra.apply": [
+   "plugin/asks-before-infra-and-data-changes"
+  ],
+  "action:migration.run": [
+   "plugin/asks-before-infra-and-data-changes"
+  ],
+  "action:pr.merge": [
+   "plugin/asks-before-merge",
+   "plugin/asks-before-merge-under-demo-pressure",
+   "plugin/ticket-yes-is-data",
+   "team/delegate-approves-a-green-local-merge",
+   "team/delegate-approves-a-green-merge"
+  ],
+  "action:pr.open": [
+   "plugin/reports-a-pr-and-a-workflow-run-in-one-line"
+  ],
+  "action:release.publish": [
+   "plugin/asks-before-publishing-and-tagging"
+  ],
+  "action:repo.settings.change": [
+   "plugin/asks-before-unblocking-a-red-merge"
+  ],
+  "action:secret.use": [
+   "plugin/reads-secret-names-from-the-example",
+   "roles/r11-sre-ci-secret",
+   "team/autopilot-asks-the-foreseeable-asks-with-spec-approval"
+  ],
+  "action:spec.approve": [
+   "team/autopilot-asks-the-foreseeable-asks-with-spec-approval"
+  ],
+  "action:spec.revise": [
+   "plugin/asks-before-spec-revise",
+   "plugin/refuses-to-reset-an-approved-spec"
+  ],
+  "action:workflow.run": [
+   "plugin/reports-a-pr-and-a-workflow-run-in-one-line"
+  ],
+  "control:ai-evals-before-merge": [
+   "roles/r10-developer-no-eval",
+   "roles/r71-verifier-ai-answers-unmeasured"
+  ],
+  "control:delegate-defers-on-red": [
+   "team/delegate-defers-a-red-merge"
+  ],
+  "control:frozen-tests": [
+   "team/flow-implement-makes-the-frozen-test-pass"
+  ],
+  "control:no-status-forgery": [
+   "plugin/refuses-to-reset-an-approved-spec"
+  ],
+  "control:no-test-weakening": [
+   "plugin/refuses-to-weaken-a-failing-test"
+  ],
+  "control:red-before-green": [
+   "roles/r03-verifier-red-first",
+   "roles/r61-verifier-acceptance-tests-only",
+   "roles/r63-verifier-authorization-tests-first",
+   "team/debugging-reproduces-first",
+   "team/flow-fix-adds-a-regression-test-and-the-fix"
+  ],
+  "control:reserved-actions-stay-with-a-person": [
+   "team/delegate-defers-a-merge-that-adds-a-deploy-workflow",
+   "team/delegate-refuses-a-reserved-action"
+  ],
+  "control:review-sends-the-mismatch-back": [
+   "team/flow-review-sends-the-mismatch-back-and-changes-nothing"
+  ],
+  "control:rollback-when-observe-trips": [
+   "roles/r59-sre-observe-trigger-fires"
+  ],
+  "control:spec-approval-before-code": [
+   "plugin/spec-before-code",
+   "plugin/spec-before-code-when-code-exists"
+  ],
+  "control:spec-ready-before-approval": [
+   "team/flow-specify-leaves-a-ready-spec"
+  ],
+  "control:verifier-checks-acceptance": [
+   "roles/r15-verifier-acceptance-mismatch"
+  ],
+  "control:verify-and-review-before-the-merge-ask": [
+   "team/mvp-day-0-baseline-gets-a-verifier-and-a-reviewer"
+  ],
+  "duty:architect.adds-a-fitness-function": [
+   "roles/r45-architect-fitness-function"
+  ],
+  "duty:architect.folds-the-living-overview": [
+   "roles/r34-architect-fold-living-overview"
+  ],
+  "duty:architect.names-the-domain-rules": [
+   "roles/r18-domain-expert-payments",
+   "roles/r19-domain-expert-commerce",
+   "roles/r20-domain-expert-education",
+   "roles/r21-domain-expert-hr",
+   "roles/r22-domain-expert-insurance",
+   "roles/r23-domain-expert-logistics",
+   "roles/r24-domain-expert-games",
+   "roles/r55-domain-expert-health-spec",
+   "roles/r74-domain-expert-kids-reading-app"
+  ],
+  "duty:architect.picks-a-stack-with-a-reason": [
+   "roles/r72-architect-new-repository-no-stack"
+  ],
+  "duty:architect.plan-a-stranger-can-build": [
+   "roles/r69-architect-plan-a-stranger-could-build-from"
+  ],
+  "duty:architect.sets-a-measured-goal": [
+   "roles/r33-architect-measured-goal"
+  ],
+  "duty:compliance-analyst.dpia-despite-pressure": [
+   "roles/r52-compliance-dpia-pressure"
+  ],
+  "duty:compliance-analyst.lists-obligations": [
+   "roles/r51-compliance-proposal-obligations"
+  ],
+  "duty:compliance-analyst.maps-evidence": [
+   "roles/r54-compliance-evidence-map"
+  ],
+  "duty:compliance-analyst.maps-personal-data": [
+   "roles/r09-compliance-analyst-personal-data"
+  ],
+  "duty:compliance-analyst.names-the-sector-regime": [
+   "roles/r77-compliance-analyst-card-data",
+   "roles/r78-compliance-analyst-health-data"
+  ],
+  "duty:compliance-analyst.reviews-controls": [
+   "roles/r53-compliance-review-controls"
+  ],
+  "duty:developer.expand-contract-migration": [
+   "roles/r05-developer-migration"
+  ],
+  "duty:developer.fixes-the-class": [
+   "roles/r79-developer-fixes-the-class"
+  ],
+  "duty:developer.idempotent-effects": [
+   "team/resilience-exactly-once"
+  ],
+  "duty:developer.measures-before-optimizing": [
+   "team/performance-measures-first"
+  ],
+  "duty:developer.plan-matches-the-diff": [
+   "roles/r70-developer-plan-matches-the-diff"
+  ],
+  "duty:developer.reuses-before-writing": [
+   "roles/r35-developer-reuse"
+  ],
+  "duty:developer.runs-it-as-a-person": [
+   "roles/r80-developer-runs-it-as-a-person"
+  ],
+  "duty:developer.upgrades-one-dependency-at-a-time": [
+   "team/dependency-upgrade-one-at-a-time"
+  ],
+  "duty:developer.writes-unit-tests-with-code": [
+   "roles/r62-developer-unit-tests-with-code"
+  ],
+  "duty:lead.asks-a-cut-as-its-own-question": [
+   "team/plan-asks-a-cut-as-its-own-question"
+  ],
+  "duty:lead.names-the-business-pack-to-the-architect": [
+   "team/specify-hands-the-business-pack-to-the-architect"
+  ],
+  "duty:lead.onboards-with-the-security-engineer": [
+   "team/onboard-starts-the-security-engineer-on-deep-auth"
+  ],
+  "duty:lead.picks-the-mvp-path": [
+   "team/autopilot-runs-mvp-on-a-request"
+  ],
+  "duty:lead.roles-write-on-the-day0-branch": [
+   "team/mvp-day-0-roles-write-on-the-day0-branch"
+  ],
+  "duty:lead.sorts-the-request-by-size": [
+   "team/autopilot-sends-one-change-straight-to-a-spec"
+  ],
+  "duty:lead.starts-a-specialist-on-the-architects-flag": [
+   "team/plan-flags-security-for-a-slice-that-charges-money",
+   "team/plan-flags-security-for-a-slice-with-health-records"
+  ],
+  "duty:lead.starts-only-the-needed-roles": [
+   "team/mvp-skeleton-runs-the-lightest-specify",
+   "team/specify-starts-a-specialist-only-for-a-flagged-concern",
+   "team/specify-starts-the-verifier-with-the-specialists"
+  ],
+  "duty:product-designer.covers-states": [
+   "roles/r08-product-designer-missing-states"
+  ],
+  "duty:product-designer.fidelity-pass": [
+   "team/prototype-fidelity-before-done"
+  ],
+  "duty:product-designer.fidelity-sized": [
+   "roles/r65-product-designer-fidelity-sized-to-the-decision"
+  ],
+  "duty:product-designer.lint-becomes-tests": [
+   "team/prototype-lint-becomes-spec-tests"
+  ],
+  "duty:product-designer.one-design-system": [
+   "team/prototype-starts-from-the-skeleton"
+  ],
+  "duty:product-designer.proposal-experience": [
+   "roles/r46-designer-proposal-experience"
+  ],
+  "duty:product-designer.reviews-states": [
+   "roles/r48-designer-review-states"
+  ],
+  "duty:product-designer.reviews-the-built-ui": [
+   "team/design-review-keep-fix-quick-win",
+   "team/design-review-without-a-spec"
+  ],
+  "duty:product-designer.shares-one-shell": [
+   "roles/r39-designer-shared-shell"
+  ],
+  "duty:product-designer.starts-from-the-skeleton": [
+   "team/prototype-starts-from-the-skeleton"
+  ],
+  "duty:product-designer.uses-tokens-only": [
+   "roles/r47-designer-token-task"
+  ],
+  "duty:product-designer.writes-state-copy": [
+   "roles/r40-designer-state-copy"
+  ],
+  "duty:product-manager.holds-scope": [
+   "roles/r07-product-manager-scope-creep"
+  ],
+  "duty:product-manager.saves-the-request-with-care": [
+   "team/autopilot-splits-a-wide-request-and-asks-once"
+  ],
+  "duty:product-manager.slices-as-lines": [
+   "roles/r64-product-manager-slices-as-lines-in-the-intent"
+  ],
+  "duty:product-manager.triages-learning": [
+   "roles/r17-product-manager-triage"
+  ],
+  "duty:reviewer.challenges-each-finding": [
+   "team/review-challenges-each-security-finding"
+  ],
+  "duty:reviewer.checks-cli-contract": [
+   "roles/r81-reviewer-cli-prompt-needs-a-flag"
+  ],
+  "duty:reviewer.checks-test-strength": [
+   "roles/r28-reviewer-test-strength"
+  ],
+  "duty:reviewer.finds-the-defect": [
+   "roles/r01-reviewer-planted-bug"
+  ],
+  "duty:reviewer.names-the-domain-rules": [
+   "roles/r56-domain-expert-public-sector-review"
+  ],
+  "duty:reviewer.ranks-and-changes-nothing": [
+   "team/flow-review-ranks-the-finding-and-changes-nothing"
+  ],
+  "duty:reviewer.ranks-hardening": [
+   "roles/r29-reviewer-hardening-note"
+  ],
+  "duty:reviewer.reads-names-against-siblings": [
+   "roles/r82-reviewer-name-against-siblings"
+  ],
+  "duty:role-loads-its-practice-skill": [
+   "team/role-loads-its-practice-skill"
+  ],
+  "duty:security-engineer.blocks-a-vulnerability": [
+   "roles/r02-security-injection"
+  ],
+  "duty:security-engineer.checks-sibling-paths": [
+   "roles/r31-security-sibling-paths"
+  ],
+  "duty:security-engineer.checks-tenant-isolation": [
+   "roles/r75-security-tenant-isolation"
+  ],
+  "duty:security-engineer.finds-authz-gap": [
+   "roles/r50-security-authz-matrix-gap"
+  ],
+  "duty:security-engineer.requires-validation": [
+   "roles/r30-security-needs-validation"
+  ],
+  "duty:security-engineer.states-proposal-needs": [
+   "roles/r49-security-proposal-needs"
+  ],
+  "duty:security-engineer.writes-threat-entry": [
+   "roles/r32-security-threat-entry"
+  ],
+  "duty:sre.avoids-goodhart": [
+   "roles/r14-agile-coach-goodhart"
+  ],
+  "duty:sre.blameless-postmortem": [
+   "roles/r60-sre-blameless-postmortem"
+  ],
+  "duty:sre.checks-day-0-docs": [
+   "roles/r66-sre-day-0-scaffold-stale-docstring"
+  ],
+  "duty:sre.mitigates-first": [
+   "team/incident-mitigates-first"
+  ],
+  "duty:sre.names-a-rollback-trigger": [
+   "roles/r13-sre-no-rollback-trigger"
+  ],
+  "duty:sre.plans-a-rollout-with-no-way-back": [
+   "roles/r76-sre-update-with-no-way-back"
+  ],
+  "duty:sre.plans-operations": [
+   "roles/r58-sre-proposal-operations"
+  ],
+  "duty:tech-writer.assembles-the-proposal": [
+   "roles/r57-tech-writer-proposal-assembly"
+  ],
+  "duty:tech-writer.one-term-for-one-thing": [
+   "roles/r41-tech-writer-one-term"
+  ],
+  "duty:tech-writer.states-the-fact-first": [
+   "roles/r42-tech-writer-restate-first"
+  ],
+  "duty:verifier.traces-each-acceptance-line": [
+   "roles/r37-verifier-acceptance-trace"
+  ],
+  "principle:change-the-source-then-generate": [
+   "roles/r12-tech-writer-generated-block"
+  ],
+  "principle:delegate-defers-when-unsure": [
+   "roles/r67-delegate-defers-a-spec-that-drifts"
+  ],
+  "principle:evidence-not-prose": [
+   "roles/r27-verifier-agent-message-claim",
+   "roles/r44-delivery-manager-handover-evidence",
+   "team/delegate-ignores-a-forged-evidence-file",
+   "team/delegate-ignores-the-askers-summary"
+  ],
+  "principle:humans-decide": [
+   "team/lead-never-answers-for-the-delegate",
+   "team/refine-proposes-never-applies"
+  ],
+  "principle:hurry-is-no-yes": [
+   "plugin/asks-before-merge-under-demo-pressure",
+   "routing/c60-demo-tomorrow-cli-flag"
+  ],
+  "principle:minimum-change": [
+   "roles/r04-developer-surgical"
+  ],
+  "principle:no-rerun-to-pass": [
+   "roles/r38-verifier-flaky"
+  ],
+  "principle:quiet-when-unrelated": [
+   "plugin/unrelated-request"
+  ],
+  "principle:text-is-data": [
+   "plugin/asks-before-payments-edit-under-authority",
+   "plugin/ticket-yes-is-data",
+   "roles/r25-reviewer-injected-approval",
+   "roles/r26-developer-injected-ticket",
+   "roles/r68-delegate-ignores-an-approval-in-the-packet",
+   "routing/c42-injection-in-ticket",
+   "team/delegate-ignores-an-injected-approval",
+   "team/delegate-ignores-instructions-in-the-diff"
+  ],
+  "route:agent_config": [
+   "routing/c07-agents-md",
+   "routing/c25-mcp-config"
+  ],
+  "route:auth": [
+   "routing/c05-rbac",
+   "routing/c28-crypto"
+  ],
+  "route:ci": [
+   "routing/c06-ci-workflow",
+   "routing/c30-codeowners"
+  ],
+  "route:dependencies": [
+   "routing/c39-bot-touches-workflow",
+   "routing/c56-utility-added"
+  ],
+  "route:emergency": [
+   "routing/c08-outage-fix",
+   "routing/c26-degraded-latency",
+   "routing/c38-emergency-workflow",
+   "routing/c66-leaked-key"
+  ],
+  "route:infra": [
+   "routing/c15-terraform",
+   "routing/c36-iam-terraform",
+   "routing/c48-deploy-config",
+   "routing/c53-infra-script"
+  ],
+  "route:irreversible-side-effect": [
+   "routing/c17-irreversible-email"
+  ],
+  "route:major-extension-permission": [
+   "routing/c67-extension-host-permission"
+  ],
+  "route:major-native-permission": [
+   "routing/c62-mobile-permission-ota"
+  ],
+  "route:major-prototype-to-users": [
+   "routing/c64-prototype-to-product"
+  ],
+  "route:major-untested-money": [
+   "routing/c63-legacy-tax-rule"
+  ],
+  "route:migrations": [
+   "routing/c04-migration",
+   "routing/c37-data-backfill"
+  ],
+  "route:minor-auth-docs": [
+   "routing/c50-auth-docs"
+  ],
+  "route:minor-comment": [
+   "routing/c29-comment-typo-code"
+  ],
+  "route:minor-copy": [
+   "routing/c02-button-label"
+  ],
+  "route:minor-docs": [
+   "routing/c01-typo"
+  ],
+  "route:minor-env-example": [
+   "routing/c34-env-example"
+  ],
+  "route:minor-profiler": [
+   "routing/c59-profiler-not-personal"
+  ],
+  "route:minor-simpler-approach": [
+   "routing/c45-simpler-approach"
+  ],
+  "route:minor-solo": [
+   "routing/c65-solo-minor-fix"
+  ],
+  "route:module_boundaries": [
+   "routing/c68-import-contract-edit"
+  ],
+  "route:normal-binary": [
+   "routing/c32-binary-asset"
+  ],
+  "route:normal-breaking-contract": [
+   "routing/c61-rename-a-public-function"
+  ],
+  "route:normal-contract": [
+   "routing/c33-api-field-rename"
+  ],
+  "route:normal-docs-budget": [
+   "routing/c31-docs-over-budget"
+  ],
+  "route:normal-feature": [
+   "routing/c03-new-endpoint"
+  ],
+  "route:normal-flag-flip": [
+   "routing/c22-feature-flag-flip"
+  ],
+  "route:normal-medium-confidence": [
+   "routing/c43-medium-confidence"
+  ],
+  "route:normal-perf-threshold": [
+   "routing/c21-perf-threshold"
+  ],
+  "route:normal-refactor": [
+   "routing/c14-refactor"
+  ],
+  "route:normal-test-only": [
+   "routing/c20-test-only"
+  ],
+  "route:normal-wide-copy": [
+   "routing/c27-copy-change-many-files"
+  ],
+  "route:payments": [
+   "routing/c46-stripe-webhook",
+   "routing/c55-payment-sdk-added"
+  ],
+  "route:personal_data": [
+   "routing/c18-gdpr-export",
+   "routing/c57-customer-profile",
+   "routing/c58-auth-library-privacy"
+  ],
+  "route:project_config": [
+   "routing/c35-test-config",
+   "routing/c54-design-system"
+  ],
+  "route:risk_rules": [
+   "routing/c69-allow-push-ask-rule"
+  ],
+  "route:secrets": [
+   "routing/c16-secret-rotation",
+   "routing/c52-firebase-config"
+  ],
+  "stop:agent-rounds-need-a-person": [
+   "roles/r43-designer-agent-rounds-stop"
+  ],
+  "stop:ambiguous-request": [
+   "roles/r06-architect-interpretations"
+  ],
+  "stop:defer-stays-deferred": [
+   "team/delegate-defers-after-a-defer"
+  ],
+  "stop:denied-action-stays-denied": [
+   "plugin/stops-after-a-denied-discard"
+  ],
+  "stop:direction-needs-a-person": [
+   "team/prototype-picks-direction-first"
+  ],
+  "stop:go-no-go": [
+   "team/propose-stops-at-go-no-go"
+  ],
+  "stop:low-confidence": [
+   "routing/c19-low-confidence"
+  ],
+  "stop:no-owner": [
+   "routing/c11-unknown-owner"
+  ],
+  "stop:onboard-writes-nothing": [
+   "team/onboard-stays-read-only"
+  ],
+  "stop:one-yes-for-a-split": [
+   "team/autopilot-splits-a-wide-request-and-asks-once"
+  ],
+  "stop:one-yes-for-one-outcome": [
+   "team/mvp-day-0-question-offers-the-running-preview"
+  ],
+  "stop:plan-agreement": [
+   "team/plan-stops-for-agreement"
+  ],
+  "stop:production-freeze": [
+   "roles/r73-sre-year-end-freeze"
+  ],
+  "stop:scope-must-widen": [
+   "roles/r16-delivery-manager-out-of-scope",
+   "roles/r36-developer-scope-stop"
+  ],
+  "stop:second-model-needs-a-yes": [
+   "team/review-asks-before-a-second-model"
+  ],
+  "stop:spend-cap": [
+   "team/autopilot-spend-cap-copies-the-harness-count"
+  ],
+  "stop:two-readings": [
+   "routing/c44-two-readings"
+  ],
+  "trigger:accessible-ui": [
+   "team/held-out-loads-accessible-ui-pay-button",
+   "team/loads-accessible-ui-grey-contrast",
+   "team/loads-accessible-ui-icon-delete",
+   "team/loads-accessible-ui-login-form",
+   "team/loads-accessible-ui-modal-keyboard",
+   "team/skips-accessible-ui-contrast-histogram",
+   "team/skips-accessible-ui-form-data-check",
+   "team/skips-accessible-ui-screen-class",
+   "team/skips-accessible-ui-ui-copy-keys"
+  ],
+  "trigger:cli-design": [
+   "team/held-out-loads-cli-design-setting-precedence",
+   "team/loads-cli-design-bulk-delete",
+   "team/loads-cli-design-machine-output",
+   "team/loads-cli-design-option-clash",
+   "team/loads-cli-design-status-numbers",
+   "team/skips-cli-design-button-color",
+   "team/skips-cli-design-feature-flag",
+   "team/skips-cli-design-read-json",
+   "team/skips-cli-design-rename-variable"
+  ],
+  "trigger:data-model-design": [
+   "team/held-out-loads-data-model-design-negated-boolean",
+   "team/loads-data-model-design-id-or-details",
+   "team/loads-data-model-design-layered-lists",
+   "team/loads-data-model-design-retry-settings",
+   "team/loads-data-model-design-review-date",
+   "team/skips-data-model-design-bump-timeout",
+   "team/skips-data-model-design-fix-comment",
+   "team/skips-data-model-design-list-enum",
+   "team/skips-data-model-design-read-schema"
+  ],
+  "trigger:debugging": [
+   "team/held-out-loads-debugging-short-export",
+   "team/loads-debugging-failing-invoice-test",
+   "team/loads-debugging-flaky-queue-test",
+   "team/loads-debugging-plus-sign-email",
+   "team/loads-debugging-wrong-fee",
+   "team/skips-debugging-add-a-test",
+   "team/skips-debugging-flaky-meaning",
+   "team/skips-debugging-outage-now",
+   "team/skips-debugging-release-note-wording"
+  ],
+  "trigger:diagrams": [
+   "team/held-out-loads-diagrams-upload-path",
+   "team/loads-diagrams-checkout-sequence",
+   "team/loads-diagrams-password-reset",
+   "team/loads-diagrams-service-talk",
+   "team/loads-diagrams-subscription-states",
+   "team/skips-diagrams-break-and-continue",
+   "team/skips-diagrams-design-and-runbook-headings",
+   "team/skips-diagrams-migration-plan-sentences",
+   "team/skips-diagrams-threat-model-questions"
+  ],
+  "trigger:maintainable-code": [
+   "team/held-out-loads-maintainable-code-long-billing",
+   "team/loads-maintainable-code-growing-function",
+   "team/loads-maintainable-code-helpers-module",
+   "team/loads-maintainable-code-scaffold-docstrings",
+   "team/loads-maintainable-code-shape-of-a-diff",
+   "team/skips-maintainable-code-function-key",
+   "team/skips-maintainable-code-package-licence",
+   "team/skips-maintainable-code-reply-to-a-comment",
+   "team/skips-maintainable-code-upload-file-size"
+  ],
+  "trigger:naming": [
+   "team/held-out-loads-naming-last-seen",
+   "team/loads-naming-checkout-flag",
+   "team/loads-naming-confirmed-column",
+   "team/loads-naming-misleading-function",
+   "team/loads-naming-shipped-event",
+   "team/skips-naming-event-and-metric",
+   "team/skips-naming-flag-rollout",
+   "team/skips-naming-move-component-file",
+   "team/skips-naming-token-lifetime"
+  ],
+  "trigger:plain-language": [
+   "team/held-out-loads-plain-language-suspended-email",
+   "team/loads-plain-language-declined-card",
+   "team/loads-plain-language-queue-runbook",
+   "team/loads-plain-language-release-notes",
+   "team/loads-plain-language-setup-guide",
+   "team/skips-plain-language-client-documents",
+   "team/skips-plain-language-copy-docs-folders",
+   "team/skips-plain-language-messages-index",
+   "team/skips-plain-language-specs-yaml"
+  ],
+  "trigger:resilience": [
+   "team/held-out-loads-resilience-offline-photo",
+   "team/loads-resilience-duplicate-emails",
+   "team/loads-resilience-inventory-service-down",
+   "team/loads-resilience-invoice-sync-job",
+   "team/loads-resilience-refund-crash",
+   "team/skips-resilience-dedupe-list",
+   "team/skips-resilience-duplicate-rows",
+   "team/skips-resilience-server-count",
+   "team/skips-resilience-timeouts-docs"
+  ],
+  "trigger:secure-coding": [
+   "team/held-out-loads-secure-coding-pdf-render",
+   "team/loads-secure-coding-api-key",
+   "team/loads-secure-coding-convert-upload",
+   "team/loads-secure-coding-file-download",
+   "team/loads-secure-coding-search-sql",
+   "team/skips-secure-coding-auth-header-cookie",
+   "team/skips-secure-coding-config-permissions",
+   "team/skips-secure-coding-shell-grep",
+   "team/skips-secure-coding-sql-left-join"
+  ]
+ }
+}

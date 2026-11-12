@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/thaithienvanid/aidd/v1.0.0/schemas/editor/config.json
+# This repository runs aidd on itself. One maintainer, so the solo profile applies: the agent asks the maintainer.
+aidd_version: "1.0.0"
+profile: solo
+
+owners:
+  approvers: ["@thaithienvanid"]
+
+# The suite also checks the generated docs and the repository (tests/test_cli.py).
+tests:
+  - name: unit
+    command: [python3, tests/run.py]
+    timeout_seconds: 900
+
+risks:
+  areas:
+    # What aidd is and ships: its code, its data, the CI it ships, the plugins that run on users' machines, the
+    # launcher they start aidd through, the docs, and the files that install and release aidd and the policies it
+    # publishes. A change to any of them is major. So is .importlinter, the module boundaries.
+    aidd_toolkit:
+      description: aidd's code, data, plugins, docs, and release files
+      route: major
+      paths:
+        - "src/**"
+        - "schemas/**"
+        - "templates/**"
+        - "evals/**"
+        - ".claude-plugin/**"
+        - "plugins/**"
+        - "scripts/**"
+        - "docs/**"
+        - install.sh
+        - pyproject.toml
+        - SECURITY.md
+        - .github/SECURITY.md
+        - GOVERNANCE.md
+        - RELEASING.md
+        - REVIEW.md
+        - .importlinter

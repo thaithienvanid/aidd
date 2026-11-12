@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:round-comments",
+  "title": "Round comments",
+  "description": "A reviewer's comments, a person's or an agent's, on one round of a design, `rounds/<N>/comments.json` beside that round's screenshots. A direction of an exploration, a design in its `directions/` folder, has its own file in the exploration's round, `rounds/<N>/comments-<direction>.json`, named by the design file's name. The prototype viewer writes a person's file (Download, or Copy the JSON), and the designer writes an agent round's. The viewer lists the comments of earlier rounds beside the design. `aidd explore` pairs each comment with the round's screenshots, and `aidd validate` checks each file against this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["round", "items"],
+  "properties": {
+    "round": { "type": "integer", "minimum": 1, "description": "The round's number, the `<N>` of its `rounds/<N>/` folder." },
+    "items": {
+      "type": "array",
+      "maxItems": 200,
+      "description": "The comments, in the order they were made.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "screen", "state", "comment"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^([A-Za-z0-9-]+-)?r[0-9]+-[0-9]+$",
+            "description": "The comment's id, `r<round>-<n>`, or `<direction>-r<round>-<n>` for a direction, such as `a-r1-2`, so two directions' ids never collide. A later round's `changes.json` names it in `answers`."
+          },
+          "type": {
+            "enum": ["change", "remove", "add", "question"],
+            "description": "What the comment asks for: change, remove, or add something, or a question. A file without it reads as change."
+          },
+          "screen": { "type": "string", "minLength": 1, "description": "The screen the comment was made on, by its `data-screen` id." },
+          "state": { "type": "string", "minLength": 1, "description": "The state the screen showed, by its `data-state` name." },
+          "testid": { "type": "string", "description": "The `data-testid` of the element the comment is about." },
+          "index": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Which of the visible elements that share the test id, counting from 0, when several do, such as one card of a list."
+          },
+          "box": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["x", "y", "width", "height"],
+            "description": "Where the element showed in the frame's view when the comment was made, in CSS pixels from the frame's top left.",
+            "properties": {
+              "x": { "type": "integer", "description": "The element's left edge." },
+              "y": { "type": "integer", "description": "The element's top edge." },
+              "width": { "type": "integer", "minimum": 0, "description": "The element's width." },
+              "height": { "type": "integer", "minimum": 0, "description": "The element's height." }
+            }
+          },
+          "comment": { "type": "string", "maxLength": 2000, "description": "What the reviewer said, in their words." },
+          "frame": { "type": "string", "description": "The device frame the comment was made in, as the viewer's `frame=` key names it." },
+          "theme": { "type": "string", "description": "The theme the comment was made in: light, dark, or system." },
+          "link": { "type": "string", "description": "The viewer's deep link to the view the comment was made on." },
+          "by": {
+            "$ref": "urn:aidd:1:common#/$defs/identity",
+            "description": "Who wrote the comment: an agent writes `agent:<harness>/<model>`. The viewer writes none, so an item without `by` is a person's. It is a label the writer gave, never proof, and it decides nothing."
+          }
+        }
+      }
+    }
+  }
+}

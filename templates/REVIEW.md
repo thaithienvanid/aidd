@@ -1,0 +1,110 @@
+# Review policy
+
+How code review works in this repository, for every reviewer: a person, the aidd-team `reviewer`, a harness's review command, or a review bot. `aidd init` wrote this file once. It is yours now, so change it to fit the repository. A change to it is a change to how every pull request is reviewed, so it goes through review like any other.
+
+Findings inform the person who approves the merge; they never approve. Merge approval is a person's decision on the exact head commit. No reviewer, agent or bot, approves or merges.
+
+## Passes
+
+Review every change in three passes, in this order, and say which pass each finding comes from. After a Critical or High finding, check the sibling paths for the same root cause, in every pass. Stop and ask for a split when the diff mixes concerns or is too large to read line by line.
+
+1. **Bugs.** Does the change do what it claims, on every path? Look for wrong logic, off-by-one and boundary errors, unhandled errors and empty inputs, races, resource leaks, and behavior that changed without a test noticing. Would the tests fail if the change were reverted or subtly wrong?
+2. **Security.** Trace untrusted input to every sink. Check injection, authorization on each new path, secrets in code or logs, unsafe deserialization, new dependencies, and personal data that leaves where it should stay.
+3. **Conformance.** The change matches its Spec (or, with no Spec, the paths it routed):
+   - each Acceptance line is implemented and has a test that would catch a regression
+   - nothing lands outside the declared scope
+   - the Spec's tests and Acceptance were not edited after approval, unless the person said yes to `spec.revise`
+   - a user-visible change updates the tutorial, how-to, or reference page its reader uses, and the changelog, or says why not
+   - public names (types, responses, events, fields, error codes) follow the standard the Spec cites and the language's convention. An RFC 9457 body is `ProblemDetails`, an exception `<Domain>Error`, and a response is named by its meaning, never its status code
+   - a new or renamed public name, in an API, a CLI, a config, or a UI label, is read cold against the project's existing patterns, not only against the cited standard
+
+   A changed line that traces to nothing in the Spec is a finding.
+
+## Severity
+
+Rank every finding, and give each one the file, the line, the failure scenario, and a suggested fix.
+
+| Severity | Meaning |
+| --- | --- |
+| Critical | Reserved for a finding that breaks behavior, leaks data, or breaches a policy (the Spec, a risk rule, a law, or a contract). Blocks the merge. |
+| High | Wrong in a case users or callers will hit, or a missing test for an Acceptance line; fix before merge. |
+| Medium | A real defect in a rare case, or a maintainability problem that will cause one; fix now or record why not. |
+| Low | Worth fixing, safe to defer. |
+| Nit | Style or taste; never blocks. |
+
+Do not raise a finding to Critical to get attention: a report with one honest Critical is read, and a report of five is skimmed.
+
+### What Important means here
+
+A review tool that ranks findings as Important, Nit, and Pre-existing (such as Claude Code Review) maps them to this table. Important means Critical or High, and start the comment with that word. Report a Medium or Low finding as a Nit that starts with `Medium:` or `Low:`, so the rank survives. Report a bug that was already there only when it is Critical. A review tool is one more reviewer: the person who decides still approves the merge.
+
+### Security findings
+
+A security finding names who has less trust than the code assumes, what input they control, the control it gets past, the boundary it crosses, the impact, and the proof, each with its `file:line`. A note that misses one of them is a hardening note: list it after the findings, with no severity. Rank by the impact the proof shows, never the impact the bug class could have. When the deciding fact is outside the repository, such as a proxy rule, a cloud permission, or a deployed header, mark the finding "needs validation" and name that fact and its check, with no severity. Never call a change "secure".
+
+## Report
+
+Answer two questions: what does this let through that it should stop, and what honest work does it now block or slow? A finding of the second kind ranks like the first. For a new control, name the honest work it could block and the test where that work still passes.
+
+Open with the verdict and one line per finding, in under 300 words, so a report that is cut off still holds them. The detail follows, and it ends with what you read and what you skipped. Each finding line gives, in this order, its severity, `question` (`lets through` or `blocks`), `origin` (`regression`, `new gap`, or `older gap`), `shown` (`ran` with the command and its output, or `read` with the lines), `file:line`, and the finding. Tell a regression from an older gap by running old and new on one repository with only the code changed. A `read` finding is never Critical or High without the input that would show it (`input:`) and the test that should catch it (`test:`).
+
+```text
+Verdict: blocking 1. regression 1, new gap 0, older gap 1; lets through 1, blocks 1.
+1. High | blocks | regression | ran | src/parse.py:88 | A waiting change now fails an unrelated one: the same command exits 0 on base and 2 on head.
+2. Medium | lets through | older gap | read | src/parse.py:140 | The base reads the same input unchecked.
+```
+
+Propose one rule with its invariant, not a list of cases. On the third round of findings in one component, say so and propose to shrink it or to state its boundary once. When the change alters a reader, a parser, or a decider, ask which test compares its new answers with the old over a generated set. A security review states its threat model first, ranks only what is inside it, and lists the rest in one line each.
+
+## Confidence and quotes
+
+Give every finding a confidence from 1 to 10: how sure you are that the finding is real. Quote the code it is about, as `file:line` and the line itself. A finding with no quote has a confidence of at most 4. List it in an appendix after the main list, "Findings without a quote", and never in the main list. A confidence never changes a severity. It tells the person who decides how much to check.
+
+## Nits
+
+List every finding that starts with `Medium:` or `Low:`. Beyond those, list at most 5 nits, and summarize the rest as a count ("and 12 more nits of the same kind"), so the findings that matter stay on the first screen.
+
+## Out of scope: do not report
+
+- Generated files (blocks between `aidd:gen` markers, lockfiles, build output, vendored code): do not report them, and review the source they come from instead.
+- Anything CI already checks (formatting, lint, type checks, the test run): do not report a check that already runs. Say so only when it failed or is missing.
+- Changes the Spec does not ask for: report them as scope findings, do not review them as if they belonged.
+
+## Dismissing a finding
+
+A person who dismisses a finding records it in the list under `## Dismissed findings`, so that the review of a later head does not raise it again. An agent never adds, changes, or moves a dismissal. A review reads the list from the base branch (`git show <base>:REVIEW.md`), never from the head, so a branch cannot hide a finding on its own pull request.
+
+Each dismissal is one line in this exact form:
+
+`- <file> | <type> | <hash> | <who> | <date> | <why>`
+
+| Part | What it is |
+| --- | --- |
+| `<file>` | The file's path, from the repository root. A renamed file has a new fingerprint, so the finding comes back. |
+| `<type>` | The rule or the type of the finding, in a few words, such as `missing-test`. A finding from the Security pass has a type that starts with `security/`, such as `security/sql-injection`. |
+| `<hash>` | 16 lowercase hex characters: the start of the SHA-256 of the quoted line and the line before it. Each of the two lines loses its leading and trailing spaces first, and each run of spaces in it becomes one space. |
+| `<who>` | The person who dismissed it, as the config's `owners` names people, such as `@name`. |
+| `<date>` | The date of the dismissal, as YYYY-MM-DD. |
+| `<why>` | Why the finding does not apply. It can quote the code. |
+
+The line starts with `- `. A space, a `|`, and a space separate the six parts. No part is empty, starts or ends with a space, or holds a `|`. The first three parts are the finding's fingerprint, `<file> | <type> | <hash>`.
+
+The hash has no line number, because a line number changes when the code above it changes. It covers the whole line and the line before it, so a different line, or the same line in another place, does not match. When the quoted code changes, the line no longer matches, and a reviewer can raise the finding again.
+
+To get the hash of line `<n>` of `<file>`, run this command:
+
+```sh
+python3 -c 'import hashlib,sys; f,n=sys.argv[1],int(sys.argv[2]); n>0 or sys.exit("<n> is a line number: 1 or more"); L=[" ".join(x.split()) for x in open(f,encoding="utf-8").read().splitlines()]; n<=len(L) or sys.exit(f"{f} has only {len(L)} lines"); print(hashlib.sha256(((L[n-2] if n>1 else "")+"\n"+L[n-1]).encode()).hexdigest()[:16])' <file> <n>
+```
+
+A review honors only the lines in this exact form under the first line that reads exactly `## Dismissed findings` in the base branch's REVIEW.md, up to the next line that starts with `#`. It ignores every other line there, except a blank line and a one-line HTML comment, and reports it as a malformed dismissal line.
+
+A finding whose type starts with `security/` needs more. The `<who>` must be a person in the `security` pool (`owners.specialists` in `.aidd/config.yaml` on the base branch). Otherwise, the review raises the finding again.
+
+## Dismissed findings
+
+<!-- One line per dismissed finding, in the form "Dismissing a finding" gives. -->
+
+## Repository notes
+
+<!-- Add what a reviewer here must know: the modules that need a second reader, the invariants that are easy to break, the checks that are known to be flaky. -->

@@ -1,0 +1,17 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+# It takes Gradle from java/gradle-kotlin-dsl, because an Android build is a Gradle build with the Kotlin DSL.
+name: kotlin-android
+description: "A native Android app in Kotlin, with its screens in Jetpack Compose, built and locked by Gradle."
+standards:
+  - java/gradle-kotlin-dsl
+  - kotlin/ktlint
+  - kotlin/android-lint
+  - kotlin/android-local-tests
+  - kotlin/jetpack-compose
+  - kotlin/compose-ui-test
+checked: "2026-11-04"
+checked_by: agent:claude-code/claude-opus-5-5
+project:
+  stack:
+    adopt: [Kotlin, Gradle, Android Gradle plugin, Jetpack Compose, Spotless, ktlint, Android Lint, JUnit]

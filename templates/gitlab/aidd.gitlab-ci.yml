@@ -1,0 +1,55 @@
+# aidd for GitLab: the change's tests on every merge request, green on the head and red on the base for new
+# behavior, with the evidence kept as an artifact. Include it from .gitlab-ci.yml:
+#   include:
+#     - local: .gitlab/aidd.gitlab-ci.yml
+#
+# Turn on "Pipelines must succeed" and protect the default branch, so nothing merges red. aidd itself enforces
+# nothing: branch protection and the MR's approval rules are the hard stops.
+# The job fails when a test fails, even a Spec's own test before Implement (`--require-green`), and when nothing is configured to run, and it also runs the base commit's `tests` when an MR removes or changes them.
+# It also runs `aidd validate` after the tests and fails on an error in a Spec or the config, as the GitHub action does.
+# Delete the `aidd validate` lines in `script` to run the tests only.
+#
+# What runs: aidd from a pinned commit of its repository, with the interpreter of an image pinned by digest. Nothing
+# is built or installed from an index. It runs the MR's code, so it gets no token and no secret.
+
+aidd-tests:
+  # python:3.14.7-trixie, pinned by the digest of its multi-arch index. Update the tag and the digest together.
+  image: python:3.14.7-trixie@sha256:0876e54cf728d89fd9d0fdaf5837b9ee879ea5fbbd6fd0cddbe5eb0cce3f5f9e
+  stage: test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+  variables:
+    GIT_DEPTH: 0
+    # "false" keeps each test command's full output (`logs/`) out of the artifact, which keeps `evidence.json` only.
+    AIDD_UPLOAD_LOGS: "true"
+  before_script:
+    - |
+      # aidd-pin: `aidd init` rewrites this ref to the release commit SHA; pin by SHA if you copy the file by hand.
+      aidd_pin="thaithienvanid/aidd@v1.0.0"
+      aidd_host="https://github.com"
+      aidd_ref="${aidd_pin#*@}"
+      AIDD_SRC="${TMPDIR:-/tmp}/aidd-src"
+      rm -rf "$AIDD_SRC"
+      git init --quiet "$AIDD_SRC"
+      git -C "$AIDD_SRC" fetch --quiet --depth 1 "$aidd_host/${aidd_pin%@*}" "$aidd_ref"
+      git -C "$AIDD_SRC" checkout --quiet --detach FETCH_HEAD
+      # -P: the MR checkout in the working directory can never shadow the aidd module.
+      aidd() { PYTHONPATH="$AIDD_SRC/src" python3 -P -m aidd "$@"; }
+      aidd --version
+    - git fetch --quiet origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+  script:
+    # Install your project's toolchain and dependencies here.
+    - |
+      status=0
+      aidd test --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --red-in-place --require-green --out .aidd/evidence || status=$?
+      vstatus=0
+      aidd validate || vstatus=$?
+      if [ "$status" -eq 0 ]; then status=$vstatus; fi
+      if [ "$AIDD_UPLOAD_LOGS" = "false" ]; then rm -rf .aidd/evidence/logs; fi
+      exit "$status"
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - .aidd/evidence/

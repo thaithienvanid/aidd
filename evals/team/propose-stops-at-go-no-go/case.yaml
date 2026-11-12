@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: propose-stops-at-go-no-go
+context:
+  scaffold_script: fixture.sh

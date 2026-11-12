@@ -1,0 +1,141 @@
+{
+  "description": "The worlds an eval case's project can be set in. A world is a programming language and a business domain, with a small project that builds it, so the cases do not all sit in the one world their author knew. A live case, which builds a project with its own fixture.sh, names its world as a `world:<name>` tag beside its `claim:`, `tier:`, and `shape:` tags. A routing, roles, or trigger case builds no project, so it names none. The schema is schemas/eval-worlds.schema.json, and src/aidd/evals/worlds.py reads this file. The languages are in alphabetical order with `none` last, and the worlds follow the languages, then the domains, each in alphabetical order: add one where that order places it. A world's name is its language and its domain. `cap` is the most of the live cases any one world, language, or domain may have. The cap holds for every world, language, and domain, `none` and `general` too. `over_cap` lists what has more than `cap` today, with its case count, and a count may only fall: move cases to another world to lower it.",
+  "cap": 0.4,
+  "languages": {
+    "go": {"markers": [".go", "go.mod"]},
+    "hcl": {"markers": [".tf"]},
+    "java": {"markers": [".java"]},
+    "javascript": {"markers": [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", "package.json"]},
+    "python": {"markers": [".py"]},
+    "ruby": {"markers": [".rb"]},
+    "rust": {"markers": [".rs", "Cargo.toml"]},
+    "none": {"markers": []}
+  },
+  "worlds": {
+    "go-logistics": {
+      "language": "go",
+      "domain": "logistics",
+      "means": "a command-line tool that prints a parcel's label line",
+      "seed": "evals/worlds/go-logistics/world.sh",
+      "risk": [
+        {"paths": ["label.go"], "route": "minor"},
+        {"paths": ["deploy/main.tf"], "route": "normal"}
+      ]
+    },
+    "hcl-platform": {
+      "language": "hcl",
+      "domain": "platform",
+      "means": "an infrastructure repository that declares one storage bucket",
+      "seed": "evals/worlds/hcl-platform/world.sh",
+      "risk": [
+        {"paths": ["main.tf"], "route": "normal"},
+        {"paths": ["README.md"], "route": "minor"}
+      ]
+    },
+    "java-insurance": {
+      "language": "java",
+      "domain": "insurance",
+      "means": "a library that prices a policy's yearly premium",
+      "seed": "evals/worlds/java-insurance/world.sh",
+      "risk": [
+        {"paths": ["src/main/java/quote/Premium.java"], "route": "minor"},
+        {"paths": ["src/main/java/quote/billing/Invoice.java"], "route": "major"}
+      ]
+    },
+    "javascript-general": {
+      "language": "javascript",
+      "domain": "general",
+      "means": "a small package that pads a number with zeros",
+      "seed": "evals/worlds/javascript-general/world.sh",
+      "risk": [
+        {"paths": ["src/index.js"], "route": "minor"},
+        {"paths": ["package.json"], "route": "normal"}
+      ]
+    },
+    "python-commerce": {
+      "language": "python",
+      "domain": "commerce",
+      "means": "a shop's cart code that adds up its lines",
+      "seed": "evals/worlds/python-commerce/world.sh",
+      "risk": [
+        {"paths": ["src/shop/cart.py"], "route": "minor"},
+        {"paths": ["src/shop/payments/refund.py"], "route": "major"}
+      ]
+    },
+    "python-general": {
+      "language": "python",
+      "domain": "general",
+      "means": "a text helper that turns a title into a slug",
+      "seed": "evals/worlds/python-general/world.sh",
+      "risk": [
+        {"paths": ["src/slug.py"], "route": "minor"},
+        {"paths": [".github/workflows/ci.yml"], "route": "normal"}
+      ]
+    },
+    "python-health": {
+      "language": "python",
+      "domain": "health",
+      "means": "a clinic's booking module that lists the free slots of a day",
+      "seed": "evals/worlds/python-health/world.sh",
+      "risk": [
+        {"paths": ["clinic/slots.py"], "route": "minor"},
+        {"paths": ["clinic/migrations/0001_slots.py"], "route": "major"}
+      ]
+    },
+    "python-identity": {
+      "language": "python",
+      "domain": "identity",
+      "means": "a sign-in module that checks a password against its stored hash",
+      "seed": "evals/worlds/python-identity/world.sh",
+      "risk": [
+        {"paths": ["auth/login.py"], "route": "major"},
+        {"paths": ["tests/test_login.py"], "route": "minor"}
+      ]
+    },
+    "python-notes": {
+      "language": "python",
+      "domain": "notes",
+      "means": "a notes library whose store keeps notes in a list",
+      "seed": "evals/worlds/python-notes/world.sh",
+      "risk": [
+        {"paths": ["notes/store.py"], "route": "minor"},
+        {"paths": ["notes/users/profile.py"], "route": "major"}
+      ]
+    },
+    "ruby-education": {
+      "language": "ruby",
+      "domain": "education",
+      "means": "a grade-book helper that averages a student's scores",
+      "seed": "evals/worlds/ruby-education/world.sh",
+      "risk": [
+        {"paths": ["lib/grades.rb"], "route": "minor"},
+        {"paths": ["lib/auth/session.rb"], "route": "major"}
+      ]
+    },
+    "rust-general": {
+      "language": "rust",
+      "domain": "general",
+      "means": "a library that converts kilometres to miles",
+      "seed": "evals/worlds/rust-general/world.sh",
+      "risk": [
+        {"paths": ["src/lib.rs"], "route": "minor"},
+        {"paths": ["src/crypto.rs"], "route": "major"}
+      ]
+    },
+    "none-general": {
+      "language": "none",
+      "domain": "general",
+      "means": "a project with no source file: a request and the aidd config",
+      "seed": "evals/worlds/none-general/world.sh",
+      "risk": [
+        {"paths": ["BRIEF.md"], "route": "minor"},
+        {"paths": [".aidd/config.yaml"], "route": "normal"}
+      ]
+    }
+  },
+  "over_cap": {
+    "world": {},
+    "language": {"python": 40},
+    "domain": {"general": 39}
+  }
+}

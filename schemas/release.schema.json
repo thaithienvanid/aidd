@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:release",
+  "title": "Release",
+  "description": "One release to an environment, stored in `docs/releases/<environment>-<yyyy-mm-dd>-<n>.md`. Run `aidd new release <environment> --commit <sha>` to write one. Never edit it in place to roll back; write a newer release file instead.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "environment",
+    "released_at",
+    "commit",
+    "specs"
+  ],
+  "properties": {
+    "type": {
+      "const": "release",
+      "description": "Object type. Always `release`."
+    },
+    "environment": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "description": "The environment this release landed in, naming one entry in `environments` of `.aidd/config.yaml`."
+    },
+    "released_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$",
+      "format": "date-time",
+      "examples": ["2026-11-20T15:10:00Z"],
+      "description": "When users had this release (RFC 3339). Releases of one environment are ordered by this time."
+    },
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,64}$",
+      "examples": ["3f2c1a9"],
+      "description": "The commit running in this environment now, as lowercase hexadecimal characters."
+    },
+    "specs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/id"
+      },
+      "description": "Specs that are new in this release: held by `commit` and not by the environment's earlier live commit."
+    },
+    "rolled_back": {
+      "type": "array",
+      "uniqueItems": true,
+      "default": [],
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$"
+      },
+      "description": "Specs an earlier release of this environment held that this release no longer holds, or that a flag rollback turned off."
+    }
+  }
+}

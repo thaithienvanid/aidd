@@ -1,0 +1,44 @@
+---
+id: tooling/mise
+type: opinionated
+fills: [ci-pipeline:toolchain-manager]
+default: true
+implements: ci-pipeline:Dev/prod parity
+roles: [developer, sre, reviewer]
+when_changed: [mise.toml, mise.lock, "mise.*.toml", "mise.*.lock", ".github/workflows/**"]
+why: "One file pins every runtime and command-line tool a repository needs, and a lockfile with checksums makes each machine and each CI job install the same binaries."
+maturity: established
+tool:
+  name: mise
+  registry: github
+  package: jdx/mise
+version_policy: current_stable
+checked_version: "2026.10.17"
+checked: "2026-10-22"
+checked_by: agent:claude-code/claude-opus-5-5
+citation:
+  url: https://www.thoughtworks.com/radar/tools/mise
+  quote: "For teams looking to standardize their developer environment setup, mise has become our recommended default."
+alternatives: [the language's own version file, asdf, a dev container image]
+status: active
+enforced_by:
+  - name: locked
+    command: [mise, install, --locked]
+---
+
+# mise installs the pinned toolchain
+
+It answers the toolchain-manager choice of `aidd-team:ci-pipeline`. License: MIT for mise and for `jdx/mise-action`. Thoughtworks moved mise to Adopt in Technology Radar volume 34 (April 2026).
+
+## What the team does
+
+- List each runtime and tool in `mise.toml` under `[tools]` at an exact version, such as `node = "24.11.0"`, never `latest` or a prefix. That file is also where the language-version choice is pinned.
+- Run `mise lock` and keep `mise.lock` in the repository next to `mise.toml`. It records each version with its download URL and checksum.
+- Set `lockfile = true` under `[settings]`, so `mise use` and `mise upgrade` keep the lockfile current.
+- Keep the package manager's lockfile too: `mise.lock` covers tools, not the application's dependencies.
+- In CI, use `jdx/mise-action` pinned by commit, `08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8` for v5.1.2, with `version` set to one exact mise release and `install_args: --locked`.
+- Ignore `mise.local.toml` and `mise.local.lock`, which hold one person's own tools.
+
+## What the tests run
+
+One `tests` entry runs `mise install --locked`. Locked mode installs only what `mise.lock` records, so it fails when a tool in `mise.toml` has no entry there for the runner's platform.

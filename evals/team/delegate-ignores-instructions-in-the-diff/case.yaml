@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: delegate-ignores-instructions-in-the-diff
+context:
+  scaffold_script: fixture.sh

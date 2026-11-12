@@ -1,0 +1,72 @@
+<section data-screen="notes" data-title="Notes" data-initial="populated">
+  <div data-state="populated" data-testid="notes-populated">
+    <div class="queue-bar">
+      <span class="queue-status"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></svg><span data-text="notes.queue_summary"></span></span>
+      <button type="button" class="button button-primary" data-component="button" data-variant="primary" data-go="notes:notes/loading" data-testid="notes-sync-now">Sync queued notes</button>
+    </div>
+    <div class="note-list" data-list="notes.items" data-item-template="note-card" data-item-go="notes:detail"></div>
+  </div>
+  <div data-state="loading" data-testid="notes-loading" aria-busy="true">
+    <p class="sr-only" role="status" data-text="notes.loading_status"></p>
+    <div class="note-list" aria-hidden="true">
+      <div class="skeleton" data-component="skeleton"><span></span><span></span><span></span></div>
+      <div class="skeleton" data-component="skeleton"><span></span><span></span><span></span></div>
+    </div>
+    <div class="actions">
+      <button type="button" class="button button-secondary" data-component="button" data-variant="secondary" data-go="notes:notes/populated" data-testid="notes-loading-done">Show synced notes</button>
+    </div>
+  </div>
+  <div data-state="offline" data-testid="notes-offline">
+    <p class="message message-warning" data-component="inline-message" data-variant="warning"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M9.5 5.2A15 15 0 0 1 22 8.8M5 12.5a10 10 0 0 1 4-2.2M15.3 10.6A10 10 0 0 1 19 12.5M8.5 16a5 5 0 0 1 7 0M12 19.5h.01M3 3l18 18"/></svg><span data-text="notes.offline_notice"></span></p>
+    <div class="note-list" data-list="notes.items" data-item-template="note-card" data-item-go="notes:detail"></div>
+    <div class="actions">
+      <button type="button" class="button button-secondary" data-component="button" data-variant="secondary" data-go="settings:prefs" data-testid="offline-open-settings">Offline settings</button>
+    </div>
+  </div>
+  <div data-state="error" data-testid="notes-error">
+    <p class="message message-error" role="alert" data-component="inline-message" data-variant="error"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg><span data-text="notes.error_notice"></span></p>
+    <div class="actions">
+      <button type="button" class="button button-primary" data-component="button" data-variant="primary" data-go="notes:notes/loading" data-testid="notes-retry">Try again</button>
+      <button type="button" class="button button-secondary" data-component="button" data-variant="secondary" data-go="settings:prefs" data-testid="notes-error-settings">Offline settings</button>
+    </div>
+  </div>
+  <div data-state="empty" data-testid="notes-empty">
+    <div class="spot">
+      <span class="spot-art" aria-hidden="true"><svg viewBox="0 0 48 48" focusable="false"><path d="M8 12 18 8l12 4 10-4v28l-10 4-12-4-10 4z"/><path d="M18 8v28M30 12v28"/></svg></span>
+      <div>
+        <h2 data-text="notes.empty_title"></h2>
+        <p data-text="notes.empty_body"></p>
+        <div class="actions">
+          <button type="button" class="button button-primary" data-component="button" data-variant="primary" data-go="settings:prefs" data-testid="notes-open-settings">Check sync settings</button>
+          <button type="button" class="button button-secondary" data-component="button" data-variant="secondary" data-go="notes:notes/populated" data-testid="notes-reload">Reload notes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen="detail" data-title="Note detail" data-parent="notes" data-initial="ready" data-item="notes.items">
+  <div data-state="ready" data-testid="detail-ready">
+    <div class="detail-panel">
+      <div class="detail-header">
+        <span class="badge" data-component="status-badge" data-field="status"></span>
+        <h2 data-field="title"></h2>
+        <p class="note-meta" data-field="meta"></p>
+      </div>
+      <dl class="facts" data-component="fact-list">
+        <div><dt>Folder</dt><dd data-field="folder"></dd></div>
+        <div><dt>Length</dt><dd data-field="length"></dd></div>
+        <div><dt>Tag</dt><dd data-field="tag"></dd></div>
+      </dl>
+      <p data-field="body"></p>
+      <button type="button" class="drawer-toggle" data-toggle="note-history" aria-controls="note-history" aria-expanded="false" data-testid="toggle-history"><span>Sync log</span><svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div id="note-history" class="note-drawer" data-panel="note-history" hidden>
+        <ul>
+          <li data-field="log_1"></li>
+          <li data-field="log_2"></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+<template data-item-template="note-card"><!-- aidd:use note-card action="Open note" --></template>

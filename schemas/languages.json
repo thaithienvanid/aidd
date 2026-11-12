@@ -1,0 +1,30 @@
+{
+  "description": "What aidd knows about each language, one row for each, in alphabetical order of the key. A row gives the extensions of its source files, the manifests that name a project in it, and the .gitignore lines for what its tools write when its tests run. `aidd risk` takes a new source file for one that needs its test first by an extension here, `aidd init` opens only the manifests here and adds missing .gitignore lines from here. Which files are tests stays in `test_paths` of schemas/risks.json, and the runners and their exits are in schemas/test-runners.json.",
+  "languages": {
+    "c": { "extensions": [".c", ".h"] },
+    "cpp": { "extensions": [".cpp", ".cc", ".cxx", ".hpp"], "manifests": ["CMakeLists.txt"], "gitignore": ["/build/", "CMakeFiles/", "CMakeCache.txt", "*.gcda", "*.gcno"] },
+    "csharp": { "extensions": [".cs"], "gitignore": ["/bin/", "/obj/", "/TestResults/"] },
+    "dart": { "extensions": [".dart"], "manifests": ["pubspec.yaml"], "gitignore": [".dart_tool/", "/build/"] },
+    "elixir": { "extensions": [".ex"], "manifests": ["mix.exs"], "gitignore": ["/_build/", "/cover/"] },
+    "go": { "extensions": [".go"], "manifests": ["go.mod"], "gitignore": ["coverage.out", "*.test"] },
+    "java": { "extensions": [".java"], "manifests": ["build.gradle", "pom.xml"], "gitignore": ["/target/", "/build/", ".gradle/"] },
+    "javascript": {
+      "extensions": [".js", ".cjs", ".jsx", ".mjs"],
+      "manifests": ["package.json"],
+      "gitignore": ["node_modules/", "/coverage/", ".nyc_output/", "/test-results/", "/playwright-report/"]
+    },
+    "kotlin": { "extensions": [".kt"], "manifests": ["build.gradle.kts"], "gitignore": ["/build/", ".gradle/"] },
+    "php": { "extensions": [".php"], "manifests": ["composer.json"], "gitignore": [".phpunit.cache/", ".phpunit.result.cache"] },
+    "python": {
+      "extensions": [".py"],
+      "manifests": ["pyproject.toml", "requirements.txt", "setup.cfg", "setup.py"],
+      "gitignore": ["__pycache__/", "*.pyc", ".pytest_cache/", ".coverage", "/htmlcov/", ".mypy_cache/", ".ruff_cache/"]
+    },
+    "ruby": { "extensions": [".rb"], "manifests": ["Gemfile"] },
+    "rust": { "extensions": [".rs"], "manifests": ["Cargo.toml"], "gitignore": ["/target/"] },
+    "scala": { "extensions": [".scala"], "manifests": ["build.sbt"], "gitignore": ["/target/", "/project/target/"] },
+    "swift": { "extensions": [".swift"], "manifests": ["Package.swift"], "gitignore": [".build/"] },
+    "typescript": { "extensions": [".ts", ".tsx"], "manifests": ["deno.json", "deno.jsonc"], "gitignore": ["/coverage/"] }
+  },
+  "manifests_of_any_language": ["Makefile"]
+}

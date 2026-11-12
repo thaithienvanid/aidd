@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:findings",
+  "title": "aidd findings",
+  "description": "The format of schemas/findings.json: the codes aidd gives when a check finds something, each with its meaning and its next step, in one place. A group holds the codes of one owner, and a code is written once, here. Code that gives a code, and a schema that lists it, read this file and never restate it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["description", "groups"],
+  "properties": {
+    "description": { "type": "string" },
+    "groups": {
+      "type": "object",
+      "description": "One group for each owner, by name. A full code is `<group>.<code>`.",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
+      "additionalProperties": { "$ref": "#/$defs/group" }
+    }
+  },
+  "$defs": {
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "description", "codes"],
+      "properties": {
+        "owner": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "The package under `src/aidd` that gives these codes."
+        },
+        "description": { "type": "string", "description": "What the codes of this group say, and in what order they stand." },
+        "codes": {
+          "type": "object",
+          "description": "Each code of the group, by its bare name.",
+          "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
+          "additionalProperties": { "$ref": "#/$defs/row" }
+        }
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "title", "why", "next"],
+      "properties": {
+        "severity": { "$ref": "urn:aidd:1:common#/$defs/severity" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 80, "description": "The code in a few words, with no period." },
+        "why": { "type": "string", "description": "What the code means: the condition that gives it." },
+        "next": { "$ref": "urn:aidd:1:common#/$defs/next", "description": "What to do about it. `what` is one sentence." },
+        "reserved": {
+          "type": "boolean",
+          "description": "The `delegate` group's: whether the person decides, whatever the delegation says."
+        }
+      }
+    }
+  }
+}

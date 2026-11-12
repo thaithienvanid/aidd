@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:eval-claims",
+  "title": "aidd eval claims",
+  "description": "The format of evals/claims.json: the closed registry of the claims the agent eval suites prove. A case names a claim as `kind:name`. An `action:` claim is an action in schemas/risks.json, a `route:` claim is one of its areas or an outcome listed here, and a `trigger:` claim is a practice skill in schemas/roles.json. Every other claim is listed here under the section of its kind, with the owner that makes it real. Each claim listed is required: a case proves it, or `known_gaps` says why none does yet.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["description", "gates", "stops", "routes", "duties", "triggers", "controls", "principles", "known_gaps"],
+  "properties": {
+    "description": { "type": "string" },
+    "gates": {
+      "type": "object",
+      "description": "The gates, where a person decides: each gate's name, and the action in schemas/risks.json that the person's yes opens.",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "stops": {
+      "type": "object",
+      "description": "Each stop a case makes an agent take: its name, and the stop code in schemas/common.schema.json that the agent names in its handoff note.",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "routes": {
+      "type": "object",
+      "description": "Each route outcome a routing case expects: its name, and the route (minor, normal, major, or emergency) it expects.",
+      "additionalProperties": { "enum": ["minor", "normal", "major", "emergency"] }
+    },
+    "duties": {
+      "type": "object",
+      "description": "The duties a case proves, by the role that owns each: a role in schemas/roles.json, or `lead`, the agent that runs the team's flows. Each list is sorted.",
+      "additionalProperties": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+    },
+    "triggers": {
+      "type": "array",
+      "description": "The practice skills whose loading a case proves, each a practice in schemas/roles.json.",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "controls": { "$ref": "#/$defs/rules", "description": "The loop's controls: a rule stated once, with the file that holds it." },
+    "principles": { "$ref": "#/$defs/rules", "description": "The principles a case proves, each stated once with the file that holds it. A principle may name the stop code it leads to." },
+    "known_gaps": {
+      "type": "object",
+      "description": "A required claim no case proves yet, and why. It only shrinks, so a case that closes a gap removes it. `stop_code:<code>` names a stop code that no stop claim reaches.",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "rules": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "statement"],
+        "properties": {
+          "source": { "type": "string", "minLength": 1, "description": "The file in the repository that holds the rule." },
+          "statement": { "type": "string", "minLength": 1, "description": "The rule in one sentence." },
+          "stop_code": { "$ref": "common.schema.json#/$defs/stop_code", "description": "The stop code a run that breaks the rule would have to name." }
+        }
+      }
+    }
+  }
+}

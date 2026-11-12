@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:doctor",
+  "title": "aidd doctor --json",
+  "description": "What `aidd doctor --json` prints: each check of the repository's wiring, whether any has the result `error`, and a finding for each check that has the result `error` or `warning`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "passed",
+    "checks"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape. A new key keeps it; a renamed, removed, or retyped key bumps it."
+    },
+    "passed": {
+      "type": "boolean",
+      "description": "True when no check has the result `error`: the exit code is 0. A warning never makes it false."
+    },
+    "checks": {
+      "type": "array",
+      "description": "Each check, in the order the text output prints them.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "result": {
+            "enum": [
+              "error",
+              "warning",
+              "note"
+            ],
+            "description": "error (the exit code is 1), warning (worth fixing), or note (never a finding). A check that passed has no result."
+          },
+          "message": {
+            "type": "string",
+            "description": "What the check found, with the next step when it has a result."
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/finding"
+      },
+      "description": "One finding for each check with the result `error` or `warning`, in the order of `checks`, with the message the check gives. A check that passed, or has the result `note`, is no finding."
+    }
+  }
+}

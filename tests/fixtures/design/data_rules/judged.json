@@ -1,0 +1,214 @@
+{
+  "design": "The loop's design (d4-whole-loop): section 2's rules R1 to R6, and Appendix B.4's families and listed exceptions.",
+  "outputs": [
+    "delegate-check.schema.json",
+    "design-manifest.schema.json",
+    "doctor.schema.json",
+    "explain.schema.json",
+    "knowledge.schema.json",
+    "orca-payload.schema.json",
+    "packs.schema.json",
+    "product-status.schema.json",
+    "recall.schema.json",
+    "risk.schema.json",
+    "stack-list.schema.json",
+    "standard-list.schema.json",
+    "status.schema.json",
+    "trace.schema.json",
+    "validate.schema.json"
+  ],
+  "R1": {
+    "stored_status_words": {
+      "spec.schema.json#/properties/status": ["draft", "ready", "approved", "in_progress", "built", "cancelled"],
+      "intent.schema.json#/properties/status": [],
+      "exploration.schema.json#/properties/status": [],
+      "proposal.schema.json#/properties/status": [],
+      "postmortem.schema.json#/properties/status": ["draft", "in_review", "published"],
+      "proposal.schema.json#/$defs/raid_item/properties/status": ["open", "resolved", "accepted", "invalid"],
+      "runbook.schema.json#/properties/status": ["draft", "active", "retired"],
+      "standard.schema.json#/properties/status": ["active", "deprecated"],
+      "evidence.schema.json#/properties/results/items/properties/status": ["passed", "failed", "timeout", "not_started"],
+      "evidence.schema.json#/properties/results/items/properties/attempts/items/properties/status": ["passed", "failed", "timeout", "not_started"]
+    },
+    "read_values": {
+      "spec.schema.json#/$defs/outcome/properties/released_on": "a release file's `released_at`",
+      "spec.schema.json#/$defs/outcome/properties/observe_result": "the postmortem that a failed observe check writes",
+      "spec.schema.json#/$defs/outcome/properties/rolled_back": "the release files, and the trunk when it lost the Spec"
+    }
+  },
+  "R2": {
+    "contained_ok": {
+      "delegate-check.schema.json#/$defs/reason_code": "`untested_acceptance` is its own reason, beside `untested`: two codes, not one value of two facts",
+      "item-types.schema.json#/$defs/type/properties/form": "`typed_document` is a kind of document, one form",
+      "product-status.schema.json#/properties/files/items/properties/state": "`not_approved` is the negation of `approved`, one state",
+      "proposal.schema.json#/properties/go_no_go/properties/decision": "`no_go` is the opposite of `go`, one decision",
+      "proposal.schema.json#/properties/qualification/properties/recommendation": "`no_go` is the opposite of `go`, one recommendation",
+      "retired-names.schema.json#/$defs/row/properties/surface": "`standard_id` is the id of a standard, one surface",
+      "status.schema.json#/$defs/branch_state": "`intent_branch_missing` names the Intent's branch and `missing` the Spec's, one state each"
+    },
+    "several_questions": {
+      "exploration.schema.json#/properties/timebox": "minutes, a cost, or the day a spike ends"
+    }
+  },
+  "R3": {
+    "decision_words": [
+      "accepted", "adopted", "agreed", "approved", "authorized", "cancelled", "closed", "confirmed", "declined", "decided", "granted",
+      "merged", "published", "reached", "rejected", "released", "resolved", "retired", "reviewed", "rolled_back", "signed_off",
+      "submitted", "withdrawn"
+    ],
+    "decision_nouns": ["acceptance", "approval", "cancellation", "confirmation", "sign_off", "go_no_go"],
+    "bare_words": ["accepted", "adopted", "cancelled", "declined", "invalid", "published", "rejected", "resolved", "retired", "snoozed", "withdrawn"],
+    "participle_flags": {
+      "shared": "a fact about an environment, that people share it: no one decided it",
+      "environment_shared": "the same fact about an environment, as a rule matches it",
+      "reserved": "an action reserved to a person: the risk rules' own mark, not an event",
+      "no_red": "it mirrors the `--no-red` flag that sets it",
+      "untested": "a runner's result: no test ran",
+      "recommended": "the author's own mark on an option, which no person decides",
+      "locked": "a lock that a parent config sets, shown by the config's own history",
+      "telemetry_opt_out": "a fact about a third-party extension, as its own documentation says it"
+    }
+  },
+  "R4": {
+    "dimensions": {
+      "ring": ["adopt", "trial", "hold"],
+      "environment": ["development", "sandbox", "staging", "production", "preview"]
+    }
+  },
+  "R5": {
+    "day_ahead_words": ["until", "sunset", "timebox"],
+    "not_days": ["waiting_on"],
+    "link_by": ["blocked_by", "consumed_by", "enforced_by", "filled_by", "provided_by", "replaced_by"],
+    "commit_names": ["commit", "head", "base", "head_sha", "base_sha", "merged_in", "drafted_in", "aidd_commit"],
+    "one_meaning": {
+      "outcome": {"types": ["string"], "means": "a goal, one sentence"},
+      "approval": {"types": ["object"], "means": "a person's decision, with who and when"},
+      "cancellation": {"types": ["object"], "means": "a person's stop, with who, when, and why"}
+    },
+    "qualified_kept": {
+      "config.schema.json#/$defs/project_rule/properties/requirement_level": "BCP 14's `must`, `should`, and `may`: how firmly a project rule binds, which is no risk level",
+      "config.schema.json#/properties/standards_policy": "the policy about standards is the config section itself, named for what it holds",
+      "config.schema.json#/properties/locks/items/anyOf/0/enum/standards_policy": "the lock names that section by its own name",
+      "config.schema.json#/properties/project/properties/defaults/properties/disabled/properties/dark_mode": "dark mode is a mode a screen has, the thing itself and no scope",
+      "eval-claims.schema.json#/$defs/rules/additionalProperties/properties/stop_code": "a stop code is a named kind of stop, which the handoff note's schema owns",
+      "evidence.schema.json#/properties/runner/properties/run_id": "an id names what it identifies: the CI run",
+      "lifecycles.schema.json#/$defs/thing/properties/item_type": "a link to a row of the item types, so it names that kind of thing",
+      "standard.schema.json#/properties/version_policy": "which version a project uses is a policy of its own, and `pinned` is one of its values"
+    },
+    "links": {
+      "parent": "the child names its parent by id",
+      "serves": "an Intent or a product scope item names the outcome it serves",
+      "from": "new work names what raised it",
+      "blocked_by": "an Intent, a Spec, or a Task names what must finish before it starts",
+      "replaces": "a decision names the earlier decision it replaces",
+      "covers": "an Intent names the proposal needs it delivers",
+      "order": "the intent order file ranks Intents: its own list, no parent's",
+      "spec": "a postmortem names the Spec that repaired it, and `from` names the one that failed",
+      "specs": "a proposal phase's trigger names the Specs whose merge starts the phase"
+    }
+  },
+  "R6": {
+    "child_lists": ["children"],
+    "child_list_places": {
+      "common.schema.json#/$defs/phase/properties/specs": "an Intent's plan lists its planned Specs, and each Spec names its Intent in `parent`: the pair, until 1.1"
+    }
+  },
+  "V1": {
+    "ruled_out_statuses": {
+      "common.schema.json#/$defs/test_status": "test runner outcome in evidence (passed, failed, timeout, not_started), not a work-item lifecycle status",
+      "knowledge.schema.json#/$defs/status": "URL check output of `aidd eval standards --online --json`, not a work-item lifecycle status",
+      "knowledge.schema.json#/$defs/release/properties/status": "release probe output of `aidd eval standards --online --json`, not a work-item lifecycle status",
+      "standard-list.schema.json#/$defs/standard/properties/status": "catalog listing status of a library standard (replaced by K8), outside 4.1 and 8.1",
+      "standard.schema.json#/properties/status": "catalog status of a library standard (replaced by K8), outside 4.1 and 8.1"
+    },
+    "other_enum_keys": {
+      "decision": "which way a decision went (`met`, `go`, `accepted`, `adopted`): a verdict about a thing, never a place in its life",
+      "state": "what aidd reads about a branch or a file (`merged`, `approved`, `unreadable`), never a work item's status (8.1)",
+      "result": "what a check showed (`passed`, `error`, `warning`): the outcome of one run, never a place in a work item's life",
+      "outcome": "what a check or a delegate check came to (`eligible`, `defer`): one run's answer, never a place in a work item's life"
+    }
+  },
+  "V2": {
+    "frame_words": ["open", "closed", "reopened"]
+  },
+  "V4": {
+    "decision_keys": ["approval", "cancellation", "decline"],
+    "scoped_decision_keys": {
+      "exploration.schema.json": ["result"]
+    },
+    "not_decisions": {
+      "announced_on": "the day consumers were told of a deprecation: a fact about the product",
+      "assisted_by": "the values of a commit's `Assisted-by` trailers: who helped write a commit, no decision",
+      "authored_at": "when a commit was authored",
+      "checked_by": "who checked a source, such as a standard or a stack: a check of a fact, no decision",
+      "closed_by": "who may close a thing (a key of `closers`), or who closes what a run opened: a rule of the loop, no decision",
+      "decided_by": "the role that decides an action, a row of the roles' decision rights: a rule, with no decision made",
+      "finished_at": "when a test run or an attempt ended",
+      "finished_on": "the day a phase of a plan finished: a fact of the work",
+      "found_by": "what finds a thing left open: a key of `finders`, a rule of the loop",
+      "measured_on": "when a measure was taken: what the measure showed, never a person's decision about it",
+      "opened_by": "who opens a thing, and how: a rule of the loop, no decision",
+      "read_by": "the roles that read a document: a rule of the team, no decision",
+      "recorded_at": "when a record was written: the record's own time",
+      "released_at": "when a release reached its environment, in a release file: a fact of the delivery, written after the deploy",
+      "released_on": "the day a release reached production: a fact of the delivery",
+      "restored_on": "the day service came back: a fact of an incident",
+      "started_at": "when a test run or an attempt began",
+      "suggested_by": "who suggested work nobody asked for: where the draft came from, no decision",
+      "tested_on": "the day a runbook was last tried: a fact about its test",
+      "written_by": "the role that writes and keeps a document: a rule of the team, no decision"
+    },
+    "other_shapes": {
+      "delegate_spec_approval": {
+        "schema_places": [],
+        "choice_of": "spec.schema.json#/properties/approval",
+        "shape": ["on_behalf_of", "at", "delegate_answer"],
+        "reason": "a second form of `approval` on a Spec only, held by the delegate's record `{on_behalf_of, at, delegate_answer}` with no `by`"
+      },
+      "spec_report_or_allow": {
+        "schema_places": [],
+        "why_no_place": "no object exists: the level of the risk rule is the hold, and R3 holds that a decision object is never required, so a Spec may have none",
+        "shape": [],
+        "reason": "a Spec approved at `report` or `allow`: no object at all, because the risk rule level is the hold"
+      },
+      "proposal_answer": {
+        "schema_places": ["proposal.schema.json#/properties/answer"],
+        "shape": ["decision", "by", "at"],
+        "reason": "another party's answer as our person reports it, with free-text `by` and no `reason`; our decision is the `approval` that follows it"
+      },
+      "criterion_result": {
+        "schema_places": [
+          "intent.schema.json#/$defs/criterion/properties/result",
+          "status.schema.json#/$defs/criterion/properties/result"
+        ],
+        "shape": ["measured_on", "actual", "source", "decision"],
+        "reason": "a criterion's `result`: what a measure or a review showed; the decision is the `approval` inside it"
+      },
+      "scope_item_results": {
+        "schema_places": [
+          "product-scope.schema.json#/$defs/results",
+          "product-scope.schema.json#/$defs/requirement_results"
+        ],
+        "shape": ["measured_on", "actual", "source", "decision"],
+        "reason": "a scope item's `results[]`: what a measure or a review showed; the decision is the product scope file's `approval` over it"
+      },
+      "revisions": {
+        "schema_places": ["spec.schema.json#/properties/revisions/items"],
+        "shape": ["reason", "at", "by"],
+        "reason": "`revisions[]`: list of each time an approved Spec was sent back, each entry staying true; the decision is the yes to `spec.revise`"
+      },
+      "record_decision": {
+        "schema_places": [],
+        "why_no_place": "its shape is the `types.decision` row of schemas/records.json, outside the `*.schema.json` files the walk reads; the record's own `by` and `recorded_at` are judged no decision",
+        "shape": ["question", "answer", "recorded_at"],
+        "reason": "the record type `decision`: the agent's account of an ask and its reply outside git, with `question`, `answer`, and `recorded_at`"
+      }
+    }
+  },
+  "tasks": [
+    "F1", "F2", "F3", "N7", "TS1", "A1", "R4", "K7", "K8", "K2", "N1", "N2", "N5", "M1", "R1",
+    "C4b", "C2.4c", "K6", "K13", "S1", "R6", "R7", "C2.5", "C2.7", "C2.8", "C2.9", "C2.10", "C3",
+    "R2", "R3", "R5", "M2", "M3", "M4a", "M4b", "M4c", "M4d", "M5", "C4a", "C4c", "N3", "N4", "N6",
+    "K3", "K4", "C5", "C6", "C7a", "M7", "C7", "TS2", "M8", "M9", "K11", "K12"
+  ]
+}

@@ -1,0 +1,907 @@
+[
+  {
+    "rule": "R1",
+    "where": "exploration.schema.json#/properties/status",
+    "reason": "the stored status repeats the exploration's `outcome` (A.8)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R1",
+    "where": "intent.schema.json#/properties/status",
+    "reason": "an Intent's status is always read from facts and nobody writes it (A.1)",
+    "until": "C2",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R1",
+    "where": "proposal.schema.json#/properties/status",
+    "reason": "the optional stored status is a cache of what the decisions say (A.8)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R1",
+    "where": "spec.schema.json#/$defs/outcome/properties/observe_result",
+    "reason": "a failed observe check is a postmortem, and nothing is written to a merged Spec (N12)",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R1",
+    "where": "spec.schema.json#/$defs/outcome/properties/released_on",
+    "reason": "a release file's `released_at` holds the day, and the Spec's `outcome` block is retired (N12)",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R1",
+    "where": "spec.schema.json#/$defs/outcome/properties/rolled_back",
+    "reason": "the release files and the trunk say a rollback, and the stored word is read (A.1, A.2)",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R1",
+    "where": "spec.schema.json#/properties/status/enum/done",
+    "reason": "`done` is read from the trunk, the release files, and the observe window (A.1)",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R1",
+    "where": "spec.schema.json#/properties/status/enum/in_review",
+    "reason": "`in_review` becomes `built`, and Test is read from facts (A.1, N1)",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R1",
+    "where": "spec.schema.json#/properties/status/enum/rolled_back",
+    "reason": "`rolled_back` is read from the release files (A.1, A.2)",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R2",
+    "where": "common.schema.json#/$defs/step_code",
+    "reason": "a step code joins an object and a state, 36 of them; one line says who acts and what (N2, A.4)",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R2",
+    "where": "exploration.schema.json#/properties/timebox",
+    "reason": "the design lists `timebox` as a day owed, and its text holds minutes, a cost, or a day: a spike's box, one field by design",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R2",
+    "where": "roles.schema.json#/properties/graph/properties/capabilities/properties/processes/items/properties/coverage",
+    "reason": "`agents_person_decides` joins who acts and who decides, which N8 keeps apart",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "exploration.schema.json#/properties/outcome/properties/by",
+    "reason": "a decision object whose time key is a day, `decided_on`, where R3 says `at` (B.4: no hold before 1.1)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "handoff.schema.json#/properties/run/properties/opened/items/properties/closed",
+    "reason": "a true-or-false `closed` beside `closed_by`; B.4 leaves the handoff's `closed_by` loose until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "handoff.schema.json#/properties/run/properties/opened/items/properties/closed_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "intent.schema.json#/properties/status",
+    "reason": "`cancelled` and `done` are a person's decisions stored as words; they become `cancellation` and the results' approvals (A.1, T33)",
+    "until": "C2",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "postmortem.schema.json#/properties/status",
+    "reason": "`published` becomes `approval: {by, at}`, with `published` then read (A.8, B.4)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "product-scope.schema.json#/$defs/brd/properties/approved_by",
+    "reason": "the loose pair `approved_by` and `approved_at` becomes `approval: {by, at}` (A.8, B.4)",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "product-scope.schema.json#/$defs/intent_order/properties/approved_by",
+    "reason": "the loose pair `approved_by` and `approved_at` becomes `approval: {by, at}` (A.8, B.4)",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "product-scope.schema.json#/$defs/prd/properties/approved_by",
+    "reason": "the loose pair `approved_by` and `approved_at` becomes `approval: {by, at}` (A.8, B.4)",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "product-scope.schema.json#/$defs/standing_outcomes/properties/approved_by",
+    "reason": "the loose pair `approved_by` and `approved_at` becomes `approval: {by, at}` (A.8, B.4)",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "product-status.schema.json#/properties/files/items/properties/approved_by",
+    "reason": "the status output repeats a product scope file's loose approval pair, which becomes `approval`",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "proposal.schema.json#/$defs/raid_item/properties/status",
+    "reason": "`accepted`, `resolved`, and `invalid` are a person's judgment as bare words (A.8)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "proposal.schema.json#/properties/go_no_go/properties/by",
+    "reason": "a decision object whose time key is a day, `decided_on`, where R3 says `at` (B.4: no hold before 1.1)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "proposal.schema.json#/properties/outcome/properties/by",
+    "reason": "a decision object whose time key is a day, `decided_on`, where R3 says `at` (B.4: no hold before 1.1)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "proposal.schema.json#/properties/sign_off/properties/by",
+    "reason": "a decision object whose time key is a day, `decided_on`, where R3 says `at` (B.4: no hold before 1.1)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "proposal.schema.json#/properties/status",
+    "reason": "`accepted`, `rejected`, and `withdrawn` repeat the outcome's decision as bare words (A.8)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "records.schema.json#/$defs/record/properties/by",
+    "reason": "a record is never rewritten, so its `by` and `recorded_at` stay (B.4)",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "roles.schema.json#/$defs/standard/properties/checked_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "runbook.schema.json#/properties/status",
+    "reason": "`retired` (and `active`) are a person's decision as bare words (A.8)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "spec.schema.json#/$defs/outcome/properties/rolled_back",
+    "reason": "`rolled_back: true` is read from the release files, and the `outcome` block is retired (A.8, N12)",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "spec.schema.json#/$defs/triage/properties/by",
+    "reason": "a decision object whose time key is a day, `decided_on`, where R3 says `at` (B.4: no hold before 1.1)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "spec.schema.json#/properties/approved_by",
+    "reason": "the loose pair `approved_by` and `approved_at` becomes `approval: {by, at}` (A.8, B.4), with the delegate's `delegate_answer` inside it",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "spec.schema.json#/properties/manual_acceptance",
+    "reason": "a true-or-false that a hand acceptance is planned; at 1.1 it is read from the Spec's `docs` (B.4)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "spec.schema.json#/properties/status",
+    "reason": "the stored `cancelled` is a person's decision as a bare word; `cancellation: {by, at, reason}` reads it, and the word goes with the Spec's other stored words (A.3, B.4)",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "stack.schema.json#/properties/checked_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R3",
+    "where": "standard.schema.json#/properties/checked_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "common.schema.json#/$defs/observe/properties/window",
+    "reason": "`observe.window` is a string such as `24h`, because its unit varies (B.4)",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "common.schema.json#/$defs/step_code/enum/spec.ask_approval",
+    "reason": "the step codes go, and one line says who acts and what (N2)",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "delegate-check.schema.json#/$defs/reason_code/enum/reserved_action",
+    "reason": "the names sweep (C5a) decides",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "delegate-check.schema.json#/$defs/reason_code/enum/text_claims_approval",
+    "reason": "the names sweep (C5a) decides",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "explain.schema.json#/$defs/type/enum/document_type",
+    "reason": "the names sweep (C5a) decides",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "explain.schema.json#/$defs/type/enum/finding_code",
+    "reason": "the names sweep (C5a) decides",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "explain.schema.json#/$defs/type/enum/step_code",
+    "reason": "the names sweep (C5a) decides",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "exploration.schema.json#/properties/outcome",
+    "reason": "an exploration's `outcome` is a decision record, where an Intent's is a goal: renamed at 1.1 (B.4)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "handoff.schema.json#/properties/run/properties/opened/items/properties/closed_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "handoff.schema.json#/properties/stopped_at",
+    "reason": "the handoff note's `stopped_at` holds a stop code, no instant, and becomes `stop`",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "intent.schema.json#/properties/proposal",
+    "reason": "a delivery link to the proposal an Intent came from, beside `from`, which names what raised new work",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "knowledge.schema.json#/properties/checked",
+    "reason": "the day a library entry or a runner was last checked, which the standards library names without `_on`",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "lifecycles.schema.json#/$defs/thing/properties/closed_by",
+    "reason": "the lifecycles' `closed_by` changes with N8 (B.4)",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "lifecycles.schema.json#/$defs/thing/properties/found_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "lifecycles.schema.json#/$defs/thing/properties/opened_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "product-scope.schema.json#/$defs/brd/properties/approved_by",
+    "reason": "the loose pair `approved_by` and `approved_at` becomes `approval: {by, at}` (A.8, B.4)",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "product-scope.schema.json#/$defs/intent_order/properties/approved_by",
+    "reason": "the loose pair `approved_by` and `approved_at` becomes `approval: {by, at}` (A.8, B.4)",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "product-scope.schema.json#/$defs/prd/properties/approved_by",
+    "reason": "the loose pair `approved_by` and `approved_at` becomes `approval: {by, at}` (A.8, B.4)",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "product-scope.schema.json#/$defs/standing_outcomes/properties/approved_by",
+    "reason": "the loose pair `approved_by` and `approved_at` becomes `approval: {by, at}` (A.8, B.4)",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "product-status.schema.json#/properties/files/items/properties/approved_by",
+    "reason": "the status output repeats a product scope file's `approved_by`",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "proposal.schema.json#/properties/outcome",
+    "reason": "a proposal's `outcome` is a decision record, where an Intent's is a goal: renamed at 1.1 (B.4)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "recall.schema.json#/$defs/match/properties/sha",
+    "reason": "the match is the commit itself, so its own id is `sha`; `commit` names the commit a fact is about",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "retired-names.schema.json#/$defs/row/properties/surface/enum/standard_id",
+    "reason": "the names sweep (C5a) decides",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "risk.schema.json#/$defs/paths/properties/spec_approval",
+    "reason": "the names sweep (C5a) decides",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "roles.schema.json#/$defs/standard/properties/checked",
+    "reason": "the day a library entry or a runner was last checked, which the standards library names without `_on`",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "roles.schema.json#/$defs/standard/properties/checked_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "roles.schema.json#/$defs/standard/properties/published",
+    "reason": "the day a standard was published, which the standards library names without `_on`",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "roles.schema.json#/properties/graph/properties/decision_rights/items/properties/decided_by",
+    "reason": "who decides is read from the action's risk level, so `decided_by` goes (N8, B.3)",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "roles.schema.json#/properties/graph/properties/documents/additionalProperties/properties/opened_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "roles.schema.json#/properties/graph/properties/documents/additionalProperties/properties/read_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "roles.schema.json#/properties/graph/properties/documents/additionalProperties/properties/written_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "roles.schema.json#/properties/graph/properties/flows/items/properties/starts_on",
+    "reason": "`starts_on` is renamed `takes`: it names events, no day (N19, B.4)",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "roles.schema.json#/properties/graph/properties/merge_approval",
+    "reason": "the names sweep (C5a) decides",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "roles.schema.json#/properties/roles/additionalProperties/properties/extensions/items/properties/checked",
+    "reason": "the day a library entry or a runner was last checked, which the standards library names without `_on`",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "roles.schema.json#/properties/roles/additionalProperties/properties/tier_reason",
+    "reason": "the role's model tier is decided in the package that changes the roles' data, which renames the reason",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "runbook.schema.json#/properties/rpo",
+    "reason": "a recovery point written as `4h`, a number and a unit that a runbook's reader takes as one value",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "runbook.schema.json#/properties/rto",
+    "reason": "a recovery time written as `4h`, a number and a unit that a runbook's reader takes as one value",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "spec.schema.json#/$defs/outcome/properties/hypothesis_result",
+    "reason": "it leaves with the Spec's `outcome` block, since nothing is written to a merged Spec (N12)",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "spec.schema.json#/$defs/outcome/properties/observe_result",
+    "reason": "it leaves with the Spec's `outcome` block, since nothing is written to a merged Spec (N12)",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "spec.schema.json#/properties/approved_by",
+    "reason": "the loose pair `approved_by` and `approved_at` becomes `approval: {by, at}` (A.8, B.4)",
+    "until": "C3",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "spec.schema.json#/properties/outcome",
+    "reason": "the Spec's `outcome` is an object block, where an Intent's is a goal; nothing is written to a merged Spec, so the block is retired (N12)",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "spec.schema.json#/properties/suggested_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "stack.schema.json#/properties/checked",
+    "reason": "the day a library entry or a runner was last checked, which the standards library names without `_on`",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "stack.schema.json#/properties/checked_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "standard.schema.json#/properties/checked",
+    "reason": "the day a library entry or a runner was last checked, which the standards library names without `_on`",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "standard.schema.json#/properties/checked_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "status.schema.json#/properties/due",
+    "reason": "the past-due list is named `due`, which B.4 gives to a day owed; it becomes `overdue`",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "status.schema.json#/properties/handoff/properties/stopped_at",
+    "reason": "the status output repeats the handoff note's `stopped_at`, a stop code, which becomes `stop`",
+    "until": "C4",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "status.schema.json#/$defs/branch_state/enum/invalid_name",
+    "reason": "`invalid_name` is the value for an id that cannot be a branch name, and the names sweep decides whether `name` stays",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "status.schema.json#/properties/items/items/properties/branch_state",
+    "reason": "`branch_state` is the one key for the state of a batched Intent's branch, and the names sweep decides whether `branch` stays a qualifier",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "status.schema.json#/properties/items/items/properties/phases/items/properties/specs/items/properties/branch_state",
+    "reason": "`branch_state` is the one key for the state of a Spec's branch, and the names sweep decides whether `branch` stays a qualifier",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "test-runners.schema.json#/$defs/runner/properties/checked",
+    "reason": "the day a library entry or a runner was last checked, which the standards library names without `_on`",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "test-runners.schema.json#/$defs/runner/properties/related_tests/properties/checked",
+    "reason": "the day a library entry or a runner was last checked, which the standards library names without `_on`",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "trace.schema.json#/properties/commits/items/properties/assisted_by",
+    "reason": "B.4 who family: a loose key, untouched until 1.1",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "trace.schema.json#/properties/commits/items/properties/sha",
+    "reason": "the object is the commit itself, so its own id is `sha`; `commit` names the commit a fact is about",
+    "until": "for good",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R6",
+    "where": "common.schema.json#/$defs/phase/properties/specs",
+    "reason": "the pair of a plan's line and the Spec's `parent`; C2 renames the list `specs`, and 1.1 removes it (N13, B.4)",
+    "until": "1.1",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "status.schema.json#/$defs/criterion/properties/measure_from",
+    "reason": "the design names the day a criterion is read from `measure_from` (A.1, N5); the names sweep (C5a) decides whether the read day takes `measure_on`, the stored day's name",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "R5",
+    "where": "status.schema.json#/$defs/criterion/properties/metric_name",
+    "reason": "the design names a criterion's metric `metric_name` (A.1, N5): the criterion has no name of its own; the names sweep (C5a) decides",
+    "until": "C5",
+    "listed_on": "2026-11-13"
+  },
+  {
+    "rule": "V1",
+    "where": "exploration.schema.json#/properties/status",
+    "reason": "no `x-groups` map yet; Task N6 adds `x-groups` for every status enum outside Spec, Intent, and Proposal",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V1",
+    "where": "postmortem.schema.json#/properties/status",
+    "reason": "no `x-groups` map yet; Task N6 adds `x-groups` for every status enum outside Spec, Intent, and Proposal",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V1",
+    "where": "product-status.schema.json#/properties/items/items/properties/status",
+    "reason": "no `x-groups` map yet; Task N6 adds `x-groups` for every status enum outside Spec, Intent, and Proposal",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V1",
+    "where": "proposal.schema.json#/$defs/raid_item/properties/status",
+    "reason": "no `x-groups` map yet; Task N6 adds `x-groups` for every status enum outside Spec, Intent, and Proposal",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V1",
+    "where": "runbook.schema.json#/properties/status",
+    "reason": "no `x-groups` map yet; Task N6 adds `x-groups` for every status enum outside Spec, Intent, and Proposal",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V1",
+    "where": "status.schema.json#/$defs/open_decision_state/properties/status",
+    "reason": "no `x-groups` map yet; Task N6 adds `x-groups` for every status enum outside Spec, Intent, and Proposal",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V1",
+    "where": "status.schema.json#/properties/items/items/properties/tasks/items/properties/status",
+    "reason": "no `x-groups` map yet; Task N6 adds `x-groups` for every status enum outside Spec, Intent, and Proposal",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V2",
+    "where": "exploration.schema.json#/properties/status/enum/open",
+    "reason": "`open` is the frame word; Task N4 replaces exploration's `open` with `pending`",
+    "until": "C7",
+    "task": "N4",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V2",
+    "where": "proposal.schema.json#/$defs/raid_item/properties/status/enum/open",
+    "reason": "`open` is the frame word; Task N4 replaces a RAID item's `open` with `active`",
+    "until": "C7",
+    "task": "N4",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V2",
+    "where": "status.schema.json#/$defs/open_decision_state/properties/status/enum/open",
+    "reason": "`open` is the frame word; Task N6 frees `open` and replaces an open decision's `open` with `pending`",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V3",
+    "where": "common.schema.json#/$defs/intent_status/x-meanings/approved",
+    "reason": "Intent `x-meanings` describes per-type derivation rather than the shared 8.1 word meaning",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V3",
+    "where": "common.schema.json#/$defs/intent_status/x-meanings/cancelled",
+    "reason": "Intent `x-meanings` describes per-type storage rather than the shared 8.1 word meaning",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V3",
+    "where": "common.schema.json#/$defs/intent_status/x-meanings/done",
+    "reason": "Intent `x-meanings` describes per-type closing rather than the shared 8.1 word meaning",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V3",
+    "where": "common.schema.json#/$defs/intent_status/x-meanings/draft",
+    "reason": "Intent `x-meanings` describes per-type derivation rather than the shared 8.1 word meaning",
+    "until": "C7",
+    "task": "N6",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "exploration.schema.json#/properties/outcome",
+    "reason": "an exploration's `outcome` holds who and when itself; Task N4 reshapes it as `result`, which refers to `$defs/decision`",
+    "until": "C7",
+    "task": "N4",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "exploration.schema.json#/properties/outcome/properties/decided_on",
+    "reason": "exploration `outcome` holds the decision day under `decided_on`; Task N4 reshapes the object as `result`, which refers to `$defs/decision`",
+    "until": "C7",
+    "task": "N4",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "product-scope.schema.json#/$defs/brd/properties/approved_by",
+    "reason": "BRD holds loose `approved_by` and `approved_at` instead of `approval: $defs/decision`; Task C3 replaces them",
+    "until": "C3",
+    "task": "C3",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "product-scope.schema.json#/$defs/intent_order/properties/approved_by",
+    "reason": "intent order holds loose `approved_by` and `approved_at` instead of `approval: $defs/decision`; Task C3 replaces them",
+    "until": "C3",
+    "task": "C3",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "product-scope.schema.json#/$defs/prd/properties/approved_by",
+    "reason": "PRD holds loose `approved_by` and `approved_at` instead of `approval: $defs/decision`; Task C3 replaces them",
+    "until": "C3",
+    "task": "C3",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "product-scope.schema.json#/$defs/standing_outcomes/properties/approved_by",
+    "reason": "standing outcomes hold loose `approved_by` and `approved_at` instead of `approval: $defs/decision`; Task C3 replaces them",
+    "until": "C3",
+    "task": "C3",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "product-status.schema.json#/properties/files/items/properties/approved_by",
+    "reason": "product status repeats product scope's loose `approved_by` and `approved_at`; Task C3 updates it with `approval`",
+    "until": "C3",
+    "task": "C3",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "proposal.schema.json#/properties/go_no_go",
+    "reason": "a proposal's `go_no_go` holds who and when itself, and an Intent's `go_no_go` refers to it; Task N4 removes both, because a no-go is a `cancellation`",
+    "until": "C7",
+    "task": "N4",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "proposal.schema.json#/properties/go_no_go/properties/decided_on",
+    "reason": "proposal `go_no_go` holds the decision day under `decided_on`; Task N4 removes the object, because a no-go is a cancellation",
+    "until": "C7",
+    "task": "N4",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "proposal.schema.json#/properties/outcome",
+    "reason": "a proposal's `outcome` holds who and when itself; Task N3 replaces it with `answer`, beside the approval that follows it",
+    "until": "C7",
+    "task": "N3",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "proposal.schema.json#/properties/outcome/properties/decided_on",
+    "reason": "proposal `outcome` holds the decision day under `decided_on`; Task N3 replaces the object with `answer`",
+    "until": "C7",
+    "task": "N3",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "proposal.schema.json#/properties/sign_off",
+    "reason": "a proposal's `sign_off` holds who and when itself; Task N3 removes it, because `signed_off` folds into `approved`",
+    "until": "C7",
+    "task": "N3",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "proposal.schema.json#/properties/sign_off/properties/decided_on",
+    "reason": "proposal `sign_off` holds the decision day under `decided_on`; Task N3 removes the object, because `signed_off` folds into `approved`",
+    "until": "C7",
+    "task": "N3",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "spec.schema.json#/$defs/triage",
+    "reason": "a Spec's `triage` holds who and when itself; Task N4 removes it: a yes is the person's request and a no is a `cancellation`",
+    "until": "C7",
+    "task": "N4",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "spec.schema.json#/$defs/triage/properties/decided_on",
+    "reason": "Spec `triage` holds the decision day under `decided_on`; Task N4 removes the object: a yes is the person's request and a no is a `cancellation`",
+    "until": "C7",
+    "task": "N4",
+    "listed_on": "2026-11-14"
+  },
+  {
+    "rule": "V4",
+    "where": "spec.schema.json#/properties/approved_by",
+    "reason": "Spec holds loose `approved_by` and `approved_at` instead of `approval: $defs/decision`; Task C3 replaces them",
+    "until": "C3",
+    "task": "C3",
+    "listed_on": "2026-11-14"
+  }
+]

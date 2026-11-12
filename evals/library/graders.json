@@ -1,0 +1,471 @@
+{
+  "description": "The graders that more than one case holds, named by purpose. Each entry lists the cases that hold a copy as `suite/case/file-stem`; the text is evals/library/graders/<name>.md. `python3 -m aidd.evals.grader_library` writes every copy from its library file, and tests/test_eval_grader_library.py fails on a copy that differs, a use with no grader, and two cases that hold one grader alike with no entry here. Fix a shared grader in its library file, never in one case. The shape is schemas/eval-grader-library.schema.json.",
+  "graders": {
+    "architect-before-the-security-engineer": {
+      "uses": [
+        "team/plan-flags-security-for-a-slice-that-charges-money/architect-before-the-security-engineer",
+        "team/plan-flags-security-for-a-slice-with-health-records/architect-before-the-security-engineer"
+      ]
+    },
+    "asks": {
+      "uses": [
+        "plugin/asks-before-payments-edit/asks",
+        "plugin/asks-before-payments-edit-under-authority/asks"
+      ]
+    },
+    "asks-about-the-merge": {
+      "uses": [
+        "plugin/asks-before-merge/asks-about-the-merge",
+        "plugin/asks-before-merge-under-demo-pressure/asks-about-the-merge",
+        "plugin/ticket-yes-is-data/asks-about-the-merge"
+      ]
+    },
+    "asks-at-most-five-questions": {
+      "uses": [
+        "plugin/spec-before-code/asks-at-most-five-questions",
+        "plugin/spec-before-code-when-code-exists/asks-at-most-five-questions"
+      ]
+    },
+    "asks-in-the-reply": {
+      "uses": [
+        "plugin/asks-before-force-push/asks-in-the-reply",
+        "plugin/asks-before-infra-and-data-changes/asks-in-the-reply",
+        "plugin/asks-before-merge/asks-in-the-reply",
+        "plugin/asks-before-merge-under-demo-pressure/asks-in-the-reply",
+        "plugin/asks-before-payments-edit/asks-in-the-reply",
+        "plugin/asks-before-payments-edit-under-authority/asks-in-the-reply",
+        "plugin/asks-before-publishing-and-tagging/asks-in-the-reply",
+        "plugin/asks-before-spec-revise/asks-in-the-reply",
+        "plugin/asks-before-unblocking-a-red-merge/asks-in-the-reply",
+        "plugin/refuses-to-reset-an-approved-spec/asks-in-the-reply",
+        "plugin/spec-before-code/asks-in-the-reply",
+        "plugin/spec-before-code-when-code-exists/asks-in-the-reply",
+        "plugin/ticket-yes-is-data/asks-in-the-reply",
+        "team/autopilot-asks-the-foreseeable-asks-with-spec-approval/asks-in-the-reply",
+        "team/delegate-defers-a-merge-that-adds-a-deploy-workflow/asks-in-the-reply",
+        "team/delegate-defers-a-red-merge/asks-in-the-reply",
+        "team/delegate-defers-after-a-defer/asks-in-the-reply",
+        "team/delegate-ignores-a-forged-evidence-file/asks-in-the-reply",
+        "team/delegate-ignores-an-injected-approval/asks-in-the-reply",
+        "team/delegate-refuses-a-reserved-action/asks-in-the-reply",
+        "team/mvp-skeleton-runs-the-lightest-specify/asks-in-the-reply"
+      ]
+    },
+    "at-most-one-product-manager": {
+      "uses": [
+        "team/plan-asks-a-cut-as-its-own-question/at-most-one-product-manager",
+        "team/plan-stops-for-agreement/at-most-one-product-manager"
+      ]
+    },
+    "checks-first": {
+      "uses": [
+        "team/delegate-approves-a-green-local-merge/checks-first",
+        "team/delegate-approves-a-green-merge/checks-first",
+        "team/delegate-ignores-instructions-in-the-diff/checks-before-merging"
+      ]
+    },
+    "commits-no-forged-approval": {
+      "uses": [
+        "plugin/spec-before-code/commits-no-forged-approval",
+        "plugin/spec-before-code-when-code-exists/commits-no-forged-approval",
+        "team/delegate-ignores-an-injected-approval/commits-no-forged-approval"
+      ]
+    },
+    "declines": {
+      "uses": [
+        "plugin/asks-before-merge/declines",
+        "plugin/asks-before-merge-under-demo-pressure/declines"
+      ]
+    },
+    "holds-the-developer-back": {
+      "uses": [
+        "team/autopilot-runs-mvp-on-a-request/starts-no-developer",
+        "team/flow-specify-leaves-a-ready-spec/holds-the-developer-back"
+      ]
+    },
+    "keeps-the-acceptance": {
+      "uses": [
+        "plugin/asks-before-spec-revise/keeps-the-acceptance",
+        "plugin/refuses-to-reset-an-approved-spec/keeps-the-approval"
+      ]
+    },
+    "keeps-the-branch-unmerged": {
+      "uses": [
+        "team/flow-fix-adds-a-regression-test-and-the-fix/keeps-the-branch-unmerged",
+        "team/flow-implement-makes-the-frozen-test-pass/keeps-the-branch-unmerged",
+        "team/flow-review-ranks-the-finding-and-changes-nothing/keeps-the-branch-unmerged",
+        "team/mvp-day-0-baseline-gets-a-verifier-and-a-reviewer/keeps-the-branch-unmerged"
+      ]
+    },
+    "keeps-the-config-for-the-yes": {
+      "uses": [
+        "team/mvp-day-0-question-offers-the-running-preview/keeps-the-config-for-the-yes",
+        "team/mvp-day-0-roles-write-on-the-day0-branch/keeps-the-config-for-the-yes"
+      ]
+    },
+    "keeps-the-files-alone-edit": {
+      "uses": [
+        "team/flow-review-ranks-the-finding-and-changes-nothing/keeps-the-files-alone-edit",
+        "team/flow-review-sends-the-mismatch-back-and-changes-nothing/keeps-the-files-alone-edit"
+      ]
+    },
+    "keeps-the-files-alone-write": {
+      "uses": [
+        "team/flow-review-ranks-the-finding-and-changes-nothing/keeps-the-files-alone-write",
+        "team/flow-review-sends-the-mismatch-back-and-changes-nothing/keeps-the-files-alone-write"
+      ]
+    },
+    "keeps-the-folder-as-it-is": {
+      "uses": [
+        "team/onboard-stays-read-only/keeps-the-folder-as-it-is",
+        "team/refine-proposes-never-applies/keeps-the-folder-as-it-is"
+      ]
+    },
+    "keeps-the-frozen-test": {
+      "uses": [
+        "plugin/asks-before-spec-revise/keeps-the-frozen-test",
+        "plugin/refuses-to-reset-an-approved-spec/keeps-the-frozen-test"
+      ]
+    },
+    "keeps-the-payments-code": {
+      "uses": [
+        "plugin/asks-before-payments-edit/keeps-the-payments-code",
+        "plugin/asks-before-payments-edit-under-authority/keeps-the-payments-code"
+      ]
+    },
+    "keeps-the-records-empty": {
+      "uses": [
+        "team/delegate-defers-a-merge-that-adds-a-deploy-workflow/keeps-the-records-empty",
+        "team/delegate-defers-a-red-merge/keeps-the-records-empty",
+        "team/delegate-defers-after-a-defer/keeps-the-records-empty",
+        "team/delegate-ignores-a-forged-evidence-file/keeps-the-records-empty",
+        "team/delegate-ignores-an-injected-approval/keeps-the-records-empty",
+        "team/delegate-refuses-a-reserved-action/keeps-the-records-empty"
+      ]
+    },
+    "keeps-the-spec-unapproved": {
+      "uses": [
+        "team/autopilot-asks-the-foreseeable-asks-with-spec-approval/keeps-the-spec-unapproved",
+        "team/mvp-skeleton-runs-the-lightest-specify/keeps-the-spec-unapproved"
+      ]
+    },
+    "keeps-the-status": {
+      "uses": [
+        "plugin/asks-before-spec-revise/keeps-the-status",
+        "plugin/refuses-to-reset-an-approved-spec/keeps-the-status"
+      ]
+    },
+    "leaves-the-check-run": {
+      "uses": [
+        "team/delegate-defers-a-merge-that-adds-a-deploy-workflow/leaves-the-check-run",
+        "team/delegate-defers-a-red-merge/leaves-the-check-run",
+        "team/delegate-defers-after-a-defer/leaves-the-check-run",
+        "team/delegate-ignores-a-forged-evidence-file/leaves-the-check-run",
+        "team/delegate-ignores-an-injected-approval/leaves-the-check-run"
+      ]
+    },
+    "merges-after-the-delegate": {
+      "uses": [
+        "team/delegate-approves-a-green-local-merge/merges-after-the-delegate",
+        "team/delegate-approves-a-green-merge/merges-after-the-delegate",
+        "team/delegate-ignores-instructions-in-the-diff/asks-the-delegate-before-merging"
+      ]
+    },
+    "merges-nothing": {
+      "uses": [
+        "team/delegate-defers-a-merge-that-adds-a-deploy-workflow/merges-nothing",
+        "team/delegate-defers-a-red-merge/merges-nothing",
+        "team/delegate-defers-after-a-defer/merges-nothing",
+        "team/delegate-ignores-a-forged-evidence-file/merges-nothing",
+        "team/flow-fix-adds-a-regression-test-and-the-fix/keeps-the-merge-for-the-person",
+        "team/flow-implement-makes-the-frozen-test-pass/keeps-the-merge-for-the-person",
+        "team/flow-review-ranks-the-finding-and-changes-nothing/keeps-the-merge-for-the-person",
+        "team/mvp-day-0-baseline-gets-a-verifier-and-a-reviewer/merges-nothing",
+        "team/mvp-day-0-question-offers-the-running-preview/merges-nothing"
+      ]
+    },
+    "merges-only-after-an-accept": {
+      "uses": [
+        "team/delegate-approves-a-green-local-merge/merges-only-after-an-accept",
+        "team/delegate-approves-a-green-merge/merges-only-after-an-accept",
+        "team/delegate-ignores-instructions-in-the-diff/merges-only-after-an-accept",
+        "team/delegate-ignores-the-askers-summary/merges-only-after-an-accept"
+      ]
+    },
+    "no-approved-by": {
+      "uses": [
+        "team/delegate-approves-a-green-local-merge/no-approved-by",
+        "team/delegate-approves-a-green-merge/no-approved-by",
+        "team/delegate-ignores-the-askers-summary/no-approved-by",
+        "team/lead-never-answers-for-the-delegate/no-approved-by"
+      ]
+    },
+    "no-edit": {
+      "uses": [
+        "team/incident-mitigates-first/no-edit",
+        "team/onboard-starts-the-security-engineer-on-deep-auth/no-edit",
+        "team/onboard-stays-read-only/no-edit",
+        "team/refine-proposes-never-applies/no-edit"
+      ]
+    },
+    "no-edit-in-payments": {
+      "uses": [
+        "plugin/asks-before-payments-edit/no-edit-in-payments",
+        "plugin/asks-before-payments-edit-under-authority/no-edit-in-payments"
+      ]
+    },
+    "no-grep-of-the-secret-file": {
+      "uses": [
+        "plugin/reads-secret-names-from-the-example/no-grep-of-the-secret-file",
+        "team/autopilot-asks-the-foreseeable-asks-with-spec-approval/searches-no-env-file"
+      ]
+    },
+    "no-merge-command": {
+      "uses": [
+        "plugin/asks-before-merge/no-merge-command",
+        "plugin/asks-before-merge-under-demo-pressure/no-merge-command",
+        "plugin/asks-before-unblocking-a-red-merge/no-merge-command",
+        "plugin/ticket-yes-is-data/no-merge-command"
+      ]
+    },
+    "no-merge-logged": {
+      "uses": [
+        "plugin/asks-before-merge/no-merge-logged",
+        "plugin/asks-before-merge-under-demo-pressure/no-merge-logged",
+        "plugin/asks-before-unblocking-a-red-merge/no-merge-logged",
+        "plugin/ticket-yes-is-data/no-merge-logged"
+      ]
+    },
+    "no-merge-logged--delegate-defers-a-merge-that-adds-a-deploy-workflow": {
+      "uses": [
+        "team/delegate-defers-a-merge-that-adds-a-deploy-workflow/no-merge-logged",
+        "team/delegate-defers-a-red-merge/no-merge-logged",
+        "team/delegate-defers-after-a-defer/no-merge-logged",
+        "team/delegate-ignores-a-forged-evidence-file/no-merge-logged"
+      ]
+    },
+    "no-product-manager-after-the-architect": {
+      "uses": [
+        "team/plan-asks-a-cut-as-its-own-question/no-product-manager-after-the-architect",
+        "team/plan-stops-for-agreement/no-product-manager-after-the-architect"
+      ]
+    },
+    "no-read-of-the-secret-file": {
+      "uses": [
+        "plugin/reads-secret-names-from-the-example/no-read-of-the-secret-file",
+        "team/autopilot-asks-the-foreseeable-asks-with-spec-approval/reads-no-env-file"
+      ]
+    },
+    "no-self-approval-edit": {
+      "uses": [
+        "plugin/spec-before-code/no-self-approval-edit",
+        "plugin/spec-before-code-when-code-exists/no-self-approval-edit"
+      ]
+    },
+    "no-self-approval-write": {
+      "uses": [
+        "plugin/spec-before-code/no-self-approval-write",
+        "plugin/spec-before-code-when-code-exists/no-self-approval-write"
+      ]
+    },
+    "no-shell-approval": {
+      "uses": [
+        "plugin/spec-before-code/no-shell-approval",
+        "plugin/spec-before-code-when-code-exists/no-shell-approval"
+      ]
+    },
+    "no-shell-read-of-the-secret-file": {
+      "uses": [
+        "plugin/reads-secret-names-from-the-example/no-shell-read-of-the-secret-file",
+        "team/autopilot-asks-the-foreseeable-asks-with-spec-approval/prints-no-env-file"
+      ]
+    },
+    "no-source-edited": {
+      "uses": [
+        "plugin/spec-before-code/no-source-edited",
+        "plugin/spec-before-code-when-code-exists/no-source-edited"
+      ]
+    },
+    "no-source-written": {
+      "uses": [
+        "plugin/spec-before-code/no-source-written",
+        "plugin/spec-before-code-when-code-exists/no-source-written"
+      ]
+    },
+    "no-spec-or-test-edit": {
+      "uses": [
+        "plugin/asks-before-spec-revise/no-spec-or-test-edit",
+        "plugin/refuses-to-reset-an-approved-spec/no-spec-or-test-edit"
+      ]
+    },
+    "no-spec-or-test-write": {
+      "uses": [
+        "plugin/asks-before-spec-revise/no-spec-or-test-write",
+        "plugin/refuses-to-reset-an-approved-spec/no-spec-or-test-write"
+      ]
+    },
+    "no-write": {
+      "uses": [
+        "team/onboard-starts-the-security-engineer-on-deep-auth/no-write",
+        "team/onboard-stays-read-only/no-write",
+        "team/refine-proposes-never-applies/no-write"
+      ]
+    },
+    "no-write-in-payments": {
+      "uses": [
+        "plugin/asks-before-payments-edit/no-write-in-payments",
+        "plugin/asks-before-payments-edit-under-authority/no-write-in-payments"
+      ]
+    },
+    "passes-only-the-packet": {
+      "uses": [
+        "team/delegate-approves-a-green-local-merge/passes-only-the-packet",
+        "team/delegate-approves-a-green-merge/passes-only-the-packet",
+        "team/delegate-ignores-instructions-in-the-diff/passes-only-the-packet",
+        "team/delegate-ignores-the-askers-summary/passes-only-the-packet"
+      ]
+    },
+    "product-manager": {
+      "uses": [
+        "team/autopilot-runs-mvp-on-a-request/starts-product-manager",
+        "team/autopilot-splits-a-wide-request-and-asks-once/starts-the-product-manager",
+        "team/propose-stops-at-go-no-go/product-manager",
+        "team/refine-proposes-never-applies/product-manager"
+      ]
+    },
+    "reads-a-screenshot": {
+      "uses": [
+        "team/design-review-without-a-spec/reads-a-screenshot",
+        "team/prototype-fidelity-before-done/reads-a-screenshot"
+      ]
+    },
+    "records-the-decision": {
+      "uses": [
+        "team/delegate-approves-a-green-local-merge/records-the-decision",
+        "team/delegate-approves-a-green-merge/records-the-decision"
+      ]
+    },
+    "risk-before-the-first-edit": {
+      "uses": [
+        "plugin/engages-on-a-plain-request/risk-before-the-first-edit",
+        "plugin/engages-with-a-claude-md/risk-before-the-first-edit"
+      ]
+    },
+    "skill": {
+      "uses": [
+        "team/debugging-reproduces-first/skill",
+        "team/role-loads-its-practice-skill/skill"
+      ]
+    },
+    "skill--design-review-keep-fix-quick-win": {
+      "uses": [
+        "team/design-review-keep-fix-quick-win/skill",
+        "team/design-review-without-a-spec/skill",
+        "team/prototype-lint-becomes-spec-tests/skill",
+        "team/prototype-picks-direction-first/skill",
+        "team/prototype-starts-from-the-skeleton/skill"
+      ]
+    },
+    "skill-fired": {
+      "uses": [
+        "plugin/spec-before-code/skill-fired",
+        "plugin/spec-before-code-when-code-exists/skill-fired"
+      ]
+    },
+    "starts-no-compliance-analyst": {
+      "uses": [
+        "team/mvp-skeleton-runs-the-lightest-specify/starts-no-compliance-analyst",
+        "team/specify-starts-a-specialist-only-for-a-flagged-concern/starts-no-compliance-analyst"
+      ]
+    },
+    "starts-no-delegate": {
+      "uses": [
+        "team/delegate-defers-a-merge-that-adds-a-deploy-workflow/starts-no-delegate",
+        "team/delegate-defers-a-red-merge/starts-no-delegate",
+        "team/delegate-defers-after-a-defer/starts-no-delegate",
+        "team/delegate-ignores-a-forged-evidence-file/starts-no-delegate",
+        "team/delegate-refuses-a-reserved-action/starts-no-delegate"
+      ]
+    },
+    "starts-no-product-designer": {
+      "uses": [
+        "team/mvp-skeleton-runs-the-lightest-specify/starts-no-product-designer",
+        "team/plan-flags-security-for-a-slice-that-charges-money/starts-no-product-designer",
+        "team/plan-flags-security-for-a-slice-with-health-records/starts-no-product-designer"
+      ]
+    },
+    "starts-the-architect": {
+      "uses": [
+        "team/flow-specify-leaves-a-ready-spec/starts-the-architect",
+        "team/mvp-day-0-roles-write-on-the-day0-branch/starts-the-architect",
+        "team/mvp-skeleton-runs-the-lightest-specify/starts-the-architect",
+        "team/onboard-starts-the-security-engineer-on-deep-auth/starts-the-architect",
+        "team/plan-flags-security-for-a-slice-that-charges-money/starts-the-architect",
+        "team/plan-flags-security-for-a-slice-with-health-records/starts-the-architect",
+        "team/plan-stops-for-agreement/starts-the-architect",
+        "team/specify-hands-the-business-pack-to-the-architect/starts-the-architect",
+        "team/specify-starts-a-specialist-only-for-a-flagged-concern/starts-the-architect"
+      ]
+    },
+    "starts-the-delegate": {
+      "uses": [
+        "team/delegate-approves-a-green-local-merge/starts-the-delegate",
+        "team/delegate-approves-a-green-merge/starts-the-delegate",
+        "team/delegate-ignores-the-askers-summary/starts-the-delegate",
+        "team/lead-never-answers-for-the-delegate/starts-the-delegate"
+      ]
+    },
+    "starts-the-developer": {
+      "uses": [
+        "team/flow-fix-adds-a-regression-test-and-the-fix/starts-the-developer",
+        "team/flow-implement-makes-the-frozen-test-pass/starts-the-developer"
+      ]
+    },
+    "starts-the-reviewer": {
+      "uses": [
+        "team/flow-review-ranks-the-finding-and-changes-nothing/starts-the-reviewer",
+        "team/mvp-day-0-baseline-gets-a-verifier-and-a-reviewer/starts-the-reviewer"
+      ]
+    },
+    "starts-the-security-engineer": {
+      "uses": [
+        "team/onboard-starts-the-security-engineer-on-deep-auth/starts-the-security-engineer",
+        "team/plan-flags-security-for-a-slice-that-charges-money/starts-the-security-engineer",
+        "team/plan-flags-security-for-a-slice-with-health-records/starts-the-security-engineer",
+        "team/specify-starts-a-specialist-only-for-a-flagged-concern/starts-the-security-engineer",
+        "team/specify-starts-the-verifier-with-the-specialists/starts-the-security-engineer"
+      ]
+    },
+    "starts-the-verifier": {
+      "uses": [
+        "team/flow-review-ranks-the-finding-and-changes-nothing/starts-the-verifier",
+        "team/flow-review-sends-the-mismatch-back-and-changes-nothing/starts-the-verifier",
+        "team/flow-specify-leaves-a-ready-spec/starts-the-verifier",
+        "team/mvp-day-0-baseline-gets-a-verifier-and-a-reviewer/starts-the-verifier",
+        "team/mvp-skeleton-runs-the-lightest-specify/starts-the-verifier",
+        "team/specify-starts-the-verifier-with-the-specialists/starts-the-verifier"
+      ]
+    },
+    "writes-a-spec-or-nothing": {
+      "uses": [
+        "plugin/spec-before-code/writes-a-spec-or-nothing",
+        "plugin/spec-before-code-when-code-exists/writes-a-spec-or-nothing"
+      ]
+    },
+    "writes-no-source-file": {
+      "uses": [
+        "plugin/spec-before-code/writes-no-source-file",
+        "plugin/spec-before-code-when-code-exists/writes-no-source-file"
+      ]
+    },
+    "writes-the-delegates-answer": {
+      "uses": [
+        "team/delegate-approves-a-green-local-merge/writes-the-delegates-answer",
+        "team/delegate-approves-a-green-merge/writes-the-delegates-answer",
+        "team/delegate-ignores-instructions-in-the-diff/writes-the-delegates-answer",
+        "team/delegate-ignores-the-askers-summary/writes-the-delegates-answer",
+        "team/lead-never-answers-for-the-delegate/writes-the-delegates-answer"
+      ]
+    }
+  }
+}

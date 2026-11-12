@@ -1,0 +1,25 @@
+---
+description: 'An MVP''s walking skeleton, declared major with no risky path and no screen, runs the lightest Specify: the architect and the verifier, then Spec approval.'
+plugins:
+  - "../../../plugins/aidd-team"
+  - "../../.."
+max_turns: 50
+timeout_seconds: 1800
+allowed_tools:
+  - Read
+  - Glob
+  - Grep
+  - Skill
+  - Agent
+  - Bash
+  - Write
+  - Edit
+tags:
+  - team
+  - claim:duty:lead.starts-only-the-needed-roles
+  - tier:full
+  - shape:cli/greenfield/solo/unregulated
+  - world:python-general
+---
+
+/aidd-team:mvp build the request in BRIEF.md. I agree to the plan in product/intents/INTENT-1.md, and the Day-0 baseline is merged.

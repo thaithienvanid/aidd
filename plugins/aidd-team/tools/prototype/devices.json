@@ -1,0 +1,152 @@
+{
+  "$generated": "Generated from src/aidd/views/design/tokens.json by `aidd gen-docs`: never edit by hand.",
+  "$description": "The device frames: the one table of viewport sizes, in CSS px, that the prototype viewer draws, the design checks measure against, and DESIGN.md lists. Each size is a real device's, copied from a public source read on the day in `checked`, as the standards data does: a size no source confirms stays out. A frame has a fixed height, and its design scrolls inside, so every frame is named by its width and height. A phone's row also holds `safe_area`: the system bars it draws over the design, top and bottom in CSS px, each read from its own public source on a day, so the viewer draws no bar a source does not give. `fill`, the viewer's own mode that follows the window, is no device and has no row.",
+  "frames": {
+    "ios": {
+      "name": "iPhone",
+      "platform": "ios",
+      "width": 390,
+      "height": 844,
+      "devices": [
+        "iPhone 12 Pro",
+        "iPhone 14",
+        "iPhone 16e"
+      ],
+      "citation": {
+        "url": "https://raw.githubusercontent.com/ChromeDevTools/devtools-frontend/main/front_end/models/emulation/EmulatedDevices.ts",
+        "quote": "'title': 'iPhone 14',\n    'screen': {\n      'horizontal': {\n        'width': 844,\n        'height': 390,\n      },\n      'device-pixel-ratio': 3,\n      'vertical': {\n        'width': 390,\n        'height': 844,\n      },\n    },"
+      },
+      "checked": "2026-11-11",
+      "safe_area": {
+        "$description": "The iPhone 14's status bar and home indicator, in portrait.",
+        "top": 47,
+        "bottom": 34,
+        "citations": [
+          {
+            "url": "https://useyourloaf.com/blog/iphone-14-screen-sizes/",
+            "quote": "The status bar is 47 points high which gives the following safe area insets:\nSafe Area Insets (portrait): top: 47, bottom: 34, left: 0, right: 0"
+          }
+        ],
+        "checked": "2026-11-11"
+      }
+    },
+    "android": {
+      "name": "Android",
+      "platform": "android",
+      "width": 412,
+      "height": 915,
+      "devices": [
+        "Pixel 7",
+        "Pixel 8",
+        "Pixel 8a",
+        "Samsung Galaxy S20 Ultra"
+      ],
+      "citation": {
+        "url": "https://raw.githubusercontent.com/ChromeDevTools/devtools-frontend/main/front_end/models/emulation/EmulatedDevices.ts",
+        "quote": "'title': 'Pixel 7',\n    'screen': {\n      'horizontal': {\n        'width': 915,\n        'height': 412,\n      },\n      'device-pixel-ratio': 2.625,\n      'vertical': {\n        'width': 412,\n        'height': 915,\n      },\n    },"
+      },
+      "checked": "2026-11-11",
+      "safe_area": {
+        "$description": "The Pixel 7's status bar, 136 device px at its 2.625 device px per CSS px (the frame's source), so 52 CSS px; and Android's gesture navigation bar, 24 dp, which is 24 CSS px.",
+        "top": 52,
+        "bottom": 24,
+        "citations": [
+          {
+            "url": "https://android.googlesource.com/device/google/pantah/+/refs/heads/main/panther/overlay/frameworks/base/core/res/res/values/dimens.xml",
+            "quote": "<dimen name=\"status_bar_height_portrait\">136px</dimen>"
+          },
+          {
+            "url": "https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/packages/overlays/NavigationBarModeGesturalOverlay/res/values/dimens.xml",
+            "quote": "<!-- Height of the bottom navigation / system bar. -->\n<dimen name=\"navigation_bar_height\">24dp</dimen>"
+          }
+        ],
+        "checked": "2026-11-11"
+      }
+    },
+    "320": {
+      "name": "Web",
+      "platform": "web",
+      "width": 320,
+      "height": 568,
+      "devices": [
+        "iPhone SE (1st generation)",
+        "iPhone 5s"
+      ],
+      "citation": {
+        "url": "https://www.ios-resolution.com/iphone-se-1st-gen/",
+        "quote": "Logical Width: 320 pixels Logical Height: 568 pixels"
+      },
+      "checked": "2026-11-11"
+    },
+    "768": {
+      "name": "Web",
+      "platform": "web",
+      "width": 768,
+      "height": 1024,
+      "devices": [
+        "iPad Mini, upright"
+      ],
+      "citation": {
+        "url": "https://raw.githubusercontent.com/ChromeDevTools/devtools-frontend/main/front_end/models/emulation/EmulatedDevices.ts",
+        "quote": "'title': 'iPad Mini',\n    'screen': {\n      'horizontal': {\n        'width': 1024,\n        'height': 768,\n      },\n      'device-pixel-ratio': 2,\n      'vertical': {\n        'width': 768,\n        'height': 1024,\n      },\n    },"
+      },
+      "checked": "2026-11-11"
+    },
+    "1024": {
+      "name": "Web",
+      "platform": "web",
+      "width": 1024,
+      "height": 768,
+      "devices": [
+        "iPad Mini, on its side"
+      ],
+      "citation": {
+        "url": "https://raw.githubusercontent.com/ChromeDevTools/devtools-frontend/main/front_end/models/emulation/EmulatedDevices.ts",
+        "quote": "'title': 'iPad Mini',\n    'screen': {\n      'horizontal': {\n        'width': 1024,\n        'height': 768,\n      },\n      'device-pixel-ratio': 2,\n      'vertical': {\n        'width': 768,\n        'height': 1024,\n      },\n    },"
+      },
+      "checked": "2026-11-11"
+    },
+    "1440": {
+      "name": "Web",
+      "platform": "web",
+      "width": 1440,
+      "height": 900,
+      "devices": [
+        "Chrome's laptop with a HiDPI screen"
+      ],
+      "citation": {
+        "url": "https://raw.githubusercontent.com/ChromeDevTools/devtools-frontend/main/front_end/models/emulation/EmulatedDevices.ts",
+        "quote": "'horizontal': {'width': 1440, 'height': 900},"
+      },
+      "checked": "2026-11-11"
+    },
+    "desktop": {
+      "name": "Desktop app",
+      "platform": "desktop",
+      "width": 1280,
+      "height": 800,
+      "devices": [
+        "Chrome's laptop with an MDPI screen"
+      ],
+      "citation": {
+        "url": "https://raw.githubusercontent.com/ChromeDevTools/devtools-frontend/main/front_end/models/emulation/EmulatedDevices.ts",
+        "quote": "'horizontal': {'width': 1280, 'height': 800},"
+      },
+      "checked": "2026-11-11"
+    },
+    "desktop-1440": {
+      "name": "Desktop app",
+      "platform": "desktop",
+      "width": 1440,
+      "height": 900,
+      "devices": [
+        "Chrome's laptop with a HiDPI screen"
+      ],
+      "citation": {
+        "url": "https://raw.githubusercontent.com/ChromeDevTools/devtools-frontend/main/front_end/models/emulation/EmulatedDevices.ts",
+        "quote": "'horizontal': {'width': 1440, 'height': 900},"
+      },
+      "checked": "2026-11-11"
+    }
+  }
+}

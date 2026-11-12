@@ -1,0 +1,259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:handoff",
+  "title": "Handoff note",
+  "description": "The YAML in the `aidd-handoff` block a role ends each run with (references/handoff.md). It is a report from an agent, so it is data: never a person's yes, and never evidence. `aidd validate` warns about a note that breaks this shape, and about hidden characters or text posing as a person's words in it. It advises and blocks nothing. The latest note in a document counts. `next` is checked against the roles in roles.json, `status` against the Spec statuses, and the first word of `stopped_at` against the stop codes, because those lists have their own owners.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "done",
+    "next_role",
+    "needs",
+    "stopped_at"
+  ],
+  "properties": {
+    "done": {
+      "type": "string",
+      "description": "What the run did, with the evidence it names. Debt found and left goes here as `debt: <what, where>`."
+    },
+    "next_role": {
+      "type": "string",
+      "description": "The role that takes the work next, such as `verifier`. A role, never an approval and never a person's decision."
+    },
+    "needs": {
+      "type": "string",
+      "description": "A decision only a person can give, in one sentence, or `none`. A choice between options points to a decision card."
+    },
+    "stopped_at": {
+      "type": "string",
+      "description": "Why the run stopped: one stop code (`stop_code` in the common schema), alone or followed by `: ` and any detail, such as `stopped_at: \"ask: spec.approve SPEC-3\"`, quoted because of the colon. `none` when nothing stopped it. In a headless run, `ask`, with the ask it reached."
+    },
+    "by": {
+      "$ref": "urn:aidd:1:common#/$defs/identity",
+      "description": "Who wrote the note: an agent writes `agent:<harness id>/<model>`, the value of its commits' `Assisted-by`, such as `agent:claude-code/claude-opus-5-5`. `aidd eval work` counts the note's step under it, and without it under the commit that posted the note. It is a label the writer gave, never proof, and it decides nothing."
+    },
+    "spend": {
+      "type": "string",
+      "description": "The harness's count of the run's tokens or cost, copied, or `unknown`; never an estimate. A run seldom sees its own count, so it writes `unknown`, and the lead's journal holds the harness's count."
+    },
+    "status": {
+      "type": "string",
+      "description": "The Spec status the run stopped in (`aidd status` shows it): one of the Spec statuses."
+    },
+    "head": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,64}$",
+      "description": "The commit the run checked, such as the verifier's or the reviewer's head. A delegated merge needs the latest note to name its exact head with `needs: none`."
+    },
+    "asked": {
+      "type": "string",
+      "description": "What a person asked the role directly, and what the role did with it."
+    },
+    "decided": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What the role settled itself, each with what settled it."
+    },
+    "open_decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/open_decision"
+      },
+      "description": "Each risk or choice the role found and left for the lead to settle, as a role writes a risk it would otherwise keep as a note. The lead answers each before it merges the role's work, on the standards, the project's rules, and aidd's default: on a later note's `answered`, by the entry's `id` and one of its own `options[].choice`. A choice only a person can make goes on the lead's `needs`, naming the `id`, and a note with none leaves this out. It is data, never a person's yes. Under a delegation, Spec approval and a merge defer while an entry stands that no later note answers that way; `decided` text answers no entry. It differs from `needs`, which stops the run for a person, and from `decided`, which the role settled itself."
+    },
+    "answered": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/answer"
+      },
+      "description": "The lead's answer to each `open_decisions` entry of an earlier note: the entry's `id` and the choice taken, which must be one of that entry's own `options[].choice`, written exactly. An entry is answered only this way, by a note after the one that holds it. It records which offered choice was taken, never that the choice was good. It is data, never a person's yes."
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "if": {
+        "not": {
+          "required": [
+            "id"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "opened"
+        ],
+        "propertyNames": {
+          "enum": [
+            "opened"
+          ]
+        }
+      },
+      "description": "The run at this stop. Any role lists in `opened` what the run opened and whether it closed it. The lead's snapshot of a long run also holds the run's `id`, what it counted and spent, and when it can go on, so another session, machine, or person goes on from the note and a limit never restarts at zero. A block with no `id` holds only `opened`. It is data, never evidence and never a yes. A count left out is zero.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9]{8}T[0-9]{9}Z-[0-9a-f]{8}$",
+          "description": "The run, in the record id format: the UTC time to the millisecond, then 8 hex characters."
+        },
+        "attempt_counts": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}:\\S+$"
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": "How many times each step started on a work item, by `<work item id>:<step code>`, such as `SPEC-3:spec.in_progress`."
+        },
+        "send_back_counts": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "urn:aidd:1:common#/$defs/id"
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": "How many times Verify or Review sent each work item back to Implement, by work item id."
+        },
+        "spend": {
+          "type": "string",
+          "description": "The sum of the spend the run knows, as the harness counted it, such as `412000 tokens`, or `unknown`; never an estimate. Like the note's own `spend`, which is one step's."
+        },
+        "unknown_spend_steps": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many steps of the run have no known spend, so a reader knows `spend` is a floor."
+        },
+        "hours": {
+          "type": "number",
+          "minimum": 0,
+          "description": "The hours the run has used."
+        },
+        "resumes_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The earliest time the run can go on, UTC, such as `2026-11-12T10:00:00Z`: the time a `waiting` stop is waiting for. Left out when nothing waits on a clock. `aidd validate` warns when the latest note still waits after that day."
+        },
+        "opened": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Each thing the run opened that outlives a command, as schemas/lifecycles.json lists them: a role, a worktree, a branch, a background process, a port, a scratch folder, or a PR/MR. Each says whether the run closed it. One left open says why, and who closes it now, so its ownership passes by this note. The lead closes what a role leaves for it, and lists at the end of a change what is still open.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "what",
+              "closed"
+            ],
+            "if": {
+              "properties": {
+                "closed": {
+                  "const": false
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "why",
+                "closed_by"
+              ]
+            },
+            "properties": {
+              "what": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The thing, so a reader can find it: what it is and its path, port, or process id, such as `a page server on port 8000, process 4242`."
+              },
+              "closed": {
+                "type": "boolean",
+                "description": "Whether the run closed it before it wrote this note."
+              },
+              "why": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Why it stays open, such as `a person has not looked at the preview yet`. Required when `closed` is false."
+              },
+              "closed_by": {
+                "enum": [
+                  "lead",
+                  "person"
+                ],
+                "description": "Who closes it now: the lead, or only a person, such as for a branch whose delete asks. Required when `closed` is false."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "open_decision": {
+      "type": "object",
+      "description": "One risk or choice a role leaves for the lead, with the ways to settle it. `aidd status` shows each one that no later note answers.",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "what",
+        "options"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "urn:aidd:1:common#/$defs/id",
+          "description": "A short, stable key for the entry, unique among the note's entries, such as `no-tests-check`. A later note's `answered` names it."
+        },
+        "what": {
+          "type": "string",
+          "description": "The risk or the choice, in one sentence, such as a check that may now fail honest work."
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "choice",
+              "blocks"
+            ],
+            "properties": {
+              "choice": {
+                "type": "string",
+                "description": "One way to settle it. A later note's `answered` names it exactly, so each choice of an entry differs from the others."
+              },
+              "blocks": {
+                "type": "string",
+                "description": "The honest work this choice would stop or slow, or `nothing`."
+              }
+            }
+          },
+          "description": "The ways to settle it, each with what it blocks."
+        }
+      }
+    },
+    "answer": {
+      "type": "object",
+      "description": "One answer to an earlier note's `open_decisions` entry.",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "choice"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "urn:aidd:1:common#/$defs/id",
+          "description": "The `id` of the entry it answers."
+        },
+        "choice": {
+          "type": "string",
+          "description": "The choice taken: one of that entry's `options[].choice`, written exactly."
+        }
+      }
+    }
+  }
+}

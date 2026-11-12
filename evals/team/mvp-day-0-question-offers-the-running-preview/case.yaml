@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: mvp-day-0-question-offers-the-running-preview
+context:
+  scaffold_script: fixture.sh

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:exploration",
+  "title": "Exploration",
+  "description": "The front matter of an exploration's `exploration.md`: one question a person decides, with two or three divergent directions below it. With visuals (wireframes, screenshots, diagrams) it is a design or architecture exploration; with none, it is a decision card, named on a handoff note's Needs line. `aidd new exploration <folder>` writes it, and `aidd explore <folder>` renders its comparison page. The page records nothing: the exploration's role writes the person's pick and reason in the Spec's Design section, DESIGN.md, or an ADR. A technical spike is an exploration too: its timebox is the date it ends, and a person records its `outcome` and its `basis` here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "question", "role", "status"],
+  "properties": {
+    "type": { "const": "exploration", "description": "Object type. Always `exploration`." },
+    "question": { "type": "string", "minLength": 1, "description": "The question, in one sentence a person outside the team would understand." },
+    "role": {
+      "type": "string",
+      "pattern": "^[a-z][a-z-]*$",
+      "description": "The aidd-team role that records the pick: the product designer for a UI question, the architect for an architecture one, or the role that asks."
+    },
+    "timebox": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Minutes or a cost, such as \"45 minutes\" or \"2 USD\"; when it runs out, the role stops and presents. For a spike, the date it ends (YYYY-MM-DD): `aidd validate` warns when the date has passed and the status is still open with no `outcome`."
+    },
+    "status": {
+      "enum": ["open", "decided"],
+      "description": "`open` until a person picks; `decided` once the role has recorded the pick."
+    },
+    "decided_round": { "type": "integer", "minimum": 0, "description": "The round the person picked in, set when the status becomes decided." },
+    "visual_pick": {
+      "type": "boolean",
+      "description": "A visual pick: two or three sound looks of one thing, which a person picks by eye, so its options may differ only in color, size, or spacing. Default false: directions differ in approach. The prototyping skill's design review says when one is right."
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "by", "decided_on"],
+      "description": "A spike's result, as a person records it when the timebox ends. The status is decided with it. An adopted spike that shapes the design also goes into an ADR or the Spec.",
+      "properties": {
+        "decision": {
+          "enum": ["adopted", "rejected", "inconclusive"],
+          "description": "`adopted`: the team uses what the spike tried. `rejected`: it does not. `inconclusive`: the timebox ended with no clear answer."
+        },
+        "by": { "$ref": "urn:aidd:1:common#/$defs/identity", "description": "The person who decided, such as @lead. Never an agent." },
+        "decided_on": { "$ref": "urn:aidd:1:common#/$defs/date", "description": "The day it was decided." }
+      }
+    },
+    "basis": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "What the outcome rests on: repository paths or URLs, such as a benchmark's results, a load-test report, or a throwaway branch."
+    }
+  },
+  "if": { "required": ["outcome"] },
+  "then": { "properties": { "status": { "const": "decided" } } }
+}

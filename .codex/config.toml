@@ -1,0 +1,15 @@
+# >>> aidd: the aidd MCP server. `aidd init` writes this block, and `aidd uninstall` removes it.
+[mcp_servers.aidd]
+command = "sh"
+args = ["-c", "exec \"$HOME\"/.aidd/bin/aidd mcp"]
+[mcp_servers.aidd.tools.risk]
+approval_mode = "approve"
+[mcp_servers.aidd.tools.status]
+approval_mode = "approve"
+[mcp_servers.aidd.tools.validate]
+approval_mode = "approve"
+[mcp_servers.aidd.tools.recall]
+approval_mode = "approve"
+[mcp_servers.aidd.tools.record]
+approval_mode = "approve"
+# <<< aidd

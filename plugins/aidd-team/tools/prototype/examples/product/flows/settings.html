@@ -1,0 +1,17 @@
+<section data-screen="prefs" data-title="Sync settings" data-initial="ready">
+  <div data-state="ready" data-testid="prefs-ready">
+    <fieldset>
+      <legend>Offline sync</legend>
+      <label class="check-row"><input type="checkbox" checked data-testid="prefs-sync-photos"><span>Sync photos on cellular data</span></label>
+      <label class="check-row"><input type="checkbox" checked data-testid="prefs-offline-maps"><span>Keep attachments available offline</span></label>
+      <label class="check-row"><input type="checkbox" data-testid="prefs-low-power"><span>Pause background uploads in low power mode</span></label>
+    </fieldset>
+    <div class="cache-card">
+      <p><strong data-text="settings.cache_summary"></strong></p>
+      <p data-text="settings.cache_footnote"></p>
+    </div>
+    <div class="actions">
+      <button type="button" class="button button-primary" data-component="button" data-variant="primary" data-go="notes:notes/populated" data-testid="settings-back-notes">Save and return to notes</button>
+    </div>
+  </div>
+</section>

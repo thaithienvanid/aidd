@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite name="vitest" tests="2">
+  <testcase classname="greeting" name="says hello"/>
+  <testcase classname="greeting" name="says goodbye"/>
+</testsuite>

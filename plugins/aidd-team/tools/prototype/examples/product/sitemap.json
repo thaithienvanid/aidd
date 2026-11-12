@@ -1,0 +1,65 @@
+{
+  "schema_version": "1",
+  "product": "Field Notes",
+  "navigation": [
+    {
+      "label": "Notes",
+      "go": "notes:notes"
+    },
+    {
+      "label": "Settings",
+      "go": "settings:prefs"
+    }
+  ],
+  "flows": [
+    {
+      "id": "notes",
+      "title": "Notes"
+    },
+    {
+      "id": "settings",
+      "title": "Settings"
+    }
+  ],
+  "fixtures": {
+    "product": "Field Notes",
+    "notes": {
+      "queue_summary": "1 note is waiting to upload from this device",
+      "offline_notice": "You're offline. These notes are saved on this device, and they upload when you're back online.",
+      "error_notice": "We couldn't reach the server. Your notes are still saved on this device.",
+      "loading_status": "Syncing your notes…",
+      "empty_title": "No notes yet",
+      "empty_body": "Notes you write show up here, and stay on this device until they upload.",
+      "items": [
+        {
+          "title": "Weekly plan",
+          "status": "Synced",
+          "meta": "Updated 2 hours ago",
+          "excerpt": "Review the draft, send the invoice, and book the room for Friday.",
+          "folder": "Work",
+          "length": "84 words",
+          "tag": "Planning",
+          "body": "Review the draft with Sam, send the March invoice, and book the room for Friday's team meeting.",
+          "log_1": "09:42 · Uploaded without conflicts (version 3)",
+          "log_2": "08:15 · Saved on this device"
+        },
+        {
+          "title": "Shopping list",
+          "status": "Queued offline",
+          "meta": "Saved offline 40 minutes ago",
+          "excerpt": "Rice, oats, lemons, and two notebooks.",
+          "folder": "Home",
+          "length": "7 words",
+          "tag": "Errands",
+          "body": "Rice, oats, lemons, and two notebooks for the new term.",
+          "log_1": "08:20 · Waiting for a connection",
+          "log_2": "08:15 · Saved on this device"
+        }
+      ]
+    },
+    "settings": {
+      "cache_summary": "48 MB of 250 MB used for offline notes",
+      "cache_footnote": "Your notes stay available with no signal."
+    }
+  }
+}

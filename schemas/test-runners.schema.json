@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:test-runners",
+  "title": "aidd test runners",
+  "description": "The format of schemas/test-runners.json: what aidd knows about each test runner. A new runner is a row and no code. A row gives the exits the runner's own documentation says no test failed in, so `aidd test` does not take a red run that ended with one for proof of new behavior. A row may also give what the runner's documentation says of a mode that runs only the tests related to changed files, which `aidd test --changed` suggests as a test command's `related_tests`. A row with neither says only that aidd knows the runner by name.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["description", "runners"],
+  "properties": {
+    "description": { "type": "string" },
+    "runners": {
+      "type": "object",
+      "description": "One row for each runner, keyed by the name a command shows it by, such as `go test`, in the order `aidd init` lists the runners it finds.",
+      "additionalProperties": { "$ref": "#/$defs/runner" }
+    }
+  },
+  "$defs": {
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "command_words": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The words that show a command runs this runner: a word of the command whose last path part, in lower case and without `.exe`, is one of these. Needed when the row has `not_red_exits` or `related_tests.arguments`."
+        },
+        "not_red_exits": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/exit" },
+          "minItems": 1,
+          "description": "The exits the runner's documentation gives for a run in which no test failed, by exit. Left out: an exit the documentation does not give, which stays a real failure."
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "An exit this row leaves out on purpose, and why."
+        },
+        "checked": {
+          "type": "string",
+          "format": "date",
+          "description": "The day a person or an agent read the sources and found the row's exits true."
+        },
+        "sources": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^https://" },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The runner's own documentation that gives each exit, as pages. Needed when the row has `not_red_exits`."
+        },
+        "related_tests": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["means", "checked", "sources"],
+          "description": "What the runner's own documentation says of running only the tests related to changed files. With `arguments`, the mode aidd suggests; without, there is none aidd can suggest, and `means` says why.",
+          "properties": {
+            "arguments": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "minItems": 1,
+              "description": "The words that follow the runner's word in the mode, with `{changed_paths}` where the changed files go, such as `[--passWithNoTests, --findRelatedTests, \"{changed_paths}\"]`. aidd suggests the command up to the runner's word with these after it, and never writes it."
+            },
+            "means": { "type": "string", "minLength": 1, "description": "What the documentation says the mode does, or that the runner has none built in, and why aidd suggests what it does." },
+            "checked": { "type": "string", "format": "date", "description": "The day a person or an agent read the sources and found `related_tests` true." },
+            "sources": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^https://" },
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "The runner's own documentation the facts come from, as pages."
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["not_red_exits"] },
+          "then": { "required": ["command_words", "checked", "sources"] }
+        },
+        {
+          "if": { "required": ["related_tests"], "properties": { "related_tests": { "required": ["arguments"] } } },
+          "then": { "required": ["command_words"] }
+        }
+      ]
+    },
+    "exit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exit", "means"],
+      "properties": {
+        "exit": { "type": "integer", "minimum": 1, "maximum": 255, "description": "The exit status. 0 is the only pass, 126 and 127 mean the command did not start, and neither is a row." },
+        "means": { "type": "string", "minLength": 1, "description": "What the runner's documentation says the exit means." }
+      }
+    }
+  }
+}

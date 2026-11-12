@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:product-status",
+  "title": "aidd status product --json",
+  "description": "The product scope as a view of its files and the Intents: what each file waits for, the items with the Intents that serve them, the Intents in order, and the items no Intent carries. aidd derives it on each run and never stores it. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "shape",
+    "files",
+    "items",
+    "intents",
+    "stalled",
+    "in_flight_count",
+    "uncovered"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "shape": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "brd",
+          "prd",
+          "standing-outcomes"
+        ]
+      },
+      "description": "The files of the product scope that hold items, by type: a BRD and a PRD, a PRD, a BRD, or standing outcomes. Empty when the repository has no product scope."
+    },
+    "files": {
+      "type": "array",
+      "description": "Each file of the product scope that exists, the intent order included, with what it waits for.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "path",
+          "state"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "brd",
+              "prd",
+              "standing-outcomes",
+              "intent-order"
+            ],
+            "description": "The file's type."
+          },
+          "path": {
+            "type": "string",
+            "description": "The file, relative to the repository's top."
+          },
+          "state": {
+            "enum": [
+              "approved",
+              "changed",
+              "not_approved",
+              "unreadable"
+            ],
+            "description": "`approved`: a person's yes stands as git records it, and the file is as they approved it. `changed`: it differs from that version. `not_approved`: no yes stands. `unreadable`: it does not read, and `aidd validate` names why."
+          },
+          "approved_by": {
+            "$ref": "urn:aidd:1:common#/$defs/approved_by",
+            "description": "The person who approved it, for an `approved` or `changed` file."
+          },
+          "approved_at": {
+            "$ref": "urn:aidd:1:product-scope#/$defs/approved_at",
+            "description": "When they approved it, for an `approved` or `changed` file."
+          },
+          "changed": {
+            "type": "string",
+            "description": "What differs from the approved version, for a `changed` file, such as `Outcome-5 added`."
+          },
+          "next": {
+            "$ref": "urn:aidd:1:status#/$defs/step",
+            "description": "For a file that is `not_approved` or `changed`: `product_scope.approve`, a person's step."
+          }
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "description": "The objectives, requirements, and product outcomes, in the order the files list them.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "title",
+          "status",
+          "intents"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The item's id, such as `Outcome-4`."
+          },
+          "type": {
+            "enum": [
+              "objective",
+              "requirement",
+              "outcome"
+            ],
+            "description": "What the item is. A standing outcome and a product outcome are both an `outcome`."
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "met",
+              "retired"
+            ],
+            "description": "Derived from the item's latest result and never stored."
+          },
+          "serves": {
+            "type": "string",
+            "description": "The id of the item this one serves."
+          },
+          "intents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The ids of the Intents that serve this item."
+          }
+        }
+      }
+    },
+    "intents": {
+      "type": "array",
+      "description": "The Intents: the open ones first, in the order of the intent order (an approved one it leaves out comes after, by id), then the closed ones.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "The Intent's derived status: draft, approved, active, done, or cancelled."
+          },
+          "path": {
+            "type": "string"
+          },
+          "serves": {
+            "type": "string",
+            "description": "The id of the item the Intent serves."
+          },
+          "owner": {
+            "type": "string"
+          },
+          "blocked_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The work it waits for, by id."
+          },
+          "progress": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "finished",
+              "total"
+            ],
+            "properties": {
+              "finished": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "description": "Its slices: how many finished, of how many."
+          },
+          "criteria": {
+            "type": "array",
+            "description": "Its success criteria, each as `aidd status --json` gives it.",
+            "items": {
+              "$ref": "urn:aidd:1:status#/$defs/criterion"
+            }
+          }
+        }
+      }
+    },
+    "stalled": {
+      "$ref": "#/$defs/stalled"
+    },
+    "in_flight_count": {
+      "$ref": "#/$defs/in_flight_count"
+    },
+    "max_in_flight": {
+      "$ref": "#/$defs/max_in_flight"
+    },
+    "uncovered": {
+      "type": "array",
+      "description": "The active requirements that no active product outcome serves, when a BRD and a PRD both exist. A person adds the outcome, so it is no step of an agent's.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/finding"
+      },
+      "description": "What status found while it read: a config that does not load, and each file of the product scope that does not read. A script matches `code`, never `message`."
+    }
+  },
+  "$defs": {
+    "stalled": {
+      "type": "array",
+      "description": "The active items that no Intent carries: a product outcome, or a requirement when only a BRD exists, or a standing outcome, with no Intent that is approved or active, or done with its result still to come. The next step is the agent's: propose the smallest Intents that serve it.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "next"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "next": {
+            "$ref": "urn:aidd:1:status#/$defs/step",
+            "description": "`product_scope.stalled`."
+          }
+        }
+      }
+    },
+    "in_flight_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How many Intents are approved or active."
+    },
+    "max_in_flight": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The most Intents approved or active at once, from the intent order. Present only when it sets one. More is advice, never a block."
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stalled",
+        "in_flight_count"
+      ],
+      "description": "What `aidd status` adds when the repository has a product scope.",
+      "properties": {
+        "stalled": {
+          "$ref": "#/$defs/stalled"
+        },
+        "in_flight_count": {
+          "$ref": "#/$defs/in_flight_count"
+        },
+        "max_in_flight": {
+          "$ref": "#/$defs/max_in_flight"
+        }
+      }
+    }
+  }
+}

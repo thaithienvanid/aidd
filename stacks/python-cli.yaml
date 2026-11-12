@@ -1,0 +1,11 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+# The tool's flags, help, errors, output, and exit codes follow plugins/aidd-team/skills/cli-design/references/cli-design.md.
+name: python-cli
+description: "A command-line tool or a library in Python."
+standards: [python/uv-tooling, python/ruff-lint-format, python/mypy-typing]
+checked: "2026-10-16"
+checked_by: agent:claude-code/claude-opus-5-5
+project:
+  stack:
+    adopt: [Python, uv, Ruff, mypy]

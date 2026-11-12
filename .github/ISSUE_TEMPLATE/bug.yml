@@ -1,0 +1,68 @@
+name: Bug
+description: The CLI, the risk rules, the skill, or the docs do something wrong, or aidd printed "internal error".
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Remove secrets, tokens, and personal data from everything you paste.
+        aidd running a repository's code, or leaking a secret, is a security issue: report it privately.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: For a crash, paste the traceback that `AIDD_DEBUG=1` prints when you run the command again.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Commands, the config (`.aidd/config.yaml`), and the paths you asked about.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: aidd version
+      description: Output of `aidd --version`.
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: aidd doctor
+      description: Output of `aidd doctor --json`, run in the repository where it happened.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: risk
+    attributes:
+      label: The risk answer
+      description: Output of `aidd risk --paths <paths> --json`, when the bug is about a route or a level.
+      render: json
+    validations:
+      required: false
+  - type: input
+    id: harness
+    attributes:
+      label: Harness and its version
+      description: Such as Claude Code 2.3.1, Codex CLI, Cursor, or OpenCode, or none when you ran aidd yourself.
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Operating system and Python
+      description: Such as macOS 15.4 and Python 3.12.7 (`python3 --version`).
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [GitHub, GitLab, other CI, local only]
+    validations:
+      required: true

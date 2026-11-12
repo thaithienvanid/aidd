@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="560" height="350" role="img" aria-labelledby="t d">
+<title id="t">aidd's loop: agents do the work, and you decide at four gates</title>
+<desc id="d">A loop of six stages: Plan, Design, Build, Test, Deploy, and Maintain, then back to Plan. Agents do the work in every stage. Four stages hold a gate where you decide: Intent approval in Plan, Spec approval in Design, Merge approval in Test, and Production release in Deploy.</desc>
+<style>
+svg{font-family:system-ui,-apple-system,"Segoe UI Variable Text","Segoe UI",Roboto,sans-serif}
+.pg{fill:#fafaf9;stroke:#1c1b191f}
+.cd{fill:#fff;stroke:#1c1b191f;stroke-width:2}
+.tx{fill:#1c1b19}
+.ln{fill:none;stroke:#87847e;stroke-width:2.5}
+.ah{fill:#87847e}
+.gt{fill:#4d4b47}
+.st{stroke:#4d4b47;stroke-width:2.5}
+.gx{fill:#fafaf9}
+.gi{color:#fafaf9}
+.lg{fill:#5b5955}
+.li{color:#5b5955}
+@media (prefers-color-scheme:dark){
+.pg{fill:#151514;stroke:#e4e2de1f}
+.cd{fill:#1e1e1c;stroke:#e4e2de1f}
+.tx{fill:#e4e2de}
+.ln{stroke:#7e7b75}
+.ah{fill:#7e7b75}
+.gt{fill:#d0cec9}
+.st{stroke:#d0cec9}
+.gx{fill:#151514}
+.gi{color:#151514}
+.lg{fill:#b9b6b0}
+.li{color:#b9b6b0}
+}
+</style>
+<defs>
+<symbol id="b" viewBox="0 0 16 16"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.8" y="4.8" width="12.4" height="9.4" rx="3"/><path d="M8 4.8V1.6"/></g><circle cx="5.6" cy="9.5" r="1.2" fill="currentColor"/><circle cx="10.4" cy="9.5" r="1.2" fill="currentColor"/></symbol>
+<symbol id="p" viewBox="0 0 16 16"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="5" r="2.9"/><path d="M2.6 14.6c0-3.1 2.4-5.2 5.4-5.2s5.4 2.1 5.4 5.2"/></g></symbol>
+<marker id="a" viewBox="0 0 12 12" refX="12" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path class="ah" d="M0 0 12 6 0 12z"/></marker>
+</defs>
+
+<rect class="pg" x=".5" y=".5" width="639" height="399" rx="10"/>
+
+<!-- The loop, clockwise: each arrow leads to the next stage, and Maintain leads back to Plan -->
+<g class="ln" marker-end="url(#a)">
+<path d="M255 100H385"/>
+<path d="M551 100C576 100 594 116 594 140V168"/>
+<path d="M594 232V260C594 284 576 300 551 300"/>
+<path d="M385 300H255"/>
+<path d="M89 300C64 300 46 284 46 260V232"/>
+<path d="M46 168V140C46 116 64 100 89 100"/>
+</g>
+
+<!-- The six stages -->
+<g class="cd">
+<rect x="97" y="76" width="150" height="48" rx="10"/>
+<rect x="393" y="76" width="150" height="48" rx="10"/>
+<rect x="478" y="176" width="150" height="48" rx="10"/>
+<rect x="393" y="276" width="150" height="48" rx="10"/>
+<rect x="97" y="276" width="150" height="48" rx="10"/>
+<rect x="12" y="176" width="150" height="48" rx="10"/>
+</g>
+<g class="tx" font-size="26" font-weight="600" text-anchor="middle">
+<text x="172" y="109">Plan</text>
+<text x="468" y="109">Design</text>
+<text x="553" y="209">Build</text>
+<text x="468" y="309">Test</text>
+<text x="172" y="309">Deploy</text>
+<text x="87" y="209">Maintain</text>
+</g>
+
+<!-- The four gates, where you decide, each joined to the stage that holds it. A label sits centered in the space after
+     its icon, so a wider system font grows into the space on both sides. -->
+<g class="st">
+<path d="M172 62V76"/>
+<path d="M468 62V76"/>
+<path d="M468 324V338"/>
+<path d="M172 324V338"/>
+</g>
+<g class="gt">
+<rect x="12" y="16" width="300" height="46" rx="6"/>
+<rect x="371" y="16" width="257" height="46" rx="6"/>
+<rect x="352" y="338" width="276" height="46" rx="6"/>
+<rect x="12" y="338" width="321" height="46" rx="6"/>
+</g>
+<g class="gi">
+<use href="#p" x="26" y="27" width="24" height="24"/>
+<use href="#p" x="385" y="27" width="24" height="24"/>
+<use href="#p" x="366" y="349" width="24" height="24"/>
+<use href="#p" x="26" y="349" width="24" height="24"/>
+</g>
+<g class="gx" font-size="26" font-weight="600" text-anchor="middle">
+<text x="179" y="48">Intent approval</text>
+<text x="516.5" y="48">Spec approval</text>
+<text x="507" y="370">Merge approval</text>
+<text x="189.5" y="370">Production release</text>
+</g>
+
+<!-- Who does what -->
+<use class="li" href="#b" x="180" y="166" width="26" height="26"/>
+<rect class="gt" x="180" y="210" width="26" height="26" rx="6"/>
+<use class="gi" href="#p" x="183" y="213" width="20" height="20"/>
+<g class="lg" font-size="26">
+<text x="218" y="188">Agents do the work</text>
+<text x="218" y="232">You decide</text>
+</g>
+</svg>

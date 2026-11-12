@@ -1,0 +1,1862 @@
+{
+ "architect": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "developer": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "product-manager": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "Alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "jean-claude": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "claude-code/claude-opus-5-5": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "alice@example.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "noreply@anthropic.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "org/team": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Jos\u00e9": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "Nguy\u1ec5n": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "a:b": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "@architect": {
+  "is_agent": false,
+  "approved_by_kind": null
+ },
+ "@developer": {
+  "is_agent": false,
+  "approved_by_kind": null
+ },
+ "@product-manager": {
+  "is_agent": false,
+  "approved_by_kind": null
+ },
+ "@alice": {
+  "is_agent": false,
+  "approved_by_kind": null
+ },
+ "@Alice": {
+  "is_agent": false,
+  "approved_by_kind": null
+ },
+ "@claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "@jean-claude": {
+  "is_agent": false,
+  "approved_by_kind": null
+ },
+ "@claude-code/claude-opus-5-5": {
+  "is_agent": false,
+  "approved_by_kind": null
+ },
+ "@alice@example.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "@noreply@anthropic.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "@org/team": {
+  "is_agent": false,
+  "approved_by_kind": null
+ },
+ "@dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "@github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "@Jos\u00e9": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "@Nguy\u1ec5n": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "@\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "@\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "@a:b": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "@": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agent:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agent:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "email:architect": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "email:developer": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "email:product-manager": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "email:alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "email:Alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "email:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "email:jean-claude": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "email:claude-code/claude-opus-5-5": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "email:alice@example.com": {
+  "is_agent": false,
+  "approved_by_kind": null
+ },
+ "email:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "email:org/team": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "email:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "email:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "email:Jos\u00e9": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "email:Nguy\u1ec5n": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "email:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "email:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "email:a:b": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "email:": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:architect": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:developer": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:product-manager": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:Alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "person:jean-claude": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:claude-code/claude-opus-5-5": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:alice@example.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:noreply@anthropic.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:org/team": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "person:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "person:Jos\u00e9": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:Nguy\u1ec5n": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "person:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "person:a:b": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "person:": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:architect": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:developer": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:product-manager": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:Alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:jean-claude": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:claude-code/claude-opus-5-5": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:alice@example.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:noreply@anthropic.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:org/team": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:Jos\u00e9": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:Nguy\u1ec5n": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:a:b": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:agent:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:agent:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:role:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:email:architect": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:developer": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:product-manager": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:Alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:email:jean-claude": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:claude-code/claude-opus-5-5": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:alice@example.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:email:org/team": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:email:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:email:Jos\u00e9": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:Nguy\u1ec5n": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:email:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "acme:email:a:b": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:email:": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "Agent:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Agent:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "AGENT:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "Role:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ROLE:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "\uff52ole:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u200ble:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u043ele:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "r\u00f4le:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "ro\u0301le:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ " role:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:architect": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:developer": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:product-manager": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:Alice": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:jean-claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:claude-code/claude-opus-5-5": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:alice@example.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:noreply@anthropic.com": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:org/team": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:Jos\u00e9": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:Nguy\u1ec5n": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:a:b": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role:role:": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "roles:architect": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:developer": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:product-manager": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:Alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "roles:jean-claude": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:claude-code/claude-opus-5-5": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:alice@example.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:noreply@anthropic.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:org/team": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "roles:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "roles:Jos\u00e9": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:Nguy\u1ec5n": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "roles:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "roles:a:b": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "roles:": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:architect": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:developer": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:product-manager": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:Alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agents:jean-claude": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:claude-code/claude-opus-5-5": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:alice@example.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:noreply@anthropic.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:org/team": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agents:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agents:Jos\u00e9": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:Nguy\u1ec5n": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agents:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "agents:a:b": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agents:": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:architect": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:developer": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:product-manager": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:Alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:claude": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role-x:jean-claude": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:claude-code/claude-opus-5-5": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:alice@example.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:noreply@anthropic.com": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:org/team": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:dependabot[bot]": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role-x:github-actions": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role-x:Jos\u00e9": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:Nguy\u1ec5n": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:\u041e\u043b\u044c\u0433\u0430": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role-x:\u674e": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "role-x:a:b": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role-x:": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "Devin Lee <devin@example.com>": {
+  "is_agent": true,
+  "approved_by_kind": null
+ },
+ "Jos\u00e9 Garc\u00eda <jose@example.com>": {
+  "is_agent": false,
+  "approved_by_kind": null
+ },
+ "Claude <noreply@anthropic.com>": {
+  "is_agent": true,
+  "approved_by_kind": "agent"
+ },
+ "<alice@example.com>": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "Jean:Paul": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "jean:paul": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "acme:@alice": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "role": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ },
+ "agent": {
+  "is_agent": false,
+  "approved_by_kind": "form"
+ }
+}

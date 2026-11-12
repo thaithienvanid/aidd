@@ -1,0 +1,34 @@
+{
+  "claude-code-mcp-allowed": [
+    "mcp__aidd__recall",
+    "mcp__aidd__record",
+    "mcp__aidd__risk",
+    "mcp__aidd__status",
+    "mcp__aidd__validate"
+  ],
+  "claude-code": [
+    "Bash(*aidd agree *)",
+    "Bash(*aidd* records push*)",
+    "Bash(*aidd.pyz agree *)"
+  ],
+  "codex": [
+    "[\"./gradlew\", \"flywayClean\"]",
+    "[\"./manage.py\", \"flush\"]",
+    "[\"./manage.py\", \"migrate\"]"
+  ],
+  "opencode": [
+    "*aidd agree *",
+    "*aidd* records push*",
+    "*aidd.pyz agree *"
+  ],
+  "claude-code-delegation": [
+    "hooks.PermissionRequest",
+    "hooks.PreToolUse",
+    "Bash(git merge --no-ff *)",
+    "mcp__aidd__delegate_answer",
+    "mcp__plugin_aidd_aidd__delegate_answer"
+  ],
+  "claude-code-worktree": [
+    "worktree.baseRef"
+  ]
+}

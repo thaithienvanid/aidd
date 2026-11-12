@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/thaithienvanid/aidd/security/advisories/new
+    about: Report a security issue in aidd privately, never in a public issue.
+  - name: Adoption and configuration help
+    url: https://github.com/thaithienvanid/aidd/blob/main/docs/GUIDE.md
+    about: Read the guide, with its troubleshooting and FAQ, before opening an issue.

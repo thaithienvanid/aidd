@@ -1,0 +1,39 @@
+# aidd: the change's tests on every pull request, green on the head and red on the base for new behavior, with the
+# evidence uploaded. It runs the pull request's code (untrusted) with a read-only token and no secrets. Make it a
+# required check in your branch protection (a ruleset on the default branch), so nothing merges red.
+# The check fails when a test fails, even a Spec's own test before Implement, and when nothing is configured to run, and it also runs the base commit's `tests` when a pull request removes or changes them.
+# It also runs `aidd validate` after the tests, prints its warnings as annotations, and fails on an error in a Spec or the
+# config. Set `validate: "false"` under `with:` to run the tests only, and `upload-logs: "false"` to upload `evidence.json`
+# without each command's full output.
+name: aidd-tests
+
+on:
+  pull_request:
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aidd-tests-${{ github.event.pull_request.number || github.event.merge_group.head_sha }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Install your toolchain and dependencies here, with lockfile-exact installs
+      # (npm ci, uv sync --frozen, go mod download, ./gradlew dependencies).
+
+      # aidd-pin: `aidd init` rewrites this ref to the release commit SHA; pin by SHA if you copy the file by hand.
+      - uses: thaithienvanid/aidd@v1.0.0
+        with:
+          base-ref: ${{ github.base_ref || github.event.merge_group.base_ref }}

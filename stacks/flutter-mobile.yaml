@@ -1,0 +1,16 @@
+# A stack: opinionated standards that go together, plus the `project.stack` entries they bring (schemas/stack.schema.json).
+# It holds no rule text. A new stack, or a change to one, is a Spec, not an RFC (CONTRIBUTING.md).
+name: flutter-mobile
+description: "One mobile app for iOS and Android from a single Dart code base."
+standards:
+  - dart/sdk-constraint
+  - dart/flutter
+  - dart/dart-format
+  - dart/flutter-analyze
+  - dart/flutter-test
+  - dart/integration-test
+checked: "2026-10-16"
+checked_by: agent:claude-code/claude-opus-5-5
+project:
+  stack:
+    adopt: [Dart, Flutter, flutter_lints]

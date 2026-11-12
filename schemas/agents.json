@@ -1,0 +1,53 @@
+{
+  "description": "The names, logins, and commit addresses coding agents and bots use, so aidd never reads one as a person: a Spec an agent suggested stays a draft until a person triages it, and an agent's name in `approved_by` is warned about. Every list is alphabetical, so a new name goes where the alphabet puts it, never at the end by habit.",
+  "agent_accounts": [
+    "copilot",
+    "copilot-pull-request-reviewer",
+    "copilot-pull-request-reviewer[bot]",
+    "copilot-swe-agent",
+    "copilot-swe-agent[bot]"
+  ],
+  "agent_coauthors": {
+    "full_names": [
+      "agent",
+      "bot",
+      "claude agent",
+      "cursor agent",
+      "devin ai",
+      "openai codex"
+    ],
+    "emails": [
+      "amp@ampcode.com",
+      "codex@openai.com",
+      "cursoragent@cursor.com",
+      "noreply@anthropic.com",
+      "qwen-coder@alibabacloud.com"
+    ],
+    "email_patterns": [
+      "*[bot]@*"
+    ],
+    "names": [
+      "aider",
+      "antigravity",
+      "chatgpt",
+      "claude",
+      "cline",
+      "codex",
+      "copilot",
+      "cursor",
+      "deepseek",
+      "devin",
+      "gemini",
+      "gpt",
+      "grok",
+      "junie",
+      "kiro",
+      "opencode",
+      "openhands",
+      "qwen",
+      "roo",
+      "sweep",
+      "windsurf"
+    ]
+  }
+}

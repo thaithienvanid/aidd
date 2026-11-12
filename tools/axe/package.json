@@ -1,0 +1,8 @@
+{
+  "name": "aidd-axe",
+  "private": true,
+  "description": "axe-core (MPL-2.0), which the work-items page's accessibility test injects into Chrome. Locked so `npm ci` installs exactly it and Dependabot can bump it. Node is only for installing it: the test itself is Python.",
+  "devDependencies": {
+    "axe-core": "4.14.0"
+  }
+}

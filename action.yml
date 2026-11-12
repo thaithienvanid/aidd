@@ -1,0 +1,72 @@
+name: aidd tests
+description: Run a change's tests with aidd (green on the head, red on the base for new behavior), check its Specs and config with `aidd validate`, and upload the evidence. The step fails when a test fails (even a Spec's own test before Implement), or `aidd validate` finds an error.
+author: Van Hoang
+branding:
+  icon: check-circle
+  color: blue
+
+inputs:
+  base-ref:
+    description: base branch of the pull request
+    default: ${{ github.base_ref }}
+  red-in-place:
+    description: run red runs in this checkout, reusing installed dependencies (needs a clean tracked tree)
+    default: "true"
+  artifact:
+    description: evidence artifact name
+    default: aidd-evidence
+  validate:
+    description: run `aidd validate` after the tests, print its warnings as annotations, and fail on its errors; set "false" to run the tests only
+    default: "true"
+  upload-logs:
+    description: upload each test command's full output (`logs/`) with `evidence.json`; set "false" to upload `evidence.json` only
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    # aidd runs from this action's own files: no build, nothing fetched. It is untrusted like every step of this job,
+    # which runs the pull request's code.
+    - name: Run the tests and validate the repository
+      shell: bash
+      env:
+        BASE_REF: ${{ inputs.base-ref || github.event.repository.default_branch }}
+        IN_PLACE: ${{ inputs.red-in-place }}
+        VALIDATE: ${{ inputs.validate }}
+        PYTHONPATH: ${{ github.action_path }}/src
+      run: |
+        py=""
+        # Windows runners (and actions/setup-python there) provide `python`, not `python3.x`.
+        for c in python3.15 python3.14 python3.13 python3.12 python3.11 python3 python; do
+          if command -v "$c" >/dev/null && "$c" -c 'import sys; sys.exit(sys.version_info < (3, 11))'; then py="$c"; break; fi
+        done
+        if [ -z "$py" ]; then echo "aidd needs Python 3.11 or later on the runner (actions/setup-python)" >&2; exit 1; fi
+        flag=""
+        if [ "$IN_PLACE" = "true" ]; then flag="--red-in-place"; fi
+        status=0
+        # Everything aidd prints holds text from the pull request (a file name, a Spec title). GitHub reads a workflow command
+        # from any line that starts with `::`, even after leading spaces, so the output sits between a stop and a resume
+        # command that carry a token the pull request cannot know. Only the annotations below are let through.
+        token="$("$py" -c 'import secrets; print(secrets.token_hex(16))')"
+        if [ -z "$token" ]; then echo "aidd could not make a token to fence its output" >&2; exit 1; fi
+        echo "::stop-commands::$token"
+        # --require-green: a Spec's own failing test is a failure here, so this check turns green only when the tests pass.
+        "$py" -P -m aidd test --base "origin/${BASE_REF#refs/heads/}" $flag --require-green --out "$RUNNER_TEMP/aidd-evidence" || status=$?
+        if [ "$VALIDATE" = "true" ]; then
+          # The tests' exit code stands when it is not 0; otherwise a validate error fails the step. Each warning and
+          # error line becomes an annotation, let through between a resume and a stop command; any other line stays plain.
+          vstatus=0
+          "$py" -P -m aidd validate >"$RUNNER_TEMP/aidd-validate.txt" 2>&1 || vstatus=$?
+          awk -v t="$token" '{ if (sub(/^error: /, "::error::") || sub(/^warning: /, "::warning::")) { gsub(/%/, "%25"); print "::" t "::"; print; print "::stop-commands::" t } else print }' "$RUNNER_TEMP/aidd-validate.txt"
+          if [ "$status" -eq 0 ]; then status=$vstatus; fi
+        fi
+        echo "::$token::"
+        exit "$status"
+    - name: Upload evidence
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: ${{ inputs.artifact }}
+        path: ${{ inputs.upload-logs == 'false' && format('{0}/aidd-evidence/evidence.json', runner.temp) || format('{0}/aidd-evidence/', runner.temp) }}
+        retention-days: 90
+        if-no-files-found: ignore
