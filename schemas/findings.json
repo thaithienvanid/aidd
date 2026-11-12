@@ -1,0 +1,607 @@
+{
+  "description": "The codes aidd gives when a check finds something, each with its severity, title, why, and next step. A group holds one owner's codes, and a full code is `<group>.<code>`. Every code the owner's package can give has a row here, and every row has a use.",
+  "groups": {
+    "cli": {
+      "owner": "cli",
+      "description": "Why a `--json` command stopped with exit 2. The command prints one error object, whose `error.code` is one of these, and the same words on stderr. The first rows are the command line, then the state the command found, then aidd's own fault.",
+      "codes": {
+        "bad_arguments": {
+          "severity": "error",
+          "title": "The command line is not one aidd can run",
+          "why": "The command was typed with an unknown command or option, a missing argument, or a value that is not one of the choices, or an MCP tool call named an argument that its tool does not take.",
+          "next": {
+            "what": "Fix the command as the message says. `aidd help <command>` lists its arguments and flags."
+          }
+        },
+        "invalid": {
+          "severity": "error",
+          "title": "The command cannot use what it was given",
+          "why": "The command checked an input or a state and refused it, such as two options that do not go together, an id that names no work item, or a path outside the repository.",
+          "next": {
+            "what": "Fix what the message names, then run the command again."
+          }
+        },
+        "no_repository": {
+          "severity": "error",
+          "title": "The folder is in no git repository",
+          "why": "The command works on a git repository, and the folder it ran in is not inside one.",
+          "next": {
+            "what": "Run the command inside the repository, or run `git init` there first."
+          }
+        },
+        "file_unreadable": {
+          "severity": "error",
+          "title": "A file or folder could not be read or written",
+          "why": "The system refused to read or write a file or folder the command needs, or the file or folder is not there.",
+          "next": {
+            "what": "Check that the path exists and that you may use it, then run the command again."
+          }
+        },
+        "not_found": {
+          "severity": "error",
+          "title": "Something the command looked up is not there",
+          "why": "A name, an id, or a key that the command looked up in aidd's data or the repository's files is missing.",
+          "next": {
+            "what": "Check the name the message gives, then run the command again."
+          }
+        },
+        "git_failed": {
+          "severity": "error",
+          "title": "A git command failed",
+          "why": "The git command that aidd ran exited with an error. The message holds git's own words.",
+          "next": {
+            "what": "Fix what git reports, such as an unknown ref, then run the command again."
+          }
+        },
+        "network_failed": {
+          "severity": "error",
+          "title": "A network request failed",
+          "why": "A request that the command makes to a web address failed, or aidd's rules for network calls refused it.",
+          "next": {
+            "what": "Check the network and the address the message names. `AIDD_OFFLINE=1` stops the optional network calls."
+          }
+        },
+        "failed": {
+          "severity": "error",
+          "title": "The command could not finish",
+          "why": "A step that the command runs failed, such as a program it started or a file it checks.",
+          "next": {
+            "what": "Read the message, fix what it names, and run the command again."
+          }
+        },
+        "internal_error": {
+          "severity": "error",
+          "title": "aidd has a bug",
+          "why": "The command hit a fault in aidd itself, not a mistake in what it was given.",
+          "next": {
+            "what": "Run the command again with `AIDD_DEBUG=1` for the traceback, then report the bug with the output of `aidd --version`, after you remove anything private from it."
+          }
+        },
+        "unknown_word": {
+          "severity": "error",
+          "title": "aidd explain does not know the word",
+          "why": "The word is no action, area, level, route, finding code, or other word that `aidd explain` answers. The message names the closest word when one is close.",
+          "next": {
+            "what": "Run `aidd explain --list` for every word, or `aidd recall <word>` to search the team's writing."
+          }
+        }
+      }
+    },
+    "config": {
+      "owner": "config",
+      "description": "Why the repository's config cannot be read.",
+      "codes": {
+        "unreadable": {
+          "severity": "error",
+          "title": "The config does not load",
+          "why": "`.aidd/config.yaml`, or a config it extends, cannot be read or breaks a rule of its schema, so the command cannot read the rules in it. A command that decides stops. A view that shows what it can goes on without the config and exits 1.",
+          "next": {
+            "what": "Fix what the message names, then run `aidd validate`."
+          }
+        }
+      }
+    },
+    "delegate": {
+      "owner": "delegation",
+      "description": "Why `aidd delegate check` defers, in the order the check runs them. Its output gives the bare code in `reasons[].code`, such as `delegation_review_due`; the full code is `delegate.delegation_review_due`.",
+      "codes": {
+        "harness_not_supported": {
+          "severity": "error",
+          "title": "This harness answers no delegated ask",
+          "why": "This session's harness answers no delegated ask in this aidd version: only Claude Code does.",
+          "next": {
+            "what": "Ask the person, as with no delegation."
+          },
+          "reserved": false
+        },
+        "not_delegated": {
+          "severity": "error",
+          "title": "The delegation does not cover the action",
+          "why": "The delegation on the default branch's tip does not cover this action, or the tip holds no delegation.",
+          "next": {
+            "what": "Ask the person. To delegate it, they add it to `delegation.decides` and merge that change themselves."
+          },
+          "reserved": false
+        },
+        "reserved_action": {
+          "severity": "error",
+          "title": "The action is reserved",
+          "why": "The action is reserved: it is always the person's, whatever the delegation says.",
+          "next": {
+            "what": "Ask the person."
+          },
+          "reserved": true
+        },
+        "config_unreadable": {
+          "severity": "error",
+          "title": "The default branch's config does not load",
+          "why": "The config at the default branch's tip does not load, or with no remote the config of a branch that may be the default, so the check cannot read the delegation.",
+          "next": {
+            "what": "Ask the person, and fix the config on the default branch. The person merges that fix: the delegation lives in the file that does not load, and no head vouches for its own config."
+          },
+          "reserved": false
+        },
+        "delegation_stopped": {
+          "severity": "error",
+          "title": "The delegation is stopped in this clone",
+          "why": "`aidd delegate stop` turned the delegation off in this clone.",
+          "next": {
+            "what": "Ask the person. Only they turn it back on, by deleting `.git/aidd/delegation-stopped`."
+          },
+          "reserved": false
+        },
+        "delegation_review_due": {
+          "severity": "error",
+          "title": "The delegation's review date has passed",
+          "why": "The delegation's `review_due` date has passed, so every ask defers.",
+          "next": {
+            "what": "Ask the person to review the delegation and merge a new `review_due`."
+          },
+          "reserved": false
+        },
+        "command_not_canonical": {
+          "severity": "error",
+          "title": "The command is not the action's template",
+          "why": "The command does not fit the action's exact template: it chains, pipes, redirects, substitutes, wraps, or changes a word.",
+          "next": {
+            "what": "Run the check again with the command in the action's template, or ask the person."
+          },
+          "reserved": false
+        },
+        "bypass_flag": {
+          "severity": "error",
+          "title": "The command bypasses a rule",
+          "why": "The command names `--admin`, another repository, or an environment assignment.",
+          "next": {
+            "what": "Ask the person."
+          },
+          "reserved": true
+        },
+        "head_moved": {
+          "severity": "error",
+          "title": "The checkout does not point at the head",
+          "why": "The checkout, the command, or the pull request does not point at the head and the branch the check covers.",
+          "next": {
+            "what": "Check out the head, or name the head the command runs on, and run the check again."
+          },
+          "reserved": false
+        },
+        "deferred_before": {
+          "severity": "error",
+          "title": "The delegate deferred this tree before",
+          "why": "The delegate deferred this action on this exact tree before, and an amend that keeps the tree never clears it.",
+          "next": {
+            "what": "Ask the person."
+          },
+          "reserved": false
+        },
+        "records_unreadable": {
+          "severity": "error",
+          "title": "A record file does not read",
+          "why": "A file in `.git/aidd/records/` does not read as a record. A delegate's defer is final for its tree, and an unreadable file could be one, so the check defers until it is read.",
+          "next": {
+            "what": "Ask the person. `aidd records` names the file: repair it, or move it out of `.git/aidd/records/`, then run the check again."
+          },
+          "reserved": false
+        },
+        "emergency_route": {
+          "severity": "error",
+          "title": "The change is on the emergency route",
+          "why": "The change is on the emergency route, which stays the person's.",
+          "next": {
+            "what": "Ask the person."
+          },
+          "reserved": true
+        },
+        "text_claims_approval": {
+          "severity": "error",
+          "title": "A text claims an approval",
+          "why": "Quoted text claims an approval, or addresses an approver or a model, as written or in a fullwidth or zero-width spelling. It is data, never a yes.",
+          "next": {
+            "what": "Ask the person, and say which text it was."
+          },
+          "reserved": false
+        },
+        "text_hides_characters": {
+          "severity": "error",
+          "title": "A text hides characters",
+          "why": "A text the delegate reads, in the file or in the value it parses to, holds a character a reader cannot see, such as a zero-width space, a bidi override, or a Unicode tag. A joiner between two letters outside ASCII, as in Persian, Indic scripts, and emoji, is not one.",
+          "next": {
+            "what": "Ask the person, or take out the characters the detail names, commit the change, and run the check again."
+          },
+          "reserved": false
+        },
+        "text_too_long": {
+          "severity": "error",
+          "title": "A text is too long to read whole",
+          "why": "A text the delegate must read whole is past what the packet carries, or the change touches more files than it lists. The detail names each text, its size, and its cap. Nothing is cut, because an accept would rest on a part nobody read.",
+          "next": {
+            "what": "Ask the person, or shorten the text the detail names, or split the change, and run the check again."
+          },
+          "reserved": false
+        },
+        "offline": {
+          "severity": "error",
+          "title": "AIDD_OFFLINE stops a read the check needs",
+          "why": "`AIDD_OFFLINE=1` stops the read-only platform reads this check needs, and it never falls back to local evidence.",
+          "next": {
+            "what": "Run the check online, or ask the person."
+          },
+          "reserved": false
+        },
+        "platform_unreadable": {
+          "severity": "error",
+          "title": "The platform could not be read",
+          "why": "A read-only `gh api` read failed or timed out, or `gh` is not installed.",
+          "next": {
+            "what": "Check `gh auth status`, then run the check again, or ask the person."
+          },
+          "reserved": false
+        },
+        "platform_not_supported": {
+          "severity": "error",
+          "title": "The remote is not on GitHub",
+          "why": "The remote is not on GitHub, and this version delegates no merge or push there.",
+          "next": {
+            "what": "Ask the person."
+          },
+          "reserved": true
+        },
+        "tip_not_fetched": {
+          "severity": "error",
+          "title": "The default branch's tip is not in this clone",
+          "why": "This clone does not hold the default branch's tip commit, so the check cannot read its config and workflows.",
+          "next": {
+            "what": "Run `git fetch origin`, then run the check again."
+          },
+          "reserved": false
+        },
+        "default_branch_unknown": {
+          "severity": "error",
+          "title": "The default branch is unknown",
+          "why": "With no remote, no one branch is the default: none, or more than one, of `main`, `master`, and `init.defaultBranch` names itself in `delegation.default_branch`, or a remote's refs stand with no remote. With a remote, `delegation.default_branch` names a branch other than the platform's default branch.",
+          "next": {
+            "what": "Ask the person which branch is the default, and set `delegation.default_branch` on it."
+          },
+          "reserved": false
+        },
+        "spec_not_found": {
+          "severity": "error",
+          "title": "No Spec with that id at the head",
+          "why": "No Spec with that id is in the head commit.",
+          "next": {
+            "what": "Name the Spec with `--spec <ID>`, commit it, and run the check again."
+          },
+          "reserved": false
+        },
+        "spec_not_ready": {
+          "severity": "error",
+          "title": "The Spec is not ready",
+          "why": "The Spec at the head is not `ready`.",
+          "next": {
+            "what": "Finish the Spec and set it `ready`, then run the check again."
+          },
+          "reserved": false
+        },
+        "validate_errors": {
+          "severity": "error",
+          "title": "The Spec has validation errors",
+          "why": "`aidd validate` finds errors in the Spec.",
+          "next": {
+            "what": "Fix the errors `aidd validate` names, then run the check again."
+          },
+          "reserved": false
+        },
+        "untested_acceptance": {
+          "severity": "error",
+          "title": "An Acceptance item has no test",
+          "why": "An Acceptance item has no test command that covers it, or the Spec has no `new_behavior` test.",
+          "next": {
+            "what": "Add the test and its `covers`, then run the check again."
+          },
+          "reserved": false
+        },
+        "reserved_path": {
+          "severity": "error",
+          "title": "A path lies in a reserved area",
+          "why": "A changed path, or a Task's scope, lies in a reserved area: what decides, CI, the test-runner config, the dependencies, or a file a host deploys from.",
+          "next": {
+            "what": "Ask the person."
+          },
+          "reserved": true
+        },
+        "team_review": {
+          "severity": "error",
+          "title": "The team profile keeps this review a person's",
+          "why": "Under the `team` profile this stays a person's review: a merge, a local merge, or a major Spec's approval.",
+          "next": {
+            "what": "Ask the person."
+          },
+          "reserved": true
+        },
+        "not_red_on_base": {
+          "severity": "error",
+          "title": "The new tests did not fail on the base",
+          "why": "The check ran the Spec's new tests on the base itself, and they did not fail for a real reason.",
+          "next": {
+            "what": "Make the new tests fail on the base for the right reason, then run the check again."
+          },
+          "reserved": false
+        },
+        "reserved_branch": {
+          "severity": "error",
+          "title": "The push reaches a reserved branch",
+          "why": "The push reaches the default branch, a force push, or a branch that is not the head of the change's own open pull request.",
+          "next": {
+            "what": "Ask the person."
+          },
+          "reserved": true
+        },
+        "branch_deploys": {
+          "severity": "error",
+          "title": "The branch deploys",
+          "why": "The branch deploys: a workflow at the tip deploys on a push to it, an environment names it, or it is the GitHub Pages source.",
+          "next": {
+            "what": "Ask the person."
+          },
+          "reserved": true
+        },
+        "no_protection": {
+          "severity": "error",
+          "title": "The default branch is not protected enough",
+          "why": "The default branch's rules do not require the `tests` check, or do not block force pushes and deletion.",
+          "next": {
+            "what": "Ask the person, and point them at SECURITY.md's branch protection."
+          },
+          "reserved": true
+        },
+        "protection_unreadable": {
+          "severity": "error",
+          "title": "The branch rules could not be read",
+          "why": "The default branch's rules could not be read.",
+          "next": {
+            "what": "Check `gh auth status`, or ask the person."
+          },
+          "reserved": false
+        },
+        "base_moved": {
+          "severity": "error",
+          "title": "The head does not hold the default branch's tip",
+          "why": "The head does not hold the default branch's tip, so the tested tree is not the tree that would merge.",
+          "next": {
+            "what": "Bring the branch up to date, let CI run on the new head, then run the check again."
+          },
+          "reserved": false
+        },
+        "ci_not_green": {
+          "severity": "error",
+          "title": "The tests check is not green on the head",
+          "why": "The `tests` check run from GitHub Actions on the head, from the tip's test workflow, is missing, still running, or not a success.",
+          "next": {
+            "what": "Wait for the tests to pass on the head, then run the check again."
+          },
+          "reserved": false
+        },
+        "note_missing": {
+          "severity": "error",
+          "title": "No handoff note names a head",
+          "why": "No handoff note names a head: in the Spec, the pull request's body, or the head commit's message.",
+          "next": {
+            "what": "Get the verifier's and the reviewer's notes on the head, then run the check again."
+          },
+          "reserved": false
+        },
+        "note_other_head": {
+          "severity": "error",
+          "title": "The latest handoff note names another head",
+          "why": "The latest handoff note names another head.",
+          "next": {
+            "what": "Get a note on this head, then run the check again."
+          },
+          "reserved": false
+        },
+        "note_needs_decision": {
+          "severity": "error",
+          "title": "The latest handoff note asks for a decision",
+          "why": "The latest handoff note asks for a decision.",
+          "next": {
+            "what": "Ask the person the note's Needs line."
+          },
+          "reserved": false
+        },
+        "note_unreadable": {
+          "severity": "error",
+          "title": "A handoff note after the latest one does not read",
+          "why": "A handoff note after the latest one that names a head does not parse, or names no head, so its `needs` and its decisions are unknown. A note can only narrow what the check allows, so the check does not skip it.",
+          "next": {
+            "what": "Fix the note's YAML, or give it a `head`: the commit it speaks for, then run the check again."
+          },
+          "reserved": false
+        },
+        "note_open_decision": {
+          "severity": "error",
+          "title": "A handoff note leaves a decision open",
+          "why": "A role's handoff note lists an `open_decisions` entry that no later note answers by its `id` and one of its own choices, one that a later `needs` leaves for a person, or one that does not read, such as an entry with no `id`.",
+          "next": {
+            "what": "For each open `id` the reason names, the lead writes on a later note that names the head, in the Spec, the PR/MR, or the head commit's message, `answered: [{id: <the id>, choice: <one of its choices, exactly>}]`, or names the `id` on `needs` when only the person can choose. Text on `decided` answers nothing. Then run the check again, or ask the person, who can always merge."
+          },
+          "reserved": false
+        },
+        "tests_changed": {
+          "severity": "error",
+          "title": "A frozen test changed",
+          "why": "A frozen acceptance test differs from the Spec approval commit, or a test file lost a line.",
+          "next": {
+            "what": "Ask the person: a changed test is `spec.revise`."
+          },
+          "reserved": true
+        },
+        "out_of_scope": {
+          "severity": "error",
+          "title": "A path lies outside every Task scope",
+          "why": "A changed path lies outside every Task scope of the Spec as it was approved.",
+          "next": {
+            "what": "Ask the person: widening the scope is `spec.revise`, then Spec approval again."
+          },
+          "reserved": false
+        },
+        "no_spec": {
+          "severity": "error",
+          "title": "No approved Spec answers for the change",
+          "why": "The Spec the change answers to is not approved or has no approval of the delegate's on record (a `decision` record never counts, and with `spec.approve` reserved nothing does), several Specs apply, or the head deleted or moved one; or the change has no Spec and its paths are not `minor`, which the detail says when the change touches an open Spec's Task scope. A Spec the change only touches by scope is a note, as in `aidd test`. The Spec's status and route are the stricter of the base's and the head's.",
+          "next": {
+            "what": "Approve the one Spec the change answers to, restore a deleted one, work on a branch named spec/<ID> or hold the Spec in the change, or ask the person. With `spec.approve` reserved, no record stands behind a merge: the person merges it, or adds `spec.approve` to `delegation.decides`."
+          },
+          "reserved": false
+        },
+        "has_remote": {
+          "severity": "error",
+          "title": "The repository has a remote",
+          "why": "The repository has a remote, so a local merge into the default branch stays the person's.",
+          "next": {
+            "what": "Open a pull request, or ask the person."
+          },
+          "reserved": true
+        },
+        "suite_red": {
+          "severity": "error",
+          "title": "The test suite is red on the head",
+          "why": "The check ran `aidd test` on the head itself, in a fresh worktree, and it failed.",
+          "next": {
+            "what": "Fix the failure, then run the check again."
+          },
+          "reserved": false
+        },
+        "untested": {
+          "severity": "error",
+          "title": "No test applies to the change",
+          "why": "No test applies to this change: every test command is limited by `when_changed`, and none matches the changed paths, so a green check proves nothing about it.",
+          "next": {
+            "what": "Add one command with no `when_changed`, such as a lint, or ask the person to decide the merge."
+          },
+          "reserved": false
+        },
+        "environments_unset": {
+          "severity": "error",
+          "title": "The config sets no environments",
+          "why": "This repository's config sets no `environments` of its own, so aidd cannot tell whether a merge to the default branch deploys.",
+          "next": {
+            "what": "Ask the person once whether a push to the default branch deploys anything, such as a host's Git integration. If so, list each place in `environments` (a name, and its branches or tags); if not, set `environments: []`. Editing the config is an ask, so edit it on their yes, commit it to the default branch, and run the check again."
+          },
+          "reserved": true
+        },
+        "merge_deploys": {
+          "severity": "error",
+          "title": "A merge to the default branch deploys",
+          "why": "A merge to the default branch deploys: an environment lists it, it is the GitHub Pages source, a workflow at the tip deploys on a push to it, or a file a host deploys from is tracked at the tip. The detail names which.",
+          "next": {
+            "what": "Ask the person."
+          },
+          "reserved": true
+        }
+      }
+    },
+    "doctor": {
+      "owner": "setup",
+      "description": "What `aidd doctor` found about the repository's wiring, in the order of its checks. A check that passes, or that only informs, is no finding. One code stands for each result, because the checks do not carry codes of their own yet.",
+      "codes": {
+        "check_failed": {
+          "severity": "error",
+          "title": "A wiring check failed",
+          "why": "A check of `aidd doctor` found the repository's aidd files, ask rules, or settings wrong, so the exit code is 1. The message names what is wrong and the step to take.",
+          "next": {
+            "what": "Take the step the message gives, then run `aidd doctor` again."
+          }
+        },
+        "check_warned": {
+          "severity": "warning",
+          "title": "A wiring check found something worth fixing",
+          "why": "A check of `aidd doctor` found something that is likely wrong. It never fails the run. The message names what and the step to take.",
+          "next": {
+            "what": "Take the step the message gives, then run `aidd doctor` again."
+          }
+        }
+      }
+    },
+    "status": {
+      "owner": "workitems",
+      "description": "What `aidd status` found while it read the open work, in the order of its sections.",
+      "codes": {
+        "unreadable_item": {
+          "severity": "warning",
+          "title": "A work item's front matter does not parse",
+          "why": "A Spec, an Intent, or a proposal has front matter that does not parse. It still counts as open work, and `aidd status` shows what it can.",
+          "next": {
+            "what": "Run `aidd validate` on the file and fix what it names."
+          }
+        },
+        "overdue": {
+          "severity": "warning",
+          "title": "Something is past its due date",
+          "why": "A feature flag is past its cleanup date, a deprecation is past its sunset, or another item that a work item names has passed the date the item set.",
+          "next": {
+            "what": "Do what the message names, or set a later date in the work item that names it."
+          }
+        }
+      }
+    },
+    "validate": {
+      "owner": "workitems",
+      "description": "What `aidd validate` found. One code stands for each severity, because the checks do not carry codes of their own yet. The message names the file and the rule.",
+      "codes": {
+        "no_config": {
+          "severity": "error",
+          "title": "The repository has not adopted aidd",
+          "why": "The repository has no `.aidd/config.yaml`, so no rule of aidd applies to it.",
+          "next": {
+            "what": "Run `aidd init` to adopt the repository, then run `aidd validate` again."
+          }
+        },
+        "error": {
+          "severity": "error",
+          "title": "A file breaks a rule that aidd validate checks",
+          "why": "A file does not follow its schema, or a check past the schema failed, such as a link that does not hold or a placeholder left in what the runner executes. The exit code is 1.",
+          "next": {
+            "what": "Fix the file the message names, then run `aidd validate` again."
+          }
+        },
+        "warning": {
+          "severity": "warning",
+          "title": "A file has something worth fixing",
+          "why": "A file holds something likely wrong that does not fail the run, such as a leftover placeholder or a section that a Spec of its route should have.",
+          "next": {
+            "what": "Fix the file the message names, or leave it, then run `aidd validate` again."
+          }
+        },
+        "note": {
+          "severity": "note",
+          "title": "A file is in an expected state",
+          "why": "A file is in a state that needs nothing yet, such as a planned Spec whose placeholders Specify fills in. It never fails the run.",
+          "next": {
+            "what": "Nothing now. The message says when the state needs work."
+          }
+        }
+      }
+    }
+  }
+}

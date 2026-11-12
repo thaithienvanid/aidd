@@ -1,0 +1,20 @@
+{
+  "name": "aidd-team",
+  "dependencies": [
+    "aidd"
+  ],
+  "description": "An optional part of aidd: run the aidd loop as a delivery team of agent roles, led by you, an agent, or both, with you deciding the risky steps you keep or delegating them: product-manager, delivery-manager, architect, product-designer, security-engineer, compliance-analyst, developer, tech-writer, verifier, reviewer, delegate, and sre agents, each applying its discipline's standards and told to write only its own files, plus practice skills for kinds of work such as schema migration, threat modeling, test design, estimation, proposals, and release rollout. The domain packs, one per domain such as web, APIs, mobile, health, and payments, are the optional aidd-packs plugin. One command per team flow: onboard, propose, plan, mvp, specify, implement, review, fix, rollout, handover, postmortem, and retro, with plan's refine, specify's explore, implement's rework, and retro's upkeep modes, each telling the session that runs it to route by file path and name each role's model, plus autopilot, which runs those flows between human decisions. Works with git alone; a forge, a tracker, or any other service is optional. Needs the aidd plugin.",
+  "author": {
+    "name": "Van Hoang"
+  },
+  "homepage": "https://github.com/thaithienvanid/aidd",
+  "repository": "https://github.com/thaithienvanid/aidd",
+  "license": "Apache-2.0",
+  "keywords": [
+    "aidd",
+    "agents",
+    "subagents",
+    "roles",
+    "spec-driven"
+  ]
+}

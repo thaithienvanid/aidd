@@ -1,0 +1,22 @@
+{
+  "description": "What aidd knows about each language, one row for each, in alphabetical order of the key. A row gives the extensions of its source files and the manifests that name a project in it. `aidd risk` takes a new source file for one that needs its test first by an extension here, and `aidd init` opens only the manifests here. Which files are tests stays in `test_paths` of schemas/risks.json, and the runners and their exits are in schemas/test-runners.json.",
+  "languages": {
+    "c": { "extensions": [".c", ".h"] },
+    "cpp": { "extensions": [".cpp", ".cc", ".cxx", ".hpp"], "manifests": ["CMakeLists.txt"] },
+    "csharp": { "extensions": [".cs"] },
+    "dart": { "extensions": [".dart"], "manifests": ["pubspec.yaml"] },
+    "elixir": { "extensions": [".ex"], "manifests": ["mix.exs"] },
+    "go": { "extensions": [".go"], "manifests": ["go.mod"] },
+    "java": { "extensions": [".java"], "manifests": ["build.gradle", "pom.xml"] },
+    "javascript": { "extensions": [".js", ".cjs", ".jsx", ".mjs"], "manifests": ["package.json"] },
+    "kotlin": { "extensions": [".kt"], "manifests": ["build.gradle.kts"] },
+    "php": { "extensions": [".php"], "manifests": ["composer.json"] },
+    "python": { "extensions": [".py"], "manifests": ["pyproject.toml", "requirements.txt", "setup.cfg", "setup.py"] },
+    "ruby": { "extensions": [".rb"], "manifests": ["Gemfile"] },
+    "rust": { "extensions": [".rs"], "manifests": ["Cargo.toml"] },
+    "scala": { "extensions": [".scala"], "manifests": ["build.sbt"] },
+    "swift": { "extensions": [".swift"], "manifests": ["Package.swift"] },
+    "typescript": { "extensions": [".ts", ".tsx"], "manifests": ["deno.json", "deno.jsonc"] }
+  },
+  "manifests_of_any_language": ["Makefile"]
+}

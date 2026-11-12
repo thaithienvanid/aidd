@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: plan-asks-a-cut-as-its-own-question
+context:
+  scaffold_script: fixture.sh

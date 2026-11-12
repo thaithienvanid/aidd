@@ -1,0 +1,42 @@
+---
+id: python/uv-tooling
+type: opinionated
+fills: [ci-pipeline:package-manager]
+default: true
+implements: ci-pipeline:Dependencies declared and locked
+roles: [developer, sre, reviewer]
+when_changed: [pyproject.toml, uv.lock]
+why: "uv resolves, locks, and installs Python dependencies and runs the tools, with one lockfile for every platform, so CI and each machine build the same environment."
+maturity: established
+tool:
+  name: uv
+  registry: pypi
+  package: uv
+version_policy: current_stable
+checked_version: "0.13.5"
+checked: "2026-10-22"
+checked_by: agent:claude-code/claude-opus-5-5
+citation:
+  url: https://pypi.org/pypi/uv/json
+  quote: "\"version\":\"0.13.5\""
+alternatives: [pip with pip-tools, Poetry]
+status: active
+enforced_by:
+  - name: lock
+    command: [uv, lock, --check]
+---
+
+# uv installs, locks, and runs the Python tooling
+
+It answers the package-manager choice of `aidd-team:ci-pipeline`.
+
+## What the team does
+
+- Declare every dependency in `pyproject.toml`. Commit `uv.lock`.
+- Install with `uv sync --locked` in CI, so a stale lockfile fails the job.
+- Run each tool through `uv run`, at the version `uv.lock` holds, never from whatever is on the runner. Use `uvx` at an exact version only for a tool no lock can hold.
+- Set `required-version` under `[tool.uv]`, so every machine runs a compatible uv.
+
+## What the tests run
+
+One `tests` entry runs `uv lock --check`. A lockfile that no longer matches `pyproject.toml` fails the change.

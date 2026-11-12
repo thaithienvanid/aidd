@@ -1,0 +1,45 @@
+{
+  "description": "The project-shape matrix: the project shapes aidd must work on, as four axes, so the evals are drawn from the axes and not from incidents. Each eval case names its project shape as `type/stage/team/regulation`: a routing or roles case as its `shape` key, a plugin or team case as a `shape:<shape>` tag, and a trigger case as `shape` beside its prompt in triggers.json. The types follow the packs: each names the packs that hold its knowledge, and `concerns` lists the technology packs that cut across every type. A type of `any` says the case holds whatever the project builds. A team value is a profile, and schemas/profiles.json says what it means. `fixtures` names the project shape of each core test fixture that shows a project, and `not_project_shaped` names each fixture folder that shows none, and why. src/aidd/evals/shapes.py reads this file, and the table in evals/README.md counts each type against each value of the other three axes, so an empty pair shows. Axes and values are in their stated order: add one where that order places it.",
+  "axes": {
+    "type": {
+      "web-app": {"means": "a site or app a person uses in a browser: its pages, forms, and the server behind them", "packs": ["web-front-end"]},
+      "api-service": {"means": "a service other software calls: its endpoints, events, jobs, and data store", "packs": ["apis-and-services"]},
+      "cli": {"means": "a program a person runs in a terminal", "packs": []},
+      "library": {"means": "a package other code imports, with a public interface and releases", "packs": ["package-publishing"]},
+      "data-pipeline": {"means": "jobs that move and transform data: imports, exports, syncs, warehouse loads, and analytics", "packs": ["data-and-analytics"]},
+      "mobile": {"means": "an app installed on a phone or a tablet", "packs": ["mobile-apps"]},
+      "desktop": {"means": "an app installed on a computer, with its installer, signing, and updater", "packs": ["desktop-apps"]},
+      "extension": {"means": "an add-on another product runs: a browser or an editor extension, or a marketplace app", "packs": ["extensions-and-marketplace-apps"]},
+      "game": {"means": "a game or another interactive product, with its engine, its economy, and its players", "packs": ["games-and-interactive-media"]},
+      "embedded": {"means": "firmware on a device, such as a sensor, a vehicle, or a robot", "packs": ["embedded-automotive-industrial"]},
+      "infrastructure": {"means": "the code that builds and runs the systems: infrastructure as code, deploy config, and access policies", "packs": ["cloud-and-infrastructure"]},
+      "monorepo": {"means": "one repository that holds several of these, built and released together", "packs": []},
+      "any": {"means": "the case holds whatever the project builds, so no type is its subject", "packs": []}
+    },
+    "stage": {
+      "greenfield": {"means": "a new project: an empty repository, a first plan or proposal, or a walking skeleton"},
+      "brownfield": {"means": "a project with code and history"}
+    },
+    "team": {
+      "solo": {"profile": "solo"},
+      "team": {"profile": "team"}
+    },
+    "regulation": {
+      "regulated": {"means": "a law, a sector rule, or a safety standard governs what the change touches: personal data under privacy law, payments and the money a customer pays, health, children, education or employment records, tax, a compliance control, or a device's safety"},
+      "unregulated": {"means": "no law, sector rule, or safety standard governs what the change touches"}
+    }
+  },
+  "concerns": ["ai-agents-and-tools", "ai-features", "enterprise-controls", "internationalization", "multi-tenant-saas", "privacy-by-default"],
+  "fixtures": {
+    "tests/fixtures/specs/INC-481.md": "api-service/brownfield/team/unregulated",
+    "tests/fixtures/specs/SPEC-220.md": "api-service/brownfield/team/unregulated",
+    "tests/fixtures/specs/SPEC-223.md": "api-service/brownfield/solo/regulated"
+  },
+  "not_project_shaped": {
+    "tests/fixtures/junit": "test runners' report files, which read the same in any project",
+    "tests/fixtures/ledgers": "the ledgers aidd kept in an earlier release, which test that a newer aidd reads them, in any project",
+    "tests/fixtures/live": "recorded harness sessions, which test how aidd reads a transcript",
+    "tests/fixtures/migration": "aidd's own files in an earlier and in today's shape, which test how aidd moves them, in any project",
+    "tests/fixtures/start-answers": "what aidd's controls answered for generated identities and Specs before a change, which hold that a later reading refuses no less"
+  }
+}

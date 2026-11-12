@@ -1,0 +1,620 @@
+{
+  "description": "Names aidd retired, and what replaced each. `aidd upgrade --yes` moves a file that still holds one, and a loader that meets one in an error names the replacement. Add a row for each rename or cut of a key a person writes. A row is never removed.",
+  "retired": [
+    {
+      "id": "delegation-default-branch-deploys",
+      "surface": "config",
+      "old": "delegation.default_branch_deploys",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "`environments` now says where a push or a merge deploys. Until it lists the default branch, or is `[]` when nothing deploys, a delegated merge there waits for a person. The old `false` is cut. The old `true` is cut only when an environment's `branches` already lists the branch that `delegation.default_branch` names. Otherwise list that branch in an environment, then remove the key, so no config says less than you did."
+    },
+    {
+      "id": "delegation-review-by",
+      "surface": "config",
+      "old": "delegation.review_by",
+      "new": "delegation.review_due",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A date a person must act by is `<action>_due`."
+    },
+    {
+      "id": "delegation-to",
+      "surface": "config",
+      "old": "delegation.to",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "cut",
+      "note": "It only ever held `delegate`, the role that answers a delegated ask, so it said nothing a person chose."
+    },
+    {
+      "id": "delivery-team-intents",
+      "surface": "config",
+      "old": "delivery_teams.*.intents",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "An Intent names its own `delivery_team`, so a team no longer lists its Intents. Each listed Intent gets `delivery_team` set to this team when it has none."
+    },
+    {
+      "id": "delivery-team-people",
+      "surface": "config",
+      "old": "delivery_teams.*.people",
+      "new": "delivery_teams.*.approvers",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "The people who answer a team's asks are its `approvers`, as `owners.approvers` names them."
+    },
+    {
+      "id": "docs-required",
+      "surface": "config",
+      "old": "docs.required",
+      "new": "docs.disabled",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "A document type is on unless you disable it with a reason. `warn`, the default, is dropped. `off` becomes `docs.disabled.<type>`, and four types were renamed: analytics to tracking-plan, authz to authz-matrix, compliance to compliance-record, migration to migration-plan."
+    },
+    {
+      "id": "mcp-approve-own-tools",
+      "surface": "config",
+      "old": "mcp.approve_own_tools",
+      "new": "mcp.allow_own_tools",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A setting that lets something run is `allow_*`."
+    },
+    {
+      "id": "owners-default-owner-team",
+      "surface": "config",
+      "old": "owners.default_owner_team",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "cut",
+      "note": "`aidd new` names no team on its own. Set `delivery_team` on an Intent, a slice, or a Spec, or pass `--delivery-team`."
+    },
+    {
+      "id": "project-budget-new-paid-service",
+      "surface": "config",
+      "old": "project.budget.new_paid_service",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "cut",
+      "note": "The `money.spend` risk rule owns whether a new paid service asks: set its level under `risks.rules`."
+    },
+    {
+      "id": "project-compliance-support-period-ends",
+      "surface": "config",
+      "old": "project.compliance.support_period.ends",
+      "new": "project.compliance.support_period.ends_on",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A date an event happens on is `<event>_on`."
+    },
+    {
+      "id": "project-dev-services",
+      "surface": "config",
+      "old": "project.dev_services",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "cut",
+      "note": "Nothing ran its `up`, `down`, or `teardown`: aidd starts no services. Keep them in your own scripts, and name AIDD_WORKTREE there."
+    },
+    {
+      "id": "project-repo",
+      "surface": "config",
+      "old": "project.repo",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "cut",
+      "note": "`aidd init` wrote it and nothing read it."
+    },
+    {
+      "id": "project-rule-applies",
+      "surface": "config",
+      "old": "project.rules[].applies",
+      "new": "project.rules[].when_changed",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "The paths facet has one name in project rules and in standards."
+    },
+    {
+      "id": "project-rule-check",
+      "surface": "config",
+      "old": "project.rules[].check",
+      "new": "project.rules[].enforced_by",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "A rule is enforced by the `tests` entries you name, so `aidd test` checks it. A command that no `tests` entry holds: add it as an entry, then list its name in `enforced_by`."
+    },
+    {
+      "id": "project-rule-level",
+      "surface": "config",
+      "old": "project.rules[].level",
+      "new": "project.rules[].requirement_level",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A project rule's `requirement_level` says how binding it is (must, should, may), and `level` also names a risk level elsewhere."
+    },
+    {
+      "id": "project-waiver-approved-by",
+      "surface": "config",
+      "old": "project.waivers[].approved_by",
+      "new": "project.waivers[].granted_by",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "aidd keeps \"approval\" for its two gates, so a waiver is granted."
+    },
+    {
+      "id": "project-writing-ste-100",
+      "surface": "config",
+      "old": "project.writing.ste_100",
+      "new": "project.writing.controlled",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "The writing level `ste-100` is `controlled`, and `ste-80` is `instruction`. Only the key is a name a file reads. A level id in a document's own text is a note to its writer, so aidd leaves it as it is."
+    },
+    {
+      "id": "standard-type",
+      "surface": "config",
+      "old": "standards[].type",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "cut",
+      "note": "It only ever held `standard`, so it said nothing a person chose."
+    },
+    {
+      "id": "test-command-retries",
+      "surface": "config",
+      "old": "tests[].retries",
+      "new": "tests[].reruns",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A retry is a fix after a red run. Running one command again is a rerun, as pytest-rerunfailures names it."
+    },
+    {
+      "id": "spec-aidd-version",
+      "surface": "spec",
+      "old": "aidd_version",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "cut",
+      "note": "The config holds the version of aidd, so a Spec names none."
+    },
+    {
+      "id": "spec-assisted-by",
+      "surface": "spec",
+      "old": "assisted_by",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "cut",
+      "note": "The `Assisted-by` trailer of each commit says which agent wrote it, so the Spec lists none."
+    },
+    {
+      "id": "spec-blockers",
+      "surface": "spec",
+      "old": "blockers",
+      "new": "waiting_on",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "`blocked_by` lists work items, so the role, person, or interface a Spec waits on is `waiting_on`, a name that does not read like it."
+    },
+    {
+      "id": "spec-change-type",
+      "surface": "spec",
+      "old": "change_type",
+      "new": "change_type",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "Five change types were retired, each for a type and a risk dimension, as the `--change-type` rows say: `deps` is `build`; `infra` is `build`, with `availability` in `risk.dimensions`; and `data`, `security`, and `compliance` are `feat`, the type a Spec takes when none is given, with the dimension of that name in `risk.dimensions`. A person may then pick another type, such as `fix`."
+    },
+    {
+      "id": "spec-cost-estimate",
+      "surface": "spec",
+      "old": "cost_estimate",
+      "new": "risk.cost_estimate",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "What a change costs to run is part of its risk, which a person approves with the Spec. The mapping moves into `risk` as it is."
+    },
+    {
+      "id": "spec-deprecation-announced",
+      "surface": "spec",
+      "old": "deprecations[].announced",
+      "new": "deprecations[].announced_on",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A date an event happens on is `<event>_on`."
+    },
+    {
+      "id": "spec-design",
+      "surface": "spec",
+      "old": "design",
+      "new": "docs",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "The Spec's design files are `docs` entries of type `design-files`, frozen at Spec approval as `design.files` was. Each path of `design.files` becomes one entry."
+    },
+    {
+      "id": "spec-emergency-review-due",
+      "surface": "spec",
+      "old": "emergency.review_due",
+      "new": "emergency.backfill_due",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "The date the backfill Spec and its post-incident review are due. `review_due` names a date to read something again everywhere else."
+    },
+    {
+      "id": "spec-experiment",
+      "surface": "spec",
+      "old": "experiment",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "The tracking plan, a `docs` entry of type `tracking-plan`, holds an experiment. Write its variants, metric, guardrails, and decision rule there, then remove this key."
+    },
+    {
+      "id": "spec-labels",
+      "surface": "spec",
+      "old": "labels",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "cut",
+      "note": "A tracker holds labels, so a Spec lists none."
+    },
+    {
+      "id": "spec-owner-team",
+      "surface": "spec",
+      "old": "owner_team",
+      "new": "delivery_team",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A Spec names the `delivery_team` that does the work, a key of the config's `delivery_teams`."
+    },
+    {
+      "id": "spec-relations",
+      "surface": "spec",
+      "old": "relations",
+      "new": "blocked_by",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "A Spec lists the work it waits for in `blocked_by`, and a Spec that delivers an Intent names it in `parent`. `blocks` is the other item's `blocked_by`. Cancel a Spec that repeats another (`status: cancelled`), and write a see-also link in the body."
+    },
+    {
+      "id": "spec-residual-risk",
+      "surface": "spec",
+      "old": "residual_risk",
+      "new": "risk.residual",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "What stays true after release is decided with the risk, so it is part of `risk`."
+    },
+    {
+      "id": "spec-revision-at",
+      "surface": "spec",
+      "old": "revisions[].at",
+      "new": "revisions[].revised_at",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "An instant is `<event>_at`, and the event is named."
+    },
+    {
+      "id": "spec-risk-reversible",
+      "surface": "spec",
+      "old": "risk.reversible",
+      "new": "risk.irreversible",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "One polarity, as `aidd risk --irreversible` and the risk rules say it: `irreversible` is true where `reversible` was false, and a Spec that leaves it out is reversible under either name."
+    },
+    {
+      "id": "spec-suggested-by",
+      "surface": "spec",
+      "old": "suggested_by",
+      "new": "suggested_by",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "A role of the team is `role:<role>`, and `agent:` names only `agent:<harness>/<model>`. An `agent:<role>` becomes `role:<role>`; any other value stays."
+    },
+    {
+      "id": "spec-task-assignee",
+      "surface": "spec",
+      "old": "tasks[].assignee",
+      "new": "tasks[].assignee",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "A role of the team is `role:<role>`, and `agent:` names only `agent:<harness>/<model>`. An `agent:<role>` becomes `role:<role>`; any other value stays."
+    },
+    {
+      "id": "spec-test-command-retries",
+      "surface": "spec",
+      "old": "tests.commands[].retries",
+      "new": "tests.commands[].reruns",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A retry is a fix after a red run. Running one command again is a rerun, as pytest-rerunfailures names it."
+    },
+    {
+      "id": "spec-triage-triaged-on",
+      "surface": "spec",
+      "old": "triage.triaged_on",
+      "new": "triage.decided_on",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A person's decision is `{decision, by, decided_on}`."
+    },
+    {
+      "id": "spec-uat",
+      "surface": "spec",
+      "old": "uat",
+      "new": "manual_acceptance",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "The name says what the field asks for: a person's acceptance by hand."
+    },
+    {
+      "id": "intent-aidd-version",
+      "surface": "intent",
+      "old": "aidd_version",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "cut",
+      "note": "The config holds the version of aidd, so an Intent names none."
+    },
+    {
+      "id": "intent-context",
+      "surface": "intent",
+      "old": "context",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "The project's glossary, `docs/GLOSSARY.md`, holds the terms every Spec shares, so an Intent holds none. An empty `context` is dropped. Move any text in it to the glossary, then remove this key."
+    },
+    {
+      "id": "intent-labels",
+      "surface": "intent",
+      "old": "labels",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "cut",
+      "note": "A tracker holds labels, so an Intent lists none."
+    },
+    {
+      "id": "intent-launch",
+      "surface": "intent",
+      "old": "launch",
+      "new": null,
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "Under `reaches: flagged` the launch Spec is the last slice of the last phase, so the Intent names none. A `launch` that is the last slice is dropped. Put the launch slice last, then remove this key."
+    },
+    {
+      "id": "intent-owner-team",
+      "surface": "intent",
+      "old": "owner_team",
+      "new": "delivery_team",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "An Intent names the `delivery_team` that does the work, a key of the config's `delivery_teams`."
+    },
+    {
+      "id": "intent-phase-slice-owner-team",
+      "surface": "intent",
+      "old": "phases[].slices[].owner_team",
+      "new": "phases[].slices[].delivery_team",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A slice names its `delivery_team` as an Intent does."
+    },
+    {
+      "id": "intent-relations",
+      "surface": "intent",
+      "old": "relations",
+      "new": "blocked_by",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "An Intent lists the work it waits for in `blocked_by`, and `blocks` is the other item's `blocked_by`. An `implements`, `duplicates`, or `relates_to` entry has no place in an Intent: cancel an Intent that repeats another (`status: cancelled`), and write a see-also link in the body."
+    },
+    {
+      "id": "intent-slices",
+      "surface": "intent",
+      "old": "slices",
+      "new": "phases",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "Every Intent lists its slices in `phases`. A single `slices` list becomes one phase, `P1`, named for the Intent's title."
+    },
+    {
+      "id": "intent-slice-owner-team",
+      "surface": "intent",
+      "old": "slices[].owner_team",
+      "new": "slices[].delivery_team",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A slice names its `delivery_team` as an Intent does."
+    },
+    {
+      "id": "proposal-claim-evidence",
+      "surface": "proposal",
+      "old": "claims[].evidence",
+      "new": "claims[].basis",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "Evidence is a runner's exit code on a commit. What a claim rests on is its `basis`."
+    },
+    {
+      "id": "proposal-owner-team",
+      "surface": "proposal",
+      "old": "owner_team",
+      "new": "delivery_team",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A proposal names the `delivery_team` accountable for it, as a Spec and an Intent do."
+    },
+    {
+      "id": "runbook-owner-team",
+      "surface": "runbook",
+      "old": "owner_team",
+      "new": "delivery_team",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A runbook names the `delivery_team` that keeps it current, as a Spec and an Intent do. With `delivery_teams` in the config, `aidd validate` warns about a name that is none of its keys."
+    },
+    {
+      "id": "runbook-restore",
+      "surface": "runbook",
+      "old": "restore",
+      "new": "restores_data",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "The name is a fact about the runbook, not a verb. `aidd doctor` checks a restore drill only for `restores_data: true`."
+    },
+    {
+      "id": "postmortem-owner-team",
+      "surface": "postmortem",
+      "old": "owner_team",
+      "new": "delivery_team",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A postmortem names the `delivery_team` that owns its review, as a Spec and an Intent do."
+    },
+    {
+      "id": "exploration-evidence",
+      "surface": "exploration",
+      "old": "evidence",
+      "new": "basis",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "Evidence is a runner's exit code on a commit. What a spike's outcome rests on is its `basis`."
+    },
+    {
+      "id": "exploration-owner",
+      "surface": "exploration",
+      "old": "owner",
+      "new": "role",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "The exploration belongs to a role, and `owner` names a person everywhere else."
+    },
+    {
+      "id": "handoff-next",
+      "surface": "handoff",
+      "old": "next",
+      "new": "next_role",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "The note names the role that takes the work next."
+    },
+    {
+      "id": "standard-evidence",
+      "surface": "standard",
+      "old": "evidence",
+      "new": "citation.quote",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "A standard's source is a `citation`, the same in the registry and the library: `citation.url` is the page, and `citation.quote` is the sentence read there."
+    },
+    {
+      "id": "standard-source",
+      "surface": "standard",
+      "old": "source",
+      "new": "citation.url",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "A standard's source is a `citation`, the same in the registry and the library: `citation.url` is the page, and `citation.quote` is the sentence read there."
+    },
+    {
+      "id": "sitemap-format",
+      "surface": "sitemap",
+      "old": "format",
+      "new": "schema_version",
+      "retired_in": "1.0.0",
+      "rule": "value",
+      "note": "A versioned file names the version of its shape `schema_version`, a string. A sitemap that says `format: 1` says `schema_version: \"1\"`. The prototype tool reads both."
+    },
+    {
+      "id": "record-at",
+      "surface": "record",
+      "old": "at",
+      "new": "recorded_at",
+      "retired_in": "1.0.0",
+      "rule": "read_both",
+      "note": "An instant is `<event>_at`, and the event is named. A record is history and aidd never rewrites one, so a reader reads the `at` of a record from an older aidd as `recorded_at`."
+    },
+    {
+      "id": "record-question-type-approval",
+      "surface": "record",
+      "old": "data.question.type",
+      "new": "data.question.type",
+      "retired_in": "1.0.0",
+      "rule": "read_both",
+      "read_as": {
+        "approval": "yes_no"
+      },
+      "note": "aidd keeps \"approval\" for its two gates, so the question type that asks yes or no is `yes_no`. A record from an older aidd says `approval`, and a reader reads it as `yes_no`. A new record never says `approval`."
+    },
+    {
+      "id": "new-owner-team",
+      "surface": "cli_flag",
+      "old": "--owner-team",
+      "new": "--delivery-team",
+      "retired_in": "1.0.0",
+      "rule": "rename",
+      "note": "A runbook, a postmortem, and a proposal name their `delivery_team`, as a Spec and an Intent do. `aidd new` takes one flag for all five."
+    },
+    {
+      "id": "cli-change-type-compliance",
+      "surface": "cli_value",
+      "old": "--change-type compliance",
+      "new": "--dimension compliance",
+      "retired_in": "1.0.0",
+      "rule": "manual",
+      "note": "A compliance change is now the risk dimension `compliance`, which keeps the route major as the type did. Give the change's own type with it, such as `feat` or `fix`."
+    },
+    {
+      "id": "cli-change-type-data",
+      "surface": "cli_value",
+      "old": "--change-type data",
+      "new": "--dimension data",
+      "retired_in": "1.0.0",
+      "rule": "manual",
+      "note": "A data change is now the risk dimension `data`, which keeps the route major as the type did. Give the change's own type with it, such as `feat` or `fix`."
+    },
+    {
+      "id": "cli-change-type-deps",
+      "surface": "cli_value",
+      "old": "--change-type deps",
+      "new": "--change-type build",
+      "retired_in": "1.0.0",
+      "rule": "manual",
+      "note": "A change to third-party packages is a `build` change, as in Conventional Commits. The `dependencies` area still raises its route."
+    },
+    {
+      "id": "cli-change-type-infra",
+      "surface": "cli_value",
+      "old": "--change-type infra",
+      "new": "--change-type build --dimension availability",
+      "retired_in": "1.0.0",
+      "rule": "manual",
+      "note": "An infrastructure change is a `build` change that can take a service down, so it declares `availability`, which keeps its route at least normal as the type did."
+    },
+    {
+      "id": "cli-change-type-security",
+      "surface": "cli_value",
+      "old": "--change-type security",
+      "new": "--dimension security",
+      "retired_in": "1.0.0",
+      "rule": "manual",
+      "note": "A security change is now the risk dimension `security`, which keeps the route major as the type did. Give the change's own type with it, such as `feat` or `fix`."
+    },
+    {
+      "id": "explain-lane",
+      "surface": "cli_value",
+      "old": "explain lane",
+      "new": "explain route",
+      "retired_in": "1.0.0",
+      "rule": "manual",
+      "note": "A route says how much of the loop a change needs, and `loop.routes` in `schemas/roles.json` holds the steps it runs. `aidd risk` no longer gives a `lane`: read `route`. A route reads as `no Spec` for `minor`, `Spec first` for `normal` and `major`, and `repair first` for `emergency`."
+    }
+  ]
+}

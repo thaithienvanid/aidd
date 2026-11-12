@@ -1,0 +1,589 @@
+{
+ "_comment": "The prompt and description of each trigger case. src/aidd/evals/trigger_cases.py writes the cases from this file into evals/team/, where git ignores them; edit this file, never a written case. Each case's `shape` names the project shape it shows (evals/shapes.json); it is metadata, so the written files leave it out.",
+ "skills": {
+  "accessible-ui": {
+   "description": {
+    "held-out": "A held-out paraphrase of a accessible-ui request, scored apart. No description is tuned on it.",
+    "loads": "A request about building or checking a screen makes the agent load the accessible-ui practice skill.",
+    "skips": "A nearby request that is not about building or checking a screen leaves the accessible-ui practice skill alone."
+   },
+   "cases": [
+    {
+     "name": "held-out-loads-accessible-ui-pay-button",
+     "prompt": "This repository uses aidd. Blind users can't tell what our checkout's Pay button does. What should change?",
+     "shape": "web-app/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-accessible-ui-grey-contrast",
+     "prompt": "This repository uses aidd. Our Android app shows pale grey hint text on a white card, and older users struggle to read it. Which colour values should we pick, and how do we check them?",
+     "also": [
+      "mobile-apps"
+     ],
+     "shape": "mobile/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-accessible-ui-icon-delete",
+     "prompt": "This repository uses aidd. Add a trash-can icon button to every row of our inventory grid. What markup does it need so a blind user knows what it deletes?",
+     "also": [
+      "web-front-end"
+     ],
+     "shape": "web-app/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-accessible-ui-login-form",
+     "prompt": "This repository uses aidd. Build a sign-in page in SwiftUI with an email box, a password box, and a submit button.",
+     "also": [
+      "web-front-end",
+      "mobile-apps"
+     ],
+     "shape": "mobile/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-accessible-ui-modal-keyboard",
+     "prompt": "This repository uses aidd. People who only use a keyboard get lost when our dialog opens: the cursor stays behind it and Escape does nothing. Fix this React component.\n\n```tsx\nexport const Dialog = ({ onClose }) => (\n  <div className=\"dialog\"><span onClick={onClose}>X</span><p>Save changes?</p></div>\n);\n```",
+     "also": [
+      "web-front-end"
+     ],
+     "shape": "web-app/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-accessible-ui-contrast-histogram",
+     "prompt": "This repository uses aidd. Our contrast histogram code, `equalize(image, clip=2.0)`, returns a washed-out result on dark images. Explain what the clip value does.",
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-accessible-ui-form-data-check",
+     "prompt": "This repository uses aidd. Validate the form data posted to `/signup` in this handler. The email must contain an @, and the password must have 8 characters or more.\n\n```python\ndef signup(form):\n    return create_user(form[\"email\"], form[\"password\"])\n```",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "skips-accessible-ui-screen-class",
+     "prompt": "This repository uses aidd. The `Screen` class in our game engine loads levels from disk. Add a method that returns how many levels a screen has loaded.",
+     "shape": "game/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-accessible-ui-ui-copy-keys",
+     "prompt": "This repository uses aidd. Write a function `list_keys(path)` that lists the keys of the UI copy in our translations JSON file, one per line, sorted.",
+     "shape": "any/brownfield/team/unregulated"
+    }
+   ]
+  },
+  "cli-design": {
+   "description": {
+    "held-out": "A held-out paraphrase of a designing a command-line tool's flags, prompts, output, or exit codes request, scored apart. No description is tuned on it.",
+    "loads": "A request about designing a command-line tool's flags, prompts, output, or exit codes makes the agent load the cli-design practice skill.",
+    "skips": "A nearby request that is not about designing a command-line tool's flags, prompts, output, or exit codes leaves the cli-design practice skill alone."
+   },
+   "cases": [
+    {
+     "name": "held-out-loads-cli-design-setting-precedence",
+     "prompt": "This repository uses aidd. Our tool reads the same setting from a settings file, an environment variable, and a command-line option. Which one should win, and where should the file live?",
+     "shape": "cli/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-cli-design-bulk-delete",
+     "prompt": "This repository uses aidd. Our maintenance tool will get a new `purge` subcommand that deletes old cache files. A teammate wants it to ask \"are you sure?\" every time, but it also has to run unattended from a nightly job. How should it behave?",
+     "shape": "cli/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-cli-design-machine-output",
+     "prompt": "This repository uses aidd. Other teams parse the table our report command prints. We want to give them a stable machine-readable form without breaking what they have. What do we add?",
+     "shape": "cli/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-cli-design-option-clash",
+     "prompt": "This repository uses aidd. Our encoder has `--quiet` and `--verbose` switches that fight each other, and someone wants to add `--no-progress`. How should we shape the options?",
+     "shape": "cli/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-cli-design-status-numbers",
+     "prompt": "This repository uses aidd. Our import tool ends with status 1 whatever went wrong, so the CI scripts cannot tell a bad input file from a network error. How should it report outcomes?",
+     "shape": "cli/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-cli-design-button-color",
+     "prompt": "This repository uses aidd. Change the button color in this stylesheet from #333 to #444.\n\n```css\n.button { color: #333; }\n```",
+     "shape": "web-app/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-cli-design-feature-flag",
+     "prompt": "This repository uses aidd. Our flag `beta_search` is already named and in use. Turn it off for everyone in this snippet.\n\n```yaml\nflags:\n  beta_search: true\n```",
+     "shape": "web-app/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-cli-design-read-json",
+     "prompt": "This repository uses aidd. Which keys does this JSON fixture hold? Answer from the text only.\n\n```json\n{\"id\": 1, \"name\": \"a\", \"tags\": []}\n```",
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-cli-design-rename-variable",
+     "prompt": "This repository uses aidd. Rename the variable `exit_code` to `status` in this function, and change nothing else.\n\n```python\ndef run():\n    exit_code = work()\n    return exit_code\n```",
+     "shape": "any/brownfield/team/unregulated"
+    }
+   ]
+  },
+  "data-model-design": {
+   "description": {
+    "held-out": "A held-out paraphrase of a the shape or names of a schema, config, or field request, scored apart. No description is tuned on it.",
+    "loads": "A request about the shape or names of a schema, config, or field makes the agent load the data-model-design practice skill.",
+    "skips": "A nearby request that is not about the shape or names of a schema, config, or field leaves the data-model-design practice skill alone."
+   },
+   "cases": [
+    {
+     "name": "held-out-loads-data-model-design-negated-boolean",
+     "prompt": "This repository uses aidd. A teammate proposes `is_not_archived` as a new yes/no property on our API response. Is that the right shape?",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-data-model-design-id-or-details",
+     "prompt": "This repository uses aidd. Each device record points to its owner by a plain id string. We expect to add the owner's contact details later. How should we store it now so we do not break readers?",
+     "shape": "api-service/brownfield/team/unregulated",
+     "also": [
+      "schema-migration"
+     ]
+    },
+    {
+     "name": "loads-data-model-design-layered-lists",
+     "prompt": "This repository uses aidd. Teams override the company defaults in their own files, and each file lists named environments. When a team's file lists one environment, should that replace the whole list or only that entry?",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-data-model-design-retry-settings",
+     "prompt": "This repository uses aidd. Our settings file lets a job say how many times to retry and how long to wait, and soon it must also say which errors to retry on. How should we lay these settings out so we can add more later?",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-data-model-design-review-date",
+     "prompt": "This repository uses aidd. Our records already have `starts_on`, `ended_at`, and `retry_count`. We need to store when a clinician last reviewed a record. What should the attribute be called?",
+     "shape": "api-service/brownfield/team/regulated",
+     "also": [
+      "naming"
+     ]
+    },
+    {
+     "name": "skips-data-model-design-bump-timeout",
+     "prompt": "This repository uses aidd. Change the timeout in this config from 30 to 60 seconds.\n\n```yaml\ntimeout: 30\n```",
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-data-model-design-fix-comment",
+     "prompt": "This repository uses aidd. Fix the typo in this comment about the `email` field, and change nothing else.\n\n```python\n# the emial field holds the login address\nemail = user.email\n```",
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-data-model-design-list-enum",
+     "prompt": "This repository uses aidd. List the values of this enum. Answer from the code only.\n\n```python\nclass State(Enum):\n    OPEN = 1\n    CLOSED = 2\n```",
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-data-model-design-read-schema",
+     "prompt": "This repository uses aidd. Which property does this schema require? Answer from the text only.\n\n```json\n{\"type\": \"object\", \"required\": [\"id\"], \"properties\": {\"id\": {\"type\": \"string\"}}}\n```",
+     "shape": "any/brownfield/team/unregulated"
+    }
+   ]
+  },
+  "debugging": {
+   "description": {
+    "held-out": "A held-out paraphrase of a debugging request, scored apart. No description is tuned on it.",
+    "loads": "A bug report, a failing or flaky test, or a wrong result makes the agent load the debugging practice skill.",
+    "skips": "A nearby request that is not about finding the cause of a failure leaves the debugging practice skill alone."
+   },
+   "cases": [
+    {
+     "name": "held-out-loads-debugging-short-export",
+     "prompt": "This repository uses aidd. Since Tuesday, exported CSVs have one row fewer than the database holds. Here is the export code.\n\n```python\ndef export(rows):\n    return \"\\n\".join(\",\".join(map(str, r)) for r in rows[:-1])\n```",
+     "shape": "data-pipeline/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-debugging-failing-invoice-test",
+     "prompt": "This repository uses aidd. Our nightly check of invoice totals turned red: it expects 107.0 and gets 107.1. Nobody has edited that area since it last passed. Find out why. Here is the code:\n\n```ts\nexport const invoiceTotal = (lines: [number, number][]) =>\n  Math.round(lines.reduce((sum, [price, qty]) => sum + price * qty, 0) * 1.07 * 10) / 10;\n```",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-debugging-flaky-queue-test",
+     "prompt": "This repository uses aidd. Our Jest suite fails about one run in twenty on CI with `expected 10, received 9`, and never on my laptop. Find out why. Here is the case:\n\n```ts\nit(\"drains the queue\", async () => {\n  const results: number[] = [];\n  startWorker(queue, results);\n  for (let n = 0; n < 10; n++) queue.push(n);\n  await sleep(100);\n  expect(results).toHaveLength(10);\n});\n```",
+     "also": [
+      "test-design"
+     ],
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-debugging-plus-sign-email",
+     "prompt": "This repository uses aidd. Since this morning's release, people who sign up with `ann+news@example.com` get \"Invalid email\". Plus signs worked last week. Here is the check. Please fix it.\n\n```go\nvar emailRe = regexp.MustCompile(`^[\\w.]+@[\\w.]+\\.\\w+$`)\n\nfunc ValidEmail(s string) bool { return emailRe.MatchString(s) }\n```",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-debugging-wrong-fee",
+     "prompt": "This repository uses aidd. A customer paid 9.00 for a 2.5 kg parcel and should have paid 7.50. It was right last week. Here is the code. Please fix it.\n\n```rust\nconst RATE_PER_KG: f64 = 3.0;\n\nfn shipping_fee(weight_kg: f64) -> f64 {\n    weight_kg.ceil() * RATE_PER_KG\n}\n```",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "skips-debugging-add-a-test",
+     "prompt": "This repository uses aidd. Add a unit test for this function, which works today. Cover accents and an empty string.\n\n```python\nimport unicodedata\n\n\ndef slugify(text: str) -> str:\n    plain = unicodedata.normalize(\"NFKD\", text).encode(\"ascii\", \"ignore\").decode()\n    return \"-\".join(plain.lower().split())\n```",
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-debugging-flaky-meaning",
+     "prompt": "This repository uses aidd. In two sentences for a new hire, explain what a flaky test is and why teams care. No code needed.",
+     "shape": "any/greenfield/team/unregulated"
+    },
+    {
+     "name": "skips-debugging-outage-now",
+     "prompt": "This repository uses aidd. Checkout broke for every customer ten minutes ago and production is down. What should the on-call person do in the next five minutes?",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-debugging-release-note-wording",
+     "prompt": "This repository uses aidd. Rewrite this release note line in plain words for customers: \"Fixed a bug where the export broke on empty orders.\"",
+     "shape": "any/brownfield/team/unregulated"
+    }
+   ]
+  },
+  "diagrams": {
+   "description": {
+    "held-out": "A held-out paraphrase of a diagrams request, scored apart. No description is tuned on it.",
+    "loads": "A request about drawing a flow, sequence, or states makes the agent load the diagrams practice skill.",
+    "skips": "A nearby request that is not about drawing a flow, sequence, or states leaves the diagrams practice skill alone."
+   },
+   "cases": [
+    {
+     "name": "held-out-loads-diagrams-upload-path",
+     "prompt": "This repository uses aidd. Our new hire can't follow how an upload reaches storage through the API, the queue, and the worker. Help them see it at a glance.",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-diagrams-checkout-sequence",
+     "prompt": "This repository uses aidd. Show how the browser, our API, and the card processor hand a request to each other during checkout, as a sequence chart.",
+     "shape": "web-app/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-diagrams-password-reset",
+     "prompt": "This repository uses aidd. Sketch the steps of a password reset for a new teammate: the request, the email, the check of the link, and the new password.",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-diagrams-service-talk",
+     "prompt": "This repository uses aidd. Lay out visually how our scheduling, lab-results, and billing components call each other, so a newcomer sees it at a glance.",
+     "also": [
+      "system-design"
+     ],
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-diagrams-subscription-states",
+     "prompt": "This repository uses aidd. Add a visual to the architecture doc of the states a subscription moves through: trial, active, past due, and cancelled.",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "skips-diagrams-break-and-continue",
+     "prompt": "This repository uses aidd. Explain the difference between `break` and `continue` in a Python loop, for someone who knows the flow of a `for` loop.",
+     "shape": "any/greenfield/team/unregulated"
+    },
+    {
+     "name": "skips-diagrams-design-and-runbook-headings",
+     "prompt": "This repository uses aidd. Our design doc and runbook are in Markdown. Give me one command that counts the headings in each file.",
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-diagrams-migration-plan-sentences",
+     "prompt": "This repository uses aidd. Explain the plan for the migration in three sentences: first back up, then copy, then switch the alias.",
+     "shape": "any/greenfield/team/unregulated"
+    },
+    {
+     "name": "skips-diagrams-threat-model-questions",
+     "prompt": "This repository uses aidd. List the five questions a threat model for a login page should answer, as bullet points.",
+     "shape": "any/greenfield/team/unregulated"
+    }
+   ]
+  },
+  "maintainable-code": {
+   "description": {
+    "held-out": "A held-out paraphrase of a maintainable-code request, scored apart. No description is tuned on it.",
+    "loads": "A request to keep code readable as it grows makes the agent load the maintainable-code practice skill.",
+    "skips": "A nearby request that is not about keeping code readable leaves the maintainable-code practice skill alone."
+   },
+   "cases": [
+    {
+     "name": "held-out-loads-maintainable-code-long-billing",
+     "prompt": "This repository uses aidd. Reviewers keep missing bugs in `billing.ts`, because it's 1,200 lines. How should it be laid out?",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-maintainable-code-growing-function",
+     "prompt": "This repository uses aidd. Our checkout routine has grown to 300 lines, with a nested branch for each payment processor. How should I split it so the next person can follow it?",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-maintainable-code-helpers-module",
+     "prompt": "This repository uses aidd. Our utils folder holds forty unrelated helpers, and every other directory imports from it. How should we break it up?",
+     "also": [
+      "modular-monolith"
+     ],
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-maintainable-code-scaffold-docstrings",
+     "prompt": "This repository uses aidd. I am adding notes above each class in the new sensors directory of our robot-control skeleton. One of them says \"Empty until the next release\". What should each note say?",
+     "shape": "embedded/greenfield/team/unregulated"
+    },
+    {
+     "name": "loads-maintainable-code-shape-of-a-diff",
+     "prompt": "This repository uses aidd. Before I open this change, judge how readable it is. It adds one Java class of 400 lines, a service layer that only forwards calls, and a remark above every line.",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-maintainable-code-function-key",
+     "prompt": "This repository uses aidd. Which function key opens the developer tools in most desktop browsers?",
+     "shape": "any/greenfield/team/unregulated"
+    },
+    {
+     "name": "skips-maintainable-code-package-licence",
+     "prompt": "This repository uses aidd. Which licence does the Python package requests use, and does it allow commercial use?",
+     "shape": "any/greenfield/team/unregulated"
+    },
+    {
+     "name": "skips-maintainable-code-reply-to-a-comment",
+     "prompt": "This repository uses aidd. How do I reply to a review comment on a pull request from the command line?",
+     "shape": "any/greenfield/team/unregulated"
+    },
+    {
+     "name": "skips-maintainable-code-upload-file-size",
+     "prompt": "This repository uses aidd. What is the largest file a user can upload by default through nginx, and which setting changes it?",
+     "shape": "any/greenfield/team/unregulated"
+    }
+   ]
+  },
+  "naming": {
+   "description": {
+    "held-out": "A held-out paraphrase of a naming request, scored apart. No description is tuned on it.",
+    "loads": "A request about choosing or improving a name makes the agent load the naming practice skill.",
+    "skips": "A nearby request that is not about choosing or improving a name leaves the naming practice skill alone."
+   },
+   "cases": [
+    {
+     "name": "held-out-loads-naming-last-seen",
+     "prompt": "This repository uses aidd. What should we call the Go struct field that holds when a device last checked in?",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-naming-checkout-flag",
+     "prompt": "This repository uses aidd. We are adding a switch that sends players to the new matchmaking gradually. What should we call it?",
+     "shape": "game/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-naming-confirmed-column",
+     "prompt": "This repository uses aidd. Our new table stores when a customer last confirmed their email address. What should we call that field, and why?",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-naming-misleading-function",
+     "prompt": "This repository uses aidd. A teammate says `handle_data` in our billing area is misleading. It turns invoice lines into records ready for tax filing. Suggest a better one.",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-naming-shipped-event",
+     "prompt": "This repository uses aidd. What should we call the message we publish when a device reports a reading, and the counter of how many we publish each minute?",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-naming-event-and-metric",
+     "prompt": "This repository uses aidd. Which event does this handler consume, and which metric does it count? Answer from the code only.\n\n```python\n@on(\"order_shipped\")\ndef shipped(event):\n    metrics.inc(\"orders_shipped_total\")\n```",
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-naming-flag-rollout",
+     "prompt": "This repository uses aidd. Our flag `new_checkout` is already named and in use. Set its rollout to 0 for everyone in this config.\n\n```yaml\nflags:\n  new_checkout:\n    rollout: 5\n```",
+     "shape": "web-app/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-naming-move-component-file",
+     "prompt": "This repository uses aidd. Move the `Label` component from `ui/label.py` to `ui/forms/label.py` and fix the import in this file.\n\n```python\nfrom ui.label import Label\n```",
+     "shape": "web-app/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-naming-token-lifetime",
+     "prompt": "This repository uses aidd. The session token expires after 15 minutes. Change the lifetime to 30 minutes in this snippet.\n\n```python\nTOKEN_LIFETIME_MINUTES = 15\n```",
+     "shape": "any/brownfield/team/unregulated"
+    }
+   ]
+  },
+  "plain-language": {
+   "description": {
+    "held-out": "A held-out paraphrase of a plain-language request, scored apart. No description is tuned on it.",
+    "loads": "A request about writing prose a person reads makes the agent load the plain-language practice skill.",
+    "skips": "A nearby request that is not about writing prose a person reads leaves the plain-language practice skill alone."
+   },
+   "cases": [
+    {
+     "name": "held-out-loads-plain-language-suspended-email",
+     "prompt": "This repository uses aidd. Our \"Account suspended\" email confuses customers. Rewrite it so a 12-year-old gets it.",
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-plain-language-declined-card",
+     "prompt": "This repository uses aidd. Write the text a customer sees when their card is declined.",
+     "also": [
+      "technical-writing"
+     ],
+     "shape": "web-app/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-plain-language-queue-runbook",
+     "prompt": "This repository uses aidd. Draft the part of our on-call handbook that says what to do when the backlog of background work grows.",
+     "also": [
+      "technical-writing",
+      "incident-response"
+     ],
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-plain-language-release-notes",
+     "prompt": "This repository uses aidd. Write the customer-facing summary of version 2.3. It adds CSV export and fixes a problem that signed some people out.",
+     "also": [
+      "technical-writing"
+     ],
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-plain-language-setup-guide",
+     "prompt": "This repository uses aidd. Rewrite this paragraph of our onboarding guide so a new hire can follow it.\n\n> Prior to the instantiation of the local environment, the operator must ensure that the requisite dependencies have been provisioned in accordance with the manifest.",
+     "also": [
+      "technical-writing"
+     ],
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-plain-language-client-documents",
+     "prompt": "This repository uses aidd. Write a function that returns the paths of all `.pdf` files in the client documents folder.",
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-plain-language-copy-docs-folders",
+     "prompt": "This repository uses aidd. Make the build script copy the runbooks and docs folders to `dist/`. Here is the script.\n\n```sh\ncp -r src dist/\n```",
+     "shape": "any/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-plain-language-messages-index",
+     "prompt": "This repository uses aidd. Our messages table has a `body` column of type TEXT. Add an index on `(user_id, created_at)` with a migration.",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-plain-language-specs-yaml",
+     "prompt": "This repository uses aidd. Find the line that breaks the YAML in this front matter of one of our specs.\n\n```yaml\nid: notes-1\ntitle: Notes: all\n```",
+     "shape": "any/brownfield/team/unregulated"
+    }
+   ]
+  },
+  "resilience": {
+   "description": {
+    "held-out": "A held-out paraphrase of a resilience request, scored apart. No description is tuned on it.",
+    "loads": "Code that calls a service, queue, or provider, with a timeout, a retry, or a duplicate, makes the agent load the resilience practice skill.",
+    "skips": "A nearby request that adds no call across a process boundary leaves the resilience practice skill alone."
+   },
+   "cases": [
+    {
+     "name": "held-out-loads-resilience-offline-photo",
+     "prompt": "This repository uses aidd. Our mobile app's offline sync sometimes uploads the same photo twice when the network drops mid-way.",
+     "shape": "mobile/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-resilience-duplicate-emails",
+     "prompt": "This repository uses aidd. Our worker sends the \"order shipped\" email through an outside mailer. When the mailer is slow, the call gives up, the task runs again, and customers get the same email twice. Stop that. Here is the code:\n\n```python\ndef send_shipped_email(order):\n    mailer.send(to=order.email, subject=\"Your order shipped\", body=render(order))\n```",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-resilience-inventory-service-down",
+     "prompt": "This repository uses aidd. The trip page asks the weather system for a forecast. When that system is down, the page hangs and then fails for every visitor. What should the call do? Here it is:\n\n```python\ndef forecast(city):\n    return requests.get(f\"http://weather/forecast/{city}\").json()[\"summary\"]\n```",
+     "shape": "web-app/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-resilience-invoice-sync-job",
+     "prompt": "This repository uses aidd. Our nightly sync pushes lab results to the hospital records API one by one. Some pushes come back with a 503 and that result is lost. I want it to keep trying sensibly. Here is the sync:\n\n```python\ndef push_all(results):\n    for result in results:\n        records.post(\"/results\", json=result.to_dict())\n```",
+     "shape": "data-pipeline/brownfield/team/regulated"
+    },
+    {
+     "name": "loads-resilience-refund-crash",
+     "prompt": "This repository uses aidd. A refund calls the card processor, then marks the order refunded in our database. If the process dies between the two steps, the customer is refunded but the order still shows paid. Make it safe to run again. Here is the code:\n\n```python\ndef refund(order):\n    processor.refund(order.charge_id, order.total)\n    order.status = \"refunded\"\n    order.save()\n```",
+     "also": [
+      "payments-and-finance"
+     ],
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "skips-resilience-dedupe-list",
+     "prompt": "This repository uses aidd. Remove the duplicates from this list in plain Python, keeping the first occurrence of each item.\n\n```python\nitems = [\"b\", \"a\", \"b\", \"c\", \"a\"]\n```",
+     "shape": "any/greenfield/team/unregulated"
+    },
+    {
+     "name": "skips-resilience-duplicate-rows",
+     "prompt": "This repository uses aidd. Our `customers` table has duplicates: two rows with the same email. Write the SQL that lists them and the unique index that stops new ones. Then say how to remove the extra rows safely.",
+     "shape": "api-service/brownfield/team/regulated"
+    },
+    {
+     "name": "skips-resilience-server-count",
+     "prompt": "This repository uses aidd. Estimate how many servers our checkout service needs for 2,000 requests per second, when one server handles 150 per second at peak. Show the arithmetic.",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-resilience-timeouts-docs",
+     "prompt": "This repository uses aidd. Add a short README section on timeouts. List the three settings below with one sentence each, and change no code or value.\n\n```yaml\nconnect_s: 2\nread_s: 10\ntotal_s: 30\n```",
+     "shape": "any/brownfield/team/unregulated"
+    }
+   ]
+  },
+  "secure-coding": {
+   "description": {
+    "held-out": "A held-out paraphrase of a secure-coding request, scored apart. No description is tuned on it.",
+    "loads": "A request about code that handles input, secrets, files, SQL, or shell makes the agent load the secure-coding practice skill.",
+    "skips": "A nearby request that is not about code that handles input, secrets, files, SQL, or shell leaves the secure-coding practice skill alone."
+   },
+   "cases": [
+    {
+     "name": "held-out-loads-secure-coding-pdf-render",
+     "prompt": "This repository uses aidd. Add an endpoint that renders a PDF from the HTML a customer pastes.",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-secure-coding-api-key",
+     "prompt": "This repository uses aidd. Keep the key for our SMS gateway safe, and let the app use it when it starts.",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-secure-coding-convert-upload",
+     "prompt": "This repository uses aidd. Write a helper that runs the `convert` tool on the name of a picture a visitor uploaded.",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-secure-coding-file-download",
+     "prompt": "This repository uses aidd. Write an endpoint that takes a document name from the URL and returns that document from the uploads directory.",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "loads-secure-coding-search-sql",
+     "prompt": "This repository uses aidd. Add an Express handler for our search box that builds a database query from the text the visitor types.",
+     "shape": "api-service/brownfield/team/unregulated"
+    },
+    {
+     "name": "skips-secure-coding-auth-header-cookie",
+     "prompt": "This repository uses aidd. In two sentences, what is the difference between an auth header and a session cookie?",
+     "shape": "any/greenfield/team/unregulated"
+    },
+    {
+     "name": "skips-secure-coding-config-permissions",
+     "prompt": "This repository uses aidd. Explain what `chmod 640 config.yaml` does to the file's permissions, in two sentences.",
+     "shape": "any/greenfield/team/unregulated"
+    },
+    {
+     "name": "skips-secure-coding-shell-grep",
+     "prompt": "This repository uses aidd. Describe in two sentences what the shell command `grep -rn TODO src/` prints.",
+     "shape": "any/greenfield/team/unregulated"
+    },
+    {
+     "name": "skips-secure-coding-sql-left-join",
+     "prompt": "This repository uses aidd. Which SQL join returns every row of the left table even when the right table has no match? Answer in one sentence.",
+     "shape": "any/greenfield/team/unregulated"
+    }
+   ]
+  }
+ }
+}

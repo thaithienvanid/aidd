@@ -1,0 +1,11 @@
+# aidd's settings for this repository. Agents read it; aidd advises and enforces nothing.
+# Change it only when a person asks. Every field, with its default: references/config.md in the aidd skill.
+aidd_version: "1.0.0"
+profile: {{profile}}      # solo or team: who decides, and on which routes the agent asks for Spec approval
+
+owners:
+{{owners}}
+
+{{tests}}
+
+{{preview}}

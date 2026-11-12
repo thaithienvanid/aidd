@@ -1,0 +1,240 @@
+/* The work-items page's own layout (on the shared system): the Board, its team rows, the Tree, the item page, and Search.
+   Every component and every value comes from the system's CSS before this; this file only places things, in tokens. */
+.js .view:not(.shown) { display: none !important; }
+html:not(.js) .js-only { display: none; }
+main:focus { outline: none; }
+ol, ul { padding: 0; list-style: none; }
+.muted, .why, .hint, .crumbs, .more, .h-type, .task-state:not(.flag) { color: var(--muted-foreground); }
+.run, .h-type { font-size: var(--text-meta); }
+.sprite { position: absolute; }
+.view { display: block; }
+p > .flag { vertical-align: middle; }
+mark { background: none; color: inherit; font-weight: var(--font-weight-semibold); text-decoration: underline var(--border-width-thick); text-underline-offset: 0.2em; }
+
+/* The top bar: the system's; the written time stays in view on every screen. */
+.topbar-name .product { font-size: var(--text-title); font-weight: var(--font-weight-semibold); color: var(--foreground); overflow: visible; }
+.tabs > a { min-width: var(--size-target); }
+.search-btn { display: flex; align-items: center; gap: var(--spacing-2); width: min(18.75rem, 28vw); min-height: var(--size-control); padding: 0 var(--spacing-1_5) 0 var(--spacing-2); border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-md); background: var(--background); color: var(--muted-foreground); overflow: hidden; cursor: pointer; }
+.search-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start; }
+
+/* The emergency banner: the emergency callout, above every view while one is open. Its icon and the word carry it. */
+.banner { flex-wrap: wrap; align-items: center; gap: var(--spacing-1_5) var(--spacing-3); }
+.banner-label { display: inline-flex; align-items: center; gap: var(--spacing-1_5); font-weight: var(--font-weight-semibold); }
+.banner-label svg.icon { color: var(--emergency); stroke-width: 2; }
+.callout-overdue .banner-label svg.icon { color: var(--emergency-foreground); }
+.banner .what { display: flex; align-items: baseline; gap: var(--spacing-2); min-width: 0; font-weight: var(--font-weight-semibold); }
+.banner-facts { display: flex; flex-wrap: wrap; gap: var(--spacing-0_5) var(--spacing-3); }
+.banner .end-words { margin-inline-start: auto; }
+.banner .words > code { background: var(--background); color: var(--foreground); }
+/* Narrow: the banner folds to one line, and its button opens the words. Wide: it stays open, so the fold line hides. */
+.banner-fold { display: none; }
+.banner-full { display: contents; }
+.btn-fold svg.icon { transition: transform var(--duration-fast) var(--ease-standard); }
+.btn-fold[aria-expanded="true"] svg.icon { transform: rotate(180deg); }
+
+/* The current row: the system's bar and hover color, never the focus ring. Its next step's Copy turns primary (the system's). */
+[data-need], [data-card], [data-result], .leaf { border-inline-start: var(--border-width-thick) solid transparent; }
+[aria-current="true"], .card[aria-current="true"] { border-inline-start-color: var(--foreground); background: var(--accent); }
+@media (forced-colors: active) { [aria-current="true"], .card[aria-current="true"] { border-inline-start-color: Highlight; } }
+.need[aria-current="true"], .result[aria-current="true"], .leaf[aria-current="true"] { margin-inline: calc(-1 * var(--spacing-3)); padding-inline: var(--spacing-3); }
+
+.page-head h1, .board-head h1, .empty h1 { overflow-wrap: anywhere; }
+.head .team-filter { margin-top: var(--spacing-3); }
+.h2 { margin-top: var(--spacing-6); }
+
+/* Needs you */
+.needs { margin-top: var(--spacing-4); border-top: var(--border-width-thin) solid var(--border); }
+.need { display: grid; gap: var(--spacing-1_5); padding: var(--spacing-4) 0; border-bottom: var(--border-width-thin) solid var(--border); }
+.need-title, .result-head { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: baseline; gap: var(--spacing-2); font-size: var(--text-title); line-height: var(--text-title--line-height); font-weight: var(--font-weight-semibold); overflow-wrap: anywhere; }
+.need-step { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-1) var(--spacing-3); }
+.need-title > svg.icon { align-self: center; color: var(--muted-foreground); }
+.need .words { margin-top: var(--spacing-1); }
+.due { margin-top: var(--spacing-2); border-top: var(--border-width-thin) solid var(--border); }
+.due-row { display: grid; gap: var(--spacing-1_5); padding: var(--spacing-3) 0; border-bottom: var(--border-width-thin) solid var(--border); }
+.more { margin-top: var(--spacing-4); }
+.keys-hint { display: flex; flex-wrap: wrap; gap: var(--spacing-2); align-items: center; margin-top: var(--spacing-3); padding: var(--spacing-2) var(--spacing-3); }
+body:has(.switch[aria-checked="false"]) .keys-hint { display: none; }
+.clear { margin-top: var(--spacing-4); }
+.empty .words { margin-top: var(--spacing-4); }
+.views-help { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--spacing-2) var(--spacing-4); margin-top: var(--spacing-3); }
+.views-help dt { display: flex; gap: var(--spacing-2); align-items: center; font-weight: var(--font-weight-semibold); }
+
+/* The Board: the stages as columns; one line per card, so 24 cards fit in 1440 by 900. */
+.board-wrap { padding: var(--spacing-1) var(--spacing-4) 0; }
+.board-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-2) var(--spacing-3); margin-bottom: var(--spacing-1); }
+.board-head .lead { font-size: var(--text-body); line-height: var(--text-body--line-height); }
+.board-head .grow { flex: 1; }
+.opts { display: flex; flex-wrap: wrap; gap: var(--spacing-2); align-items: center; }
+.opts-btn, .columns-strip { display: none; }
+.board-head.opts-open .opts { display: flex; }
+.cols { display: flex; gap: var(--spacing-2); align-items: start; }
+.col { flex: 1; min-width: 0; padding: var(--spacing-2); border-radius: var(--radius-lg); background: var(--muted); }
+.col-head { display: flex; gap: var(--spacing-1_5); padding: var(--spacing-0_5) var(--spacing-1) var(--spacing-2); font-size: var(--text-body); font-weight: var(--font-weight-semibold); }
+.col-empty { padding: 0 var(--spacing-1) var(--spacing-1); color: var(--muted-foreground); }
+.cards { display: grid; gap: var(--spacing-0_5); }
+.col-done { flex: 0 0 11.25rem; display: grid; gap: var(--spacing-1_5); align-content: start; }
+.done-n { padding: 0 var(--spacing-1); font-size: var(--text-display); font-weight: var(--font-weight-semibold); color: var(--pass); }
+.col-done .muted, .col-done .link { padding: 0 var(--spacing-1); justify-self: start; }
+/* A card is a 24 px title (the target) and a short meta line, so the Board fits one 1440 by 900 screen. */
+.card { position: relative; display: grid; min-width: 0; padding: 0 var(--spacing-2) var(--spacing-0_5); border: var(--border-width-thin) solid var(--border); border-inline-start-width: var(--border-width-thick); border-radius: var(--radius-md); background: var(--card); }
+.card-needs, .card-blocked { border-inline-start-color: var(--foreground); }
+.card-emergency { border-color: var(--emergency); }
+.card-title { display: block; width: 100%; min-height: var(--size-target); padding: 0; border: 0; background: none; text-align: start; font-weight: var(--font-weight-medium); line-height: var(--size-target); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-title::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius-md); }
+.card:has(.card-title:focus-visible) { outline: var(--focus-width) solid var(--ring); outline-offset: var(--border-width-thin); }
+.card-title:focus-visible { outline: none; box-shadow: none; }
+.card-meta { display: flex; align-items: center; gap: var(--spacing-2); min-width: 0; color: var(--muted-foreground); font-size: var(--text-meta); line-height: var(--text-meta--line-height); white-space: nowrap; overflow: hidden; }
+.card-meta .step { overflow: hidden; text-overflow: ellipsis; }
+.team-rows { border-top: var(--border-width-thin) solid var(--border); }
+.team-rows-head, .team-row { display: flex; }
+.team-rows-head > span { flex: 1; padding: var(--spacing-2); border-bottom: var(--border-width-thin) solid var(--border); color: var(--muted-foreground); font-size: var(--text-meta); font-weight: var(--font-weight-semibold); }
+.team-row > * { flex: 1; min-width: 0; padding: var(--spacing-2); border-bottom: var(--border-width-thin) solid var(--border); }
+.team-rows-head > :first-child, .team-row-name { flex: 0 0 11.25rem; }
+.team-rows-head > :last-child, .team-row-done { flex: 0 0 5rem; }
+.team-row-name { font-size: var(--text-body); font-weight: var(--font-weight-semibold); }
+.cell-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.team-row-name .intent { display: block; margin-top: var(--spacing-0_5); color: var(--muted-foreground); font-size: var(--text-meta); font-weight: var(--font-weight-normal); }
+.team-row-cell { border-inline-start: var(--border-width-thick) solid var(--background); background: var(--muted); }
+
+/* The Tree: each Intent with what is finished and left; a branch opens on demand. */
+.tree { margin-top: var(--spacing-4); }
+.intents { margin-inline-start: var(--spacing-4); }
+.node-row { display: grid; grid-template-columns: minmax(0, 1fr) 5.625rem 7.5rem 7.5rem minmax(9.375rem, auto); align-items: center; gap: var(--spacing-3); padding: var(--spacing-2) 0; border-bottom: var(--border-width-thin) solid var(--border); }
+.disc { display: inline-flex; align-items: baseline; gap: var(--spacing-2); min-width: var(--size-target); min-height: var(--size-target); padding: 0; border: 0; background: none; text-align: start; font-weight: var(--font-weight-semibold); cursor: pointer; }
+.disc svg.icon { align-self: center; transition: transform var(--duration-fast) var(--ease-standard); }
+.disc[aria-expanded="true"] svg.icon { transform: rotate(90deg); }
+.disc-static { cursor: default; font-size: var(--text-title); }
+progress { appearance: none; width: 100%; height: var(--spacing-1_5); border: 0; border-radius: var(--radius-full); background: var(--border); overflow: hidden; }
+progress::-webkit-progress-bar { background: var(--border); }
+progress::-webkit-progress-value { background: var(--primary); }
+progress::-moz-progress-bar { background: var(--primary); }
+.node-prog, .node-left { white-space: nowrap; }
+.node-flags { display: inline-flex; flex-wrap: wrap; gap: var(--spacing-1) var(--spacing-2); }
+.node-flags .flag-muted { color: var(--foreground); font-weight: var(--font-weight-semibold); }
+.leaves { margin: var(--spacing-1) 0 var(--spacing-2) var(--spacing-6); border-inline-start: var(--border-width-thin) solid var(--border); }
+.leaves.flat { margin: var(--spacing-2) 0 0; border-inline-start: 0; border-top: var(--border-width-thin) solid var(--border); }
+.leaf { display: grid; grid-template-columns: 4rem minmax(0, 1fr) auto; align-items: baseline; gap: var(--spacing-1) var(--spacing-3); padding: var(--spacing-2) 0 var(--spacing-2) var(--spacing-3); border-bottom: var(--border-width-thin) solid var(--border); }
+.leaves.flat .leaf { padding-inline-start: 0; }
+/* An Intent's phases, each with its slices: the same rows as the leaves, a planned slice too. */
+.phases, .slices { list-style: none; margin: 0; padding: 0; }
+.phase-head { margin: var(--spacing-2) 0 var(--spacing-1) var(--spacing-6); font-weight: var(--font-weight-semibold); }
+.slices { margin: 0 0 var(--spacing-2) var(--spacing-6); border-inline-start: var(--border-width-thin) solid var(--border); }
+.slice { display: grid; grid-template-columns: 4rem minmax(0, 1fr) auto; align-items: baseline; gap: var(--spacing-1) var(--spacing-3); padding: var(--spacing-2) 0 var(--spacing-2) var(--spacing-3); border-bottom: var(--border-width-thin) solid var(--border); }
+.leaf-step { display: flex; gap: var(--spacing-2); align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.tree-loose { margin-top: var(--spacing-6); }
+.link-title { min-width: var(--size-target); min-height: var(--size-target); padding: 0; border: 0; background: none; text-align: start; font-weight: inherit; overflow-wrap: anywhere; cursor: pointer; }
+.link-title:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+
+/* The item page: what moves it first, then its Tasks, its last test run, and its history; the details beside them. */
+.item-page { padding-top: var(--spacing-4); }
+.back { display: inline-flex; align-items: center; gap: var(--spacing-1); min-height: var(--size-control); padding: 0 var(--spacing-2) 0 0; border: 0; background: none; color: var(--muted-foreground); cursor: pointer; }
+.crumbs { margin-top: var(--spacing-1_5); }
+.item-title { margin-top: var(--spacing-1); }
+.item-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-1_5) var(--spacing-3); margin-top: var(--spacing-2); }
+.item-grid { display: grid; grid-template-columns: minmax(0, 1fr) 18.75rem; gap: var(--spacing-8); margin-top: var(--spacing-4); align-items: start; }
+.next-box { display: grid; gap: var(--spacing-2); }
+.next-box .words > code { background: var(--background); }
+.next-blocked { border: var(--border-width-thick) solid var(--foreground); }
+.next-emergency { border: var(--border-width-thick) solid var(--emergency); }
+.next-stale { border: var(--border-width-thin) dashed var(--pending); }
+.sec { margin-top: var(--spacing-6); padding-bottom: var(--spacing-1_5); border-bottom: var(--border-width-thin) solid var(--border); font-size: var(--text-body); }
+.item-aside .sec { margin-top: 0; }
+.tasks li { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: var(--spacing-1) var(--spacing-3); padding: var(--spacing-2) 0; border-bottom: var(--border-width-thin) solid var(--border); }
+.task-title { overflow-wrap: anywhere; }
+.task-state { justify-self: end; align-self: start; text-align: end; }
+.tasks .note { grid-column: 2 / -1; padding: var(--spacing-1_5) var(--spacing-2); border-inline-start: var(--border-width-thick) solid var(--foreground); background: var(--muted); font-size: var(--text-meta); overflow-wrap: anywhere; }
+.tasks .note.note-wait { padding: 0; border: 0; background: none; color: var(--muted-foreground); font-family: inherit; font-size: inherit; }
+.evidence { padding: var(--spacing-2) 0; }
+.rel li { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--spacing-1) var(--spacing-2); padding: var(--spacing-2) 0; border-bottom: var(--border-width-thin) solid var(--border); }
+.question-sec > :not(h2), .paths, [data-field=unsaved] > :not(h2), .handoff > :not(h2) { margin-top: var(--spacing-2); }
+.question { font-size: var(--text-title); line-height: var(--text-title--line-height); }
+.history li { display: grid; grid-template-columns: 6rem minmax(0, 1fr) auto; gap: var(--spacing-3); padding: var(--spacing-2) 0; border-bottom: var(--border-width-thin) solid var(--border); }
+.item-aside .facts { padding-top: var(--spacing-2); }
+
+/* Search: ids and words in titles, any script, no fuzzy match. */
+.search-field { position: relative; display: flex; align-items: center; }
+.search-field > svg.icon { position: absolute; inset-inline-start: var(--spacing-3); color: var(--muted-foreground); pointer-events: none; }
+.search-field > .field { min-height: 2.75rem; padding-inline-start: calc(2 * var(--spacing-3) + var(--size-icon)); font-size: var(--text-title); }
+.hint { margin-top: var(--spacing-2); }
+.search-page .h2 { margin-top: var(--spacing-6); }
+.results { margin-top: var(--spacing-2); border-top: var(--border-width-thin) solid var(--border); }
+.result { display: grid; gap: var(--spacing-1); padding: var(--spacing-2) 0; border-bottom: var(--border-width-thin) solid var(--border); }
+.results-count { margin-top: var(--spacing-4); font-weight: var(--font-weight-semibold); }
+.results-count:empty { display: none; }
+
+/* Keyboard shortcuts: a page, drawn as the system's dialog. */
+.keys-page { max-width: 37.5rem; }
+.keys-page .dialog { width: auto; }
+.keys-page .dialog-head h1 { font-size: var(--text-title); }
+.keys-page .switch { margin-top: var(--spacing-3); }
+.switch + .muted { margin-top: var(--spacing-1); }
+.switch[aria-checked="true"] .is-off, .switch[aria-checked="false"] .is-on { display: none; }
+.keys { width: 100%; margin-top: var(--spacing-3); border-collapse: collapse; }
+.keys th, .keys td { padding: var(--spacing-2) var(--spacing-2) var(--spacing-2) 0; border-bottom: var(--border-width-thin) solid var(--border); text-align: start; font-weight: var(--font-weight-normal); }
+.keys thead th { color: var(--muted-foreground); font-size: var(--text-meta); }
+.keys td.off, .keys-page .now .is-off { color: var(--muted-foreground); }
+.keys .now { white-space: nowrap; }
+.keys-page:has(.switch[aria-checked="false"]) .now .is-on, .keys-page:has(.switch[aria-checked="true"]) .now .is-off { display: none; }
+.links { display: grid; gap: var(--spacing-1_5); margin-top: var(--spacing-2); }
+
+/* The foot of every view: when the page was written, and this view's link. */
+.board-wrap + .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--spacing-0_5) var(--spacing-4); width: auto; max-width: none; margin: var(--spacing-1) var(--spacing-4) 0; padding: var(--spacing-1_5) 0 var(--spacing-2); }
+.link-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-1_5) var(--spacing-2); }
+.link-line code { color: var(--foreground); }
+
+/* Up to 1023 wide: the Board's columns scroll sideways, and the item's details move under it. */
+@media (width < 64rem) {
+  .cols { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(16.25rem, 40%); overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: var(--spacing-2); }
+  .col { scroll-snap-align: start; }
+  .columns-strip { display: flex; gap: var(--spacing-1_5); margin: 0 0 var(--spacing-2); overflow-x: auto; }
+  .columns-strip a { flex: none; }
+  .team-rows-head { display: none; }
+  .team-row { display: block; padding-top: var(--spacing-1_5); border-bottom: var(--border-width-thin) solid var(--border); }
+  .team-row > * { padding: 0; border: 0; background: none; }
+  .team-row-name { padding: var(--spacing-2) 0 var(--spacing-0_5); font-size: var(--text-title); }
+  .cell-name { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal; margin: var(--spacing-2) 0 var(--spacing-1_5); color: var(--muted-foreground); font-size: var(--text-meta); font-weight: var(--font-weight-semibold); }
+  .team-row-done { display: flex; align-items: baseline; gap: var(--spacing-2); margin: var(--spacing-2) 0 var(--spacing-3); }
+  .team-row-done .cell-name { margin: 0; }
+  .item-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .item-aside { margin-top: var(--spacing-6); }
+  .banner .end-words { margin-inline-start: 0; }
+  .node-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-1) var(--spacing-3); }
+  .node-row .disc { flex: 1 1 100%; }
+  .node-row progress { flex: 0 0 6rem; }
+  .node-prog, .node-left { white-space: normal; }
+}
+/* Below a phone's width: the tabs take their own row, and the Board's options fold into one button. */
+@media (width < 40rem) {
+  .topbar { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name end" "tabs tabs"; gap: 0 var(--spacing-3); }
+  .topbar-name { grid-area: name; min-height: 3rem; align-items: center; }
+  .topbar-end { grid-area: end; }
+  .tabs { grid-area: tabs; min-height: 2.5rem; }
+  .search-btn { width: var(--size-control); justify-content: center; padding: 0; border-color: transparent; background: none; }
+  .search-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .search-btn kbd { display: none; }
+  .banner { display: block; }
+  .banner-fold { display: flex; align-items: center; gap: var(--spacing-2); font-weight: var(--font-weight-semibold); }
+  .banner-fold > svg.icon { color: var(--emergency); stroke-width: 2; }
+  .callout-overdue .banner-fold > svg.icon { color: var(--emergency-foreground); }
+  .banner-fold > span { flex: 1; min-width: 0; }
+  .banner-full { display: none; }
+  .banner-expanded .banner-full { display: flex; flex-direction: column; align-items: flex-start; gap: var(--spacing-2); margin-top: var(--spacing-2); }
+  .banner-expanded .banner-full .banner-label { display: none; }
+  .banner .end-words { margin-inline-start: 0; width: 100%; }
+  .page { padding-top: var(--spacing-4); }
+  .lead { font-size: var(--text-body); line-height: var(--text-body--line-height); }
+  .opts { display: none; }
+  .opts-btn { display: inline-flex; }
+  .board-head .team-filter { display: none; }
+  /* The team filter never scrolls sideways (WCAG 2.2 SC 1.4.10): its segments take two columns, as many rows as it needs. */
+  .team-filter { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .team-filter > button:nth-child(odd) { border-inline-start: 0; }
+  .team-filter > button:nth-child(n + 3) { border-top: var(--border-width-thin) solid var(--border); }
+  .cols { grid-auto-columns: 84%; }
+  .leaf, .slice { grid-template-columns: minmax(0, 1fr); padding-inline-start: var(--spacing-2); }
+  .leaf-step { justify-content: flex-start; }
+  .history li { grid-template-columns: minmax(0, 1fr) auto; }
+  .history li > :first-child { grid-column: 1 / -1; }
+  .views-help { grid-template-columns: minmax(0, 1fr); gap: var(--spacing-0_5); }
+  .views-help dd { margin-bottom: var(--spacing-2); }
+}

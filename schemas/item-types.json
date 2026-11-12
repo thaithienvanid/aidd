@@ -1,0 +1,139 @@
+{
+  "description": "One row for each type of thing aidd tracks or writes: a work item, a document a Spec links, a document the repository has one of, and each other file `aidd new` writes. A row gives the type's group (how `aidd new` writes it), its form, its id, its folder, its templates, its schema, and its statuses. `aidd new`, `aidd status`, `aidd validate`, and `aidd explain` read the rows, so a new type is a row. The order of the rows is the order `aidd new --list` and the choices of `aidd new` give. Who owns each document and whether it is frozen or living are in `loop.documents` of schemas/roles.json.",
+  "groups": {
+    "work_items": "work items",
+    "operations": "operations",
+    "linked": "documents a Spec links",
+    "standalone": "living documents that stand alone",
+    "repository": "the repository's one of each",
+    "contract": "a proposal's contract",
+    "exploration": "a choice between directions"
+  },
+  "common_documents": ["tech-spec", "adr", "api", "threat-model", "design-spec", "runbook"],
+  "types": {
+    "spec": {
+      "group": "work_items",
+      "form": "work_item",
+      "noun": "a Spec",
+      "backlog": true,
+      "id_prefix": "SPEC",
+      "parent": "intent",
+      "schema": "spec.schema.json",
+      "statuses": "common.schema.json#/$defs/status",
+      "explained_by_schema": true,
+      "folder": "{specs}",
+      "templates": { "default": "spec.md", "short": "spec-short.md" }
+    },
+    "intent": {
+      "group": "work_items",
+      "form": "work_item",
+      "noun": "an Intent",
+      "backlog": true,
+      "id_prefix": "INTENT",
+      "schema": "intent.schema.json",
+      "statuses": "common.schema.json#/$defs/intent_status",
+      "explained_by_schema": true,
+      "folder": "{specs}",
+      "templates": { "default": "intent.md" },
+      "next": "quote the request, fill the goal and the phases' slices, and ask the person to agree to it"
+    },
+    "proposal": {
+      "group": "work_items",
+      "form": "work_item",
+      "noun": "a proposal",
+      "id_prefix": "PROP",
+      "schema": "proposal.schema.json",
+      "statuses": "proposal.schema.json#/properties/status",
+      "explained_by_schema": true,
+      "folder": "{proposals}",
+      "templates": { "default": "proposal.md" },
+      "next": "fill the needs and the goal, have a person record go_no_go"
+    },
+    "runbook": {
+      "group": "operations",
+      "form": "typed_document",
+      "noun": "a runbook",
+      "schema": "runbook.schema.json",
+      "folder": "docs/runbooks",
+      "templates": { "default": "runbook.md" },
+      "next": "name the service, write steps a person can copy, run it once, record tested_on"
+    },
+    "postmortem": {
+      "group": "operations",
+      "form": "typed_document",
+      "noun": "a postmortem",
+      "schema": "postmortem.schema.json",
+      "folder": "docs/postmortems",
+      "templates": { "default": "postmortem.md" },
+      "next": "fill the timeline, causes, and action items with owners and dates"
+    },
+    "tech-spec": { "group": "linked", "form": "document", "templates": { "default": "tech-spec.md" } },
+    "test-plan": { "group": "linked", "form": "document", "templates": { "default": "test-plan.md", "living": "test-plan-living.md" } },
+    "adr": { "group": "linked", "form": "document", "folder": "<loop.documents>", "templates": { "default": "adr.md" } },
+    "threat-model": { "group": "linked", "form": "document", "templates": { "default": "threat-model.md" } },
+    "authz-matrix": { "group": "linked", "form": "document", "templates": { "default": "authz-matrix.md" } },
+    "design-spec": { "group": "linked", "form": "document", "templates": { "default": "design-spec.md" } },
+    "api": { "group": "linked", "form": "document", "templates": { "default": "api.md" } },
+    "slo": { "group": "linked", "form": "document", "templates": { "default": "slo.md" } },
+    "compliance-record": { "group": "linked", "form": "document", "templates": { "default": "compliance-record.md" } },
+    "tracking-plan": { "group": "linked", "form": "document", "templates": { "default": "tracking-plan.md" } },
+    "migration-plan": { "group": "linked", "form": "document", "templates": { "default": "migration-plan.md" } },
+    "acceptance": { "group": "linked", "form": "document", "templates": { "default": "acceptance.md" } },
+    "feedback": {
+      "group": "standalone",
+      "form": "typed_document",
+      "folder": "<loop.documents>",
+      "templates": { "default": "feedback.md" },
+      "next": "add a row per piece of feedback, as it arrives, with its source; a person confirms each",
+      "without_spec": "each entry names its Spec or hypothesis in its row"
+    },
+    "service-card": {
+      "group": "standalone",
+      "form": "document",
+      "folder": "<loop.documents>",
+      "templates": { "default": "service-card.md" },
+      "next": "replace the TODOs; the SRE folds a Spec's approved SLO delta into this file in the same change",
+      "without_spec": "it covers its subject across every Spec"
+    },
+    "srs": {
+      "group": "standalone",
+      "form": "document",
+      "templates": { "default": "srs.md" },
+      "next": "read it, and export it at handover; it is derived from the work items, so change a Spec and run `aidd new srs` again",
+      "without_spec": "its topic is an Intent, or `product`"
+    },
+    "design-system": {
+      "group": "repository",
+      "form": "document",
+      "files": [
+        { "path": "DESIGN.md", "template": "DESIGN.md" },
+        { "path": "design/tokens.json", "template": "tokens.json" },
+        { "path": "design/build.mjs", "template": "design-build.mjs" }
+      ]
+    },
+    "architecture": { "group": "repository", "form": "document", "files": [{ "path": "<loop.documents>", "template": "architecture.md" }] },
+    "data-map": { "group": "repository", "form": "document", "files": [{ "path": "{docs}/data-map.md", "template": "data-map.md" }] },
+    "vendors": { "group": "repository", "form": "document", "files": [{ "path": "{docs}/vendors.md", "template": "vendors.md" }] },
+    "glossary": { "group": "repository", "form": "document", "files": [{ "path": "<loop.documents>", "template": "glossary.md" }] },
+    "vulnerability-policy": {
+      "group": "repository",
+      "form": "document",
+      "files": [{ "path": "{docs}/security/vulnerability-policy.md", "template": "vulnerability-policy.md" }]
+    },
+    "agents": { "group": "repository", "form": "document", "files": [{ "path": "AGENTS.md", "template": "agents.md" }] },
+    "product-brief": { "group": "repository", "form": "document", "files": [{ "path": "<loop.documents>", "template": "product-brief.md" }] },
+    "metrics-dictionary": { "group": "repository", "form": "document", "files": [{ "path": "<loop.documents>", "template": "metrics-dictionary.md" }] },
+    "control-register": { "group": "repository", "form": "document", "files": [{ "path": "<loop.documents>", "template": "control-register.md" }] },
+    "improvement-log": { "group": "repository", "form": "document", "files": [{ "path": "<loop.documents>", "template": "improvement-log.md" }] },
+    "contract": { "group": "contract", "form": "document", "templates": { "default": "contract.md", "change_order": "change-order.md" } },
+    "exploration": {
+      "group": "exploration",
+      "form": "typed_document",
+      "schema": "exploration.schema.json",
+      "explained_by_schema": true,
+      "inside_work_item": true,
+      "templates": { "default": "exploration.md" }
+    },
+    "product-prototype": { "group": "repository", "form": "document" }
+  }
+}

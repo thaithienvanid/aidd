@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src &#x27;none&#x27;; style-src &#x27;sha256-Vzco3sh2GTkYAPRKlD0eIo7QwA4LlmWRMxol42aUcEc=&#x27;; img-src data:; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design system reference: aidd's built-in pages</title>
+<!-- Built from src/aidd/views/design/tokens.json and components.css. A person rebuilds it by hand after a
+     change to either file, and test_design_system fails when its
+     style, token list, or contrast table drifts from them. Every value on this page comes from those two files, and each
+     component shows in each state it draws, in both themes. It is the target of the fidelity pass: a page's component
+     matches its specimen here. DESIGN.md says what each one is for. -->
+<style>/* Generated from src/aidd/views/design/tokens.json by `aidd gen-docs`: never edit by hand. */
+:root {
+  --spacing-0_5: 0.125rem;
+  --spacing-1: 0.25rem;
+  --spacing-1_5: 0.375rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --size-control: 1.875rem;
+  --size-target: 1.5rem;
+  --size-icon: 1rem;
+  --size-bar: 3.25rem;
+  --container-dialog: 28rem;
+  --container-text: 48rem;
+  --container-prose: 32rem;
+  --container-page: 64rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-full: 9999px;
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --font-sans: system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --text-meta: 0.75rem;
+  --text-meta--line-height: 1.35;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.5;
+  --text-title: 1rem;
+  --text-title--line-height: 1.3;
+  --text-display: 1.25rem;
+  --text-display--line-height: 1.25;
+  --border-width-thin: 1px;
+  --border-width-thick: 2px;
+  --focus-width: 2px;
+  --focus-offset: 2px;
+  --focus-halo: 4px;
+  --focus-field-halo: 3px;
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-raised: 0 1px 2px var(--shadow-color), 0 2px 8px var(--shadow-color);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration-fast: 0ms; --duration-base: 0ms; }
+}
+:root, [data-theme="light"] {
+  color-scheme: light;
+  --background: #fafaf9;
+  --foreground: #1c1b19;
+  --card: #ffffff;
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: #4d4b47;
+  --primary-foreground: var(--background);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --muted: #f4f4f2;
+  --muted-foreground: #5b5955;
+  --accent: #ebeae7;
+  --accent-foreground: var(--foreground);
+  --destructive: var(--fail);
+  --border: color-mix(in srgb, var(--foreground) 12%, transparent);
+  --input: #87847e;
+  --ring: #2563eb;
+  --ring-halo: color-mix(in srgb, var(--ring) 25%, transparent);
+  --link: #1d5fd1;
+  --backdrop: #e8e7e4;
+  --scrim: rgb(28 27 25 / 0.45);
+  --shadow-color: rgb(28 27 25 / 0.08);
+  --pass: #17764c;
+  --fail: #be1e3c;
+  --pending: var(--muted-foreground);
+  --warn: #8f5a00;
+  --warn-subtle: #fcf4e2;
+  --emergency: #b83d0b;
+  --emergency-foreground: #ffffff;
+  --emergency-subtle: #fdede4;
+  --comment: #6d28d9;
+  --comment-foreground: #ffffff;
+  --comment-subtle: #f3eefe;
+  --diff-added: #e4f4ea;
+  --diff-removed: #fcebe8;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #151514;
+  --foreground: #e4e2de;
+  --card: #1e1e1c;
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: #d0cec9;
+  --primary-foreground: var(--background);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --muted: #1b1b19;
+  --muted-foreground: #b9b6b0;
+  --accent: #282725;
+  --accent-foreground: var(--foreground);
+  --destructive: var(--fail);
+  --border: color-mix(in srgb, var(--foreground) 12%, transparent);
+  --input: #7e7b75;
+  --ring: #60a5fa;
+  --ring-halo: color-mix(in srgb, var(--ring) 25%, transparent);
+  --link: #8cb4ff;
+  --backdrop: #232321;
+  --scrim: rgb(0 0 0 / 0.6);
+  --shadow-color: rgb(0 0 0 / 0.45);
+  --pass: #5bc98b;
+  --fail: #ff8a9b;
+  --pending: var(--muted-foreground);
+  --warn: #f0b94e;
+  --warn-subtle: #2f2710;
+  --emergency: #ff8f57;
+  --emergency-foreground: #1a0d06;
+  --emergency-subtle: #392218;
+  --comment: #c4a7ff;
+  --comment-foreground: var(--background);
+  --comment-subtle: #272140;
+  --diff-added: #14301f;
+  --diff-removed: #3a1d1c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --background: #151514;
+    --foreground: #e4e2de;
+    --card: #1e1e1c;
+    --card-foreground: var(--foreground);
+    --popover: var(--card);
+    --popover-foreground: var(--foreground);
+    --primary: #d0cec9;
+    --primary-foreground: var(--background);
+    --secondary: var(--muted);
+    --secondary-foreground: var(--foreground);
+    --muted: #1b1b19;
+    --muted-foreground: #b9b6b0;
+    --accent: #282725;
+    --accent-foreground: var(--foreground);
+    --destructive: var(--fail);
+    --border: color-mix(in srgb, var(--foreground) 12%, transparent);
+    --input: #7e7b75;
+    --ring: #60a5fa;
+    --ring-halo: color-mix(in srgb, var(--ring) 25%, transparent);
+    --link: #8cb4ff;
+    --backdrop: #232321;
+    --scrim: rgb(0 0 0 / 0.6);
+    --shadow-color: rgb(0 0 0 / 0.45);
+    --pass: #5bc98b;
+    --fail: #ff8a9b;
+    --pending: var(--muted-foreground);
+    --warn: #f0b94e;
+    --warn-subtle: #2f2710;
+    --emergency: #ff8f57;
+    --emergency-foreground: #1a0d06;
+    --emergency-subtle: #392218;
+    --comment: #c4a7ff;
+    --comment-foreground: var(--background);
+    --comment-subtle: #272140;
+    --diff-added: #14301f;
+    --diff-removed: #3a1d1c;
+  }
+}
+/* The components of aidd's built-in pages, one source: the prototype viewer, its design format doc,
+   `aidd status --html`, and `aidd explore` each read this file after the tokens. DESIGN.md says what each component
+   is for and the states it draws. Every value is a token: a length here is 0, a percentage, an em of the text it sits
+   in, or a calc of tokens. A page's own CSS lays out its page and adds no component. */
+
+/* Base: the page, text, and focus. */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scrollbar-gutter: stable; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans); font-size: var(--text-body); line-height: var(--text-body--line-height); font-variant-numeric: tabular-nums; }
+h1, h2, h3, h4, p, ol, ul, dl, dd, figure { margin: 0; }
+h1 { font-size: var(--text-display); line-height: var(--text-display--line-height); font-weight: var(--font-weight-semibold); overflow-wrap: anywhere; }
+h2, h3 { font-size: var(--text-title); line-height: var(--text-title--line-height); font-weight: var(--font-weight-semibold); }
+h4 { font-size: var(--text-body); font-weight: var(--font-weight-semibold); }
+p, li, dd, td { overflow-wrap: anywhere; }
+button, input, select, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+::selection { background: var(--accent); color: var(--foreground); }
+/* Focus is blue, its own hue, so it never reads as pressed or chosen. A button, a link, a tab, a segment, and the switch
+   draw an outline offset from them, with a halo in the page's color that keeps it clear of a fill. */
+:focus-visible { outline: var(--focus-width) solid var(--ring); outline-offset: var(--focus-offset); box-shadow: 0 0 0 var(--focus-halo) var(--background); }
+.sr-only, .skip:not(:focus) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+svg.icon { width: var(--size-icon); height: var(--size-icon); flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Skip link: the first stop on every page, shown only while it has focus. */
+.skip { position: absolute; z-index: 50; left: var(--spacing-2); top: var(--spacing-2); padding: var(--spacing-1_5) var(--spacing-3); border: var(--border-width-thin) solid var(--foreground); border-radius: var(--radius-md); background: var(--background); color: var(--foreground); }
+
+/* Page shell: the top bar, then one main column, then the foot. */
+.shell { min-height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.page { width: 100%; max-width: var(--container-text); margin-inline: auto; padding: var(--spacing-6) var(--spacing-4) var(--spacing-2); }
+.page-wide { max-width: var(--container-page); }
+.page-head { display: grid; gap: var(--spacing-1); margin-bottom: var(--spacing-4); }
+.lead { color: var(--muted-foreground); font-size: var(--text-title); line-height: var(--text-title--line-height); }
+/* Prose: a block a person reads runs about 80 characters a line; a one-line row may run wider, so no blanket p rule. */
+.prose { max-inline-size: var(--container-prose); }
+.foot { display: grid; gap: var(--spacing-1_5); width: 100%; max-width: var(--container-page); margin: var(--spacing-6) auto 0; padding: var(--spacing-3) var(--spacing-4) var(--spacing-6); border-top: var(--border-width-thin) solid var(--border); color: var(--muted-foreground); }
+.section { margin-top: var(--spacing-6); }
+.section > h2 { padding-bottom: var(--spacing-1_5); margin-bottom: var(--spacing-3); border-bottom: var(--border-width-thin) solid var(--border); }
+
+/* Top bar: the product's name and what the page is, the views as tabs, then the tools. */
+.topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--spacing-4); min-height: var(--size-bar); padding-inline: var(--spacing-3); border-bottom: var(--border-width-thin) solid var(--border); background: var(--background); }
+.topbar-name { display: flex; align-items: baseline; gap: var(--spacing-2); min-width: 0; white-space: nowrap; }
+.topbar-name b { font-size: var(--text-title); font-weight: var(--font-weight-semibold); }
+.topbar-name span { color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; }
+.topbar-end { display: flex; justify-content: flex-end; align-items: center; gap: var(--spacing-1_5); min-width: 0; }
+/* Toolbar: a row of controls for the view below it. */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-2); padding: var(--spacing-2) var(--spacing-3); border-bottom: var(--border-width-thin) solid var(--border); background: var(--background); }
+.toolbar .grow { flex: 1; min-width: 0; }
+
+/* Tabs: one view at a time; the current one is in the text's color with a bar under it. */
+.tabs { display: flex; gap: var(--spacing-6); align-self: stretch; }
+.tabs > :is(a, button) { position: relative; display: inline-flex; align-items: center; min-height: var(--size-target); padding: 0 var(--spacing-1); border: 0; background: none; color: var(--muted-foreground); font-weight: var(--font-weight-medium); text-decoration: none; cursor: pointer; }
+.tabs > :is(a, button):hover { color: var(--foreground); }
+.tabs > [aria-current="page"], .tabs > [aria-selected="true"] { color: var(--foreground); }
+.tabs > [aria-current="page"]::after, .tabs > [aria-selected="true"]::after { content: ""; position: absolute; inset-inline: 0; bottom: calc(-1 * var(--border-width-thin)); height: var(--border-width-thick); background: var(--foreground); }
+
+/* Buttons: an outline by default; one primary per view; quiet in a toolbar; square for an icon alone. A row's next-step
+   words (.words-next) turn their Copy primary while the row is the current one, as the view's one primary. A fill that
+   turns on or off switches at once, both ways: a fade would pass through tones its text cannot be read on. */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-1_5); min-height: var(--size-control); min-width: var(--size-target); padding: 0 var(--spacing-3); border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-md); background: var(--background); color: var(--foreground); text-decoration: none; white-space: nowrap; cursor: pointer; transition: background-color var(--duration-fast) var(--ease-standard); }
+.btn:hover, .btn[aria-expanded="true"] { background: var(--accent); }
+.btn[aria-pressed="true"], .switch[aria-checked="true"] .switch-state { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.btn:disabled, .btn[aria-disabled="true"] { border-color: var(--border); background: var(--background); color: var(--muted-foreground); cursor: not-allowed; }
+.btn-primary, .btn-primary:hover, [aria-current="true"] .words-next > .btn { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); font-weight: var(--font-weight-semibold); }
+.btn-primary, .words-next > .btn, .btn[aria-pressed] { transition: none; }
+.btn-quiet { border-color: transparent; background: none; color: var(--muted-foreground); }
+.btn-quiet:hover { color: var(--foreground); }
+.btn-icon { width: var(--size-control); padding: 0; }
+.btn-comment { border-color: var(--comment); color: var(--comment); font-weight: var(--font-weight-semibold); }
+.btn-comment[aria-pressed="true"] { background: var(--comment); border-color: var(--comment); color: var(--comment-foreground); }
+.btn-block { width: 100%; }
+:is(.btn-primary, .btn[aria-pressed="true"]) kbd { border-color: currentColor; background: transparent; color: inherit; }
+
+/* Segmented control: one choice from a few, as one control; the chosen segment is filled. */
+.seg { display: inline-flex; max-width: 100%; overflow-x: auto; border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-md); background: var(--background); }
+.seg > button { display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-1_5); flex: none; min-height: calc(var(--size-control) - 2 * var(--border-width-thin)); min-width: var(--size-target); padding: 0 var(--spacing-2); border: 0; background: none; color: var(--muted-foreground); cursor: pointer; }
+.seg > button + button { border-inline-start: var(--border-width-thin) solid var(--border); }
+.seg > button:first-child { border-start-start-radius: calc(var(--radius-md) - var(--border-width-thin)); border-end-start-radius: calc(var(--radius-md) - var(--border-width-thin)); }
+.seg > button:last-child { border-start-end-radius: calc(var(--radius-md) - var(--border-width-thin)); border-end-end-radius: calc(var(--radius-md) - var(--border-width-thin)); }
+.seg > button:hover { color: var(--foreground); }
+/* The segment scrolls on a narrow screen, which would clip an outline outside it: its ring sits inside, on a halo. */
+.seg > button:focus-visible { outline-offset: calc(-1 * var(--focus-width)); box-shadow: inset 0 0 0 calc(2 * var(--focus-width)) var(--background); }
+.seg > button[aria-pressed="true"] { background: var(--primary); color: var(--primary-foreground); }
+.seg > button[aria-pressed="true"] .count { color: inherit; }
+
+/* Links: a link is blue, the one accent, with a soft underline that turns solid on hover; a quiet link in a toolbar or a foot is muted. */
+a, .link { color: var(--link); text-decoration-color: color-mix(in srgb, var(--link) 40%, transparent); text-decoration-thickness: from-font; text-underline-offset: 0.2em; }
+a:hover, .link:hover { text-decoration-color: currentColor; }
+.link { display: inline-flex; align-items: center; min-height: var(--size-target); padding: 0; border: 0; background: none; text-align: start; text-decoration-line: underline; text-decoration-thickness: auto; cursor: pointer; }
+.link-quiet { color: var(--muted-foreground); text-decoration-color: var(--input); }
+.link-quiet:hover { color: var(--foreground); }
+
+/* Fields: a text field, a search, a select; one size, the control's. */
+.field, .select { min-height: var(--size-control); padding: 0 var(--spacing-2); border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-md); background: var(--background); color: var(--foreground); }
+.field { width: 100%; }
+.field::placeholder { color: var(--muted-foreground); opacity: 1; }
+/* A focused field draws no outline and no gap: its border turns to the ring and doubles inside, with a soft halo outside. */
+:is(.field, .select):focus-visible { outline: none; border-color: var(--ring); box-shadow: inset 0 0 0 var(--border-width-thin) var(--ring), 0 0 0 var(--focus-field-halo) var(--ring-halo); }
+textarea.field { min-height: calc(3 * var(--size-control)); padding-block: var(--spacing-1); }
+.select { padding-inline-end: var(--spacing-6); font-weight: var(--font-weight-semibold); cursor: pointer; }
+.label { display: grid; gap: var(--spacing-1); color: var(--muted-foreground); }
+
+/* Switch: on or off, its word beside it in a pill that fills when on. */
+.switch { display: inline-flex; align-items: center; gap: var(--spacing-2); min-height: var(--size-target); padding: 0; border: 0; background: none; color: var(--foreground); font-weight: var(--font-weight-semibold); text-align: start; cursor: pointer; }
+.switch-state { min-width: 2.5em; padding: 0 var(--spacing-1_5); border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-full); color: var(--muted-foreground); font-size: var(--text-meta); font-weight: var(--font-weight-semibold); text-align: center; }
+
+/* kbd: a key to press. */
+kbd { display: inline-block; min-width: 1.75em; padding: 0 var(--spacing-1); border: var(--border-width-thin) solid var(--input); border-bottom-width: var(--border-width-thick); border-radius: var(--radius-sm); background: var(--background); color: var(--muted-foreground); font-family: var(--font-sans); font-size: var(--text-meta); font-weight: var(--font-weight-medium); line-height: var(--text-meta--line-height); text-align: center; }
+
+/* Count: a number in text, after a heading or as "1 of 4". Badge: a number in a pill, on a control or a pin. */
+.count { color: var(--muted-foreground); font-weight: var(--font-weight-normal); }
+.badge { display: inline-flex; align-items: center; justify-content: center; min-width: calc(var(--size-icon) + var(--spacing-0_5)); padding: 0 var(--spacing-1); border-radius: var(--radius-full); background: var(--primary); color: var(--primary-foreground); font-size: var(--text-meta); font-weight: var(--font-weight-semibold); line-height: var(--text-meta--line-height); }
+.badge-comment { background: var(--comment); color: var(--comment-foreground); }
+
+/* Flag: a state in a word, with its icon. Color never carries it alone. */
+.flag { display: inline-flex; align-items: center; gap: var(--spacing-1); font-size: var(--text-meta); font-weight: var(--font-weight-semibold); line-height: var(--text-meta--line-height); white-space: nowrap; color: var(--foreground); }
+.flag svg.icon { width: 1em; height: 1em; stroke-width: 2.2; }
+.flag-muted { color: var(--muted-foreground); font-weight: var(--font-weight-medium); }
+.flag-strong { padding: var(--spacing-0_5) var(--spacing-1_5); border-radius: var(--radius-sm); background: var(--primary); color: var(--primary-foreground); }
+.flag-pending { padding: 0 var(--spacing-1_5); border: var(--border-width-thin) dashed var(--pending); border-radius: var(--radius-sm); color: var(--muted-foreground); }
+.flag-pass { color: var(--pass); }
+.flag-fail { color: var(--fail); }
+.flag-warn { color: var(--warn); }
+.flag-emergency { color: var(--emergency); }
+
+/* Box: a panel that groups. Callout: a box that says something about the page; notice and emergency are its variants. */
+.box { padding: var(--spacing-3) var(--spacing-4); border: var(--border-width-thin) solid var(--border); border-radius: var(--radius-lg); background: var(--muted); }
+.callout { display: flex; gap: var(--spacing-2); align-items: flex-start; padding: var(--spacing-2) var(--spacing-4); border-bottom: var(--border-width-thin) solid var(--border); background: var(--muted); }
+.callout > svg.icon { margin-top: 0.15em; }
+.callout-notice { background: var(--warn-subtle); border-bottom-color: var(--warn); }
+.callout-notice > svg.icon { color: var(--warn); }
+.callout-emergency { background: var(--emergency-subtle); border-bottom: var(--border-width-thick) solid var(--emergency); }
+.callout-emergency > svg.icon { color: var(--emergency); stroke-width: 2; }
+.callout-overdue { background: var(--emergency); border-bottom-color: var(--emergency); color: var(--emergency-foreground); }
+.callout-overdue :is(svg.icon, a, .link, .id, .count, .flag, code) { color: var(--emergency-foreground); }
+.callout-overdue .btn svg.icon { color: inherit; }
+.callout-overdue :focus-visible { outline-color: var(--emergency-foreground); box-shadow: 0 0 0 var(--focus-halo) var(--emergency); }
+.box > .callout, .box .callout { border-radius: var(--radius-md); border: 0; }
+
+/* Table: a header row on the panel's color, hairlines between rows, and a scroll inside its own box on a narrow screen. */
+.table-wrap { max-width: 100%; overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; }
+.table caption { padding-bottom: var(--spacing-1_5); color: var(--muted-foreground); text-align: start; }
+.table th, .table td { padding: var(--spacing-1_5) var(--spacing-2); border-bottom: var(--border-width-thin) solid var(--border); text-align: start; vertical-align: top; }
+.table thead th { background: var(--muted); color: var(--muted-foreground); font-size: var(--text-meta); font-weight: var(--font-weight-semibold); }
+
+/* Facts list: a term and its value per row; one column on a phone. */
+.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--spacing-2) var(--spacing-4); }
+.facts dt { color: var(--muted-foreground); }
+@media (width < 40rem) { .facts { grid-template-columns: minmax(0, 1fr); gap: 0; } .facts dd { margin-bottom: var(--spacing-2); } }
+
+/* Code: ids, paths, and commands in the mono face, never prose. Words to copy: the one line a person pastes, with Copy. */
+code, pre, .mono { font-family: var(--font-mono); font-size: var(--text-meta); }
+code { overflow-wrap: anywhere; }
+pre { margin: 0; padding: var(--spacing-2) var(--spacing-3); border: var(--border-width-thin) solid var(--border); border-radius: var(--radius-md); background: var(--muted); overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.id { color: var(--muted-foreground); font-family: var(--font-mono); font-size: var(--text-meta); white-space: nowrap; }
+.words { display: flex; align-items: stretch; gap: var(--spacing-1_5); min-width: 0; }
+.words > :is(code, pre) { flex: 1; min-width: 0; display: flex; align-items: center; min-height: var(--size-control); padding: var(--spacing-1) var(--spacing-2); border: var(--border-width-thin) solid var(--border); border-radius: var(--radius-md); background: var(--muted); color: var(--foreground); white-space: pre-wrap; user-select: all; }
+.words-label { color: var(--muted-foreground); font-size: var(--text-meta); }
+@media (width < 40rem) { .words { flex-wrap: wrap; } .words > :is(code, pre) { flex-basis: 100%; } .words > .btn { flex: 1; } }
+.diff > span { display: block; padding-inline: var(--spacing-2); }
+.diff .add { background: var(--diff-added); }
+.diff .del { background: var(--diff-removed); }
+
+/* Current and chosen: the row a keyboard cursor points at has a bar and the hover color; a chosen option is filled.
+   Focus stays the ring, so the three never look alike. */
+.row { display: block; padding: var(--spacing-2) var(--spacing-3); border-inline-start: var(--border-width-thick) solid transparent; }
+.row:hover { background: var(--accent); }
+.row[aria-current="true"] { border-inline-start-color: var(--foreground); background: var(--accent); }
+.option { display: flex; align-items: center; gap: var(--spacing-2); width: 100%; min-height: var(--size-control); padding: 0 var(--spacing-2); border: 0; border-radius: var(--radius-md); background: none; text-align: start; cursor: pointer; }
+.option:hover { background: var(--accent); }
+.option[aria-checked="true"], .option[aria-selected="true"] { background: var(--primary); color: var(--primary-foreground); font-weight: var(--font-weight-semibold); }
+
+/* Progress: a hairline track and a primary fill; the words beside it say what it counts, so it is never the only cue. */
+.meter { display: block; height: var(--spacing-1_5); border-radius: var(--radius-full); background: var(--border); overflow: hidden; }
+.meter > span { display: block; height: 100%; background: var(--primary); }
+
+/* Toast: an outcome, for a few seconds, at the foot of the window. The live region says it once. */
+.toast { position: fixed; z-index: 40; inset-inline: 0; bottom: var(--spacing-4); width: max-content; max-width: min(var(--container-dialog), calc(100vw - 2 * var(--spacing-4))); margin-inline: auto; padding: var(--spacing-2) var(--spacing-3); border-radius: var(--radius-md); background: var(--primary); color: var(--primary-foreground); font-weight: var(--font-weight-semibold); text-align: center; box-shadow: var(--shadow-raised); }
+.toast:empty { display: none; }
+
+/* Dialog: the keys list, over a scrim; Esc closes it, and focus returns to the button that opened it. */
+.dialog { width: min(var(--container-dialog), calc(100vw - 2 * var(--spacing-4))); padding: 0; border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-lg); background: var(--popover); color: var(--popover-foreground); box-shadow: var(--shadow-raised); }
+.dialog::backdrop { background: var(--scrim); }
+.dialog-head { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-3); padding: var(--spacing-3) var(--spacing-4); border-bottom: var(--border-width-thin) solid var(--border); }
+.dialog-head h2 { font-size: var(--text-title); }
+.dialog-body { padding: var(--spacing-2) var(--spacing-4) var(--spacing-4); }
+
+/* States: empty says what is missing and the one next step; error says what happened and how to fix it; loading keeps
+   the layout and dims what is not there yet, with no spinner. */
+.state { display: grid; gap: var(--spacing-2); justify-items: start; padding: var(--spacing-4); border: var(--border-width-thin) solid var(--border); border-radius: var(--radius-lg); }
+.state h2 { display: flex; align-items: center; gap: var(--spacing-2); }
+.state-empty h2 > svg.icon { color: var(--pass); }
+.state-error { border-color: var(--warn); background: var(--warn-subtle); }
+.state-error h2 > svg.icon { color: var(--warn); }
+.placeholder { border-radius: var(--radius-sm); background: var(--muted); color: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0ms !important; animation: none !important; }
+}
+/* Forced colors: the system's colors replace these, and a fill vanishes; so a pressed, chosen, or current thing keeps a
+   system highlight, and a flag keeps its edge. */
+@media (forced-colors: active) {
+  :is(.btn[aria-pressed="true"], .seg > button[aria-pressed="true"], .option[aria-checked="true"], .option[aria-selected="true"], .switch[aria-checked="true"] .switch-state, .btn-primary, [aria-current="true"] .words-next > .btn, .flag-strong, .badge) { forced-color-adjust: none; background: SelectedItem; color: SelectedItemText; border-color: SelectedItem; }
+  .row[aria-current="true"] { border-inline-start-color: Highlight; }
+  .tabs > [aria-current="page"]::after, .tabs > [aria-selected="true"]::after { forced-color-adjust: none; background: Highlight; }
+  .meter { border: var(--border-width-thin) solid CanvasText; }
+  .meter > span { background: Highlight; forced-color-adjust: none; }
+  :focus-visible { outline-color: Highlight; }
+  :is(.field, .select):focus-visible { outline: var(--focus-width) solid transparent; }
+}
+/* The reference page's own layout: two theme columns of specimens. */
+.ref-themes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 36rem), 1fr)); gap: 0; }
+.ref-theme { min-width: 0; padding: var(--spacing-6) var(--spacing-4); background: var(--background); color: var(--foreground); }
+.ref-theme + .ref-theme { border-inline-start: var(--border-width-thin) solid var(--border); }
+.ref-theme > h2 { margin-bottom: var(--spacing-4); }
+.ref-group { margin-top: var(--spacing-8); }
+.ref-group > h3 { margin-bottom: var(--spacing-1); }
+.ref-group > p { margin-bottom: var(--spacing-3); color: var(--muted-foreground); }
+.ref-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-2); margin-top: var(--spacing-2); }
+.ref-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--spacing-2) var(--spacing-3); }
+.ref-swatch { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 var(--spacing-2); align-items: center; }
+.ref-chip { grid-row: span 2; width: var(--size-bar); height: var(--size-control); border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-sm); }
+.ref-swatch small { color: var(--muted-foreground); font-size: var(--text-meta); }
+.ref-scale { display: grid; grid-template-columns: max-content max-content minmax(0, 1fr); gap: var(--spacing-1_5) var(--spacing-3); align-items: center; }
+.ref-bar { height: var(--spacing-3); max-width: 100%; background: var(--foreground); }
+.ref-radius { width: var(--size-bar); height: var(--size-control); border: var(--border-width-thick) solid var(--foreground); }
+.ref-preview { padding: var(--spacing-4); border-radius: var(--radius-lg); background: var(--backdrop); }
+.ref-frame { position: relative; padding: var(--spacing-4); border: var(--border-width-thin) solid var(--input); border-radius: var(--radius-md); background: var(--background); }
+.ref-frame .badge { position: absolute; top: calc(-1 * var(--spacing-2)); inset-inline-end: calc(-1 * var(--spacing-2)); }
+.ref-inline-toast { position: static; margin: 0; }
+.ref-dialog { position: static; display: block; }
+.ref-stack { display: grid; gap: var(--spacing-2); }
+.ref-contrast td:nth-child(n+3) { font-family: var(--font-mono); font-size: var(--text-meta); white-space: nowrap; }
+[style-width="0_5"] { width: calc(var(--spacing-0_5) * 4); }
+[style-width="1"] { width: calc(var(--spacing-1) * 4); }
+[style-width="1_5"] { width: calc(var(--spacing-1_5) * 4); }
+[style-width="2"] { width: calc(var(--spacing-2) * 4); }
+[style-width="3"] { width: calc(var(--spacing-3) * 4); }
+[style-width="4"] { width: calc(var(--spacing-4) * 4); }
+[style-width="6"] { width: calc(var(--spacing-6) * 4); }
+[style-width="8"] { width: calc(var(--spacing-8) * 4); }
+[style-text="meta"] { font-size: var(--text-meta); line-height: var(--text-meta--line-height); }
+[style-text="body"] { font-size: var(--text-body); line-height: var(--text-body--line-height); }
+[style-text="title"] { font-size: var(--text-title); line-height: var(--text-title--line-height); }
+[style-text="display"] { font-size: var(--text-display); line-height: var(--text-display--line-height); }
+[style-radius="sm"] { border-radius: var(--radius-sm); }
+[style-radius="md"] { border-radius: var(--radius-md); }
+[style-radius="lg"] { border-radius: var(--radius-lg); }
+[style-radius="full"] { border-radius: var(--radius-full); }
+[data-role="background"] { background: var(--background); }
+[data-role="foreground"] { background: var(--foreground); }
+[data-role="card"] { background: var(--card); }
+[data-role="card-foreground"] { background: var(--card-foreground); }
+[data-role="popover"] { background: var(--popover); }
+[data-role="popover-foreground"] { background: var(--popover-foreground); }
+[data-role="primary"] { background: var(--primary); }
+[data-role="primary-foreground"] { background: var(--primary-foreground); }
+[data-role="secondary"] { background: var(--secondary); }
+[data-role="secondary-foreground"] { background: var(--secondary-foreground); }
+[data-role="muted"] { background: var(--muted); }
+[data-role="muted-foreground"] { background: var(--muted-foreground); }
+[data-role="accent"] { background: var(--accent); }
+[data-role="accent-foreground"] { background: var(--accent-foreground); }
+[data-role="destructive"] { background: var(--destructive); }
+[data-role="border"] { background: var(--border); }
+[data-role="input"] { background: var(--input); }
+[data-role="ring"] { background: var(--ring); }
+[data-role="ring-halo"] { background: var(--ring-halo); }
+[data-role="link"] { background: var(--link); }
+[data-role="backdrop"] { background: var(--backdrop); }
+[data-role="scrim"] { background: var(--scrim); }
+[data-role="shadow-color"] { background: var(--shadow-color); }
+[data-role="pass"] { background: var(--pass); }
+[data-role="fail"] { background: var(--fail); }
+[data-role="pending"] { background: var(--pending); }
+[data-role="warn"] { background: var(--warn); }
+[data-role="warn-subtle"] { background: var(--warn-subtle); }
+[data-role="emergency"] { background: var(--emergency); }
+[data-role="emergency-foreground"] { background: var(--emergency-foreground); }
+[data-role="emergency-subtle"] { background: var(--emergency-subtle); }
+[data-role="comment"] { background: var(--comment); }
+[data-role="comment-foreground"] { background: var(--comment-foreground); }
+[data-role="comment-subtle"] { background: var(--comment-subtle); }
+[data-role="diff-added"] { background: var(--diff-added); }
+[data-role="diff-removed"] { background: var(--diff-removed); }
+[style-pad="0"] { padding: 0; overflow: hidden; }
+[style-grow="1"] { flex: 1; min-width: 0; }
+[style-top="1"] { margin-top: var(--spacing-3); }
+[style-fill="33"] { width: 33%; }
+.is-focus { outline: var(--focus-width) solid var(--ring); outline-offset: var(--focus-offset); box-shadow: 0 0 0 var(--focus-halo) var(--background); }
+:is(.field, .select).is-focus { outline: none; border-color: var(--ring); box-shadow: inset 0 0 0 var(--border-width-thin) var(--ring), 0 0 0 var(--focus-field-halo) var(--ring-halo); }
+button).is-hover { color: var(--foreground); }
+.btn.is-hover { background: var(--accent); }
+.btn-primary.is-hover { background: var(--primary); }
+.btn-quiet.is-hover { color: var(--foreground); }
+.seg > button.is-hover { color: var(--foreground); }
+.link-quiet.is-hover { color: var(--foreground); }
+.callout-overdue .is-focus { outline-color: var(--emergency-foreground); box-shadow: 0 0 0 var(--focus-halo) var(--emergency); }
+.row.is-hover { background: var(--accent); }
+.option.is-hover { background: var(--accent); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the reference</a>
+<div class="shell">
+<header class="topbar"><div class="topbar-name"><b>aidd</b><span>Design system reference</span></div><nav class="tabs" aria-label="Sections"><a href="#tokens" aria-current="page">Tokens</a><a href="#light-h">Light</a><a href="#dark-h">Dark</a></nav><div class="topbar-end"></div></header>
+<main id="main">
+<div class="page page-wide"><div class="page-head"><h1>The design system of aidd's built-in pages</h1>
+<p class="lead">Color means a state; blue alone marks a link, focus, and the current thumbnail; nothing is decoration. The prototype viewer, its design format doc, <code>aidd status --html</code>, and <code>aidd explore</code> draw these tokens and components and no others.</p></div>
+<section class="section" id="tokens" aria-labelledby="tokens-h"><h2 id="tokens-h">Tokens</h2><div class="ref-group"><h3>Type</h3><p>The reader's system font; four sizes, each with its line height.</p><div class="ref-scale"><code>--text-meta</code><span>0.75rem / 1.35</span><span style-text="meta">The open work in shop</span><code>--text-body</code><span>0.875rem / 1.5</span><span style-text="body">The open work in shop</span><code>--text-title</code><span>1rem / 1.3</span><span style-text="title">The open work in shop</span><code>--text-display</code><span>1.25rem / 1.25</span><span style-text="display">The open work in shop</span></div></div><div class="ref-group"><h3>Spacing</h3><p>0.25rem times the step's name, as Tailwind v4 counts it.</p><div class="ref-scale"><code>--spacing-0_5</code><span>0.125rem</span><span class="ref-bar" style-width="0_5"></span><code>--spacing-1</code><span>0.25rem</span><span class="ref-bar" style-width="1"></span><code>--spacing-1_5</code><span>0.375rem</span><span class="ref-bar" style-width="1_5"></span><code>--spacing-2</code><span>0.5rem</span><span class="ref-bar" style-width="2"></span><code>--spacing-3</code><span>0.75rem</span><span class="ref-bar" style-width="3"></span><code>--spacing-4</code><span>1rem</span><span class="ref-bar" style-width="4"></span><code>--spacing-6</code><span>1.5rem</span><span class="ref-bar" style-width="6"></span><code>--spacing-8</code><span>2rem</span><span class="ref-bar" style-width="8"></span></div></div><div class="ref-group"><h3>Radius</h3><p>shadcn/ui's --radius is radius-lg.</p><div class="ref-scale"><code>--radius-sm</code><span>0.375rem</span><span class="ref-radius" style-radius="sm"></span><code>--radius-md</code><span>0.5rem</span><span class="ref-radius" style-radius="md"></span><code>--radius-lg</code><span>0.625rem</span><span class="ref-radius" style-radius="lg"></span><code>--radius-full</code><span>9999px</span><span class="ref-radius" style-radius="full"></span></div></div><div class="ref-group"><h3>Families, weights, sizes, borders, focus, motion, shadow, breakpoints</h3><dl class="facts"><dt><code>--font-sans</code></dt><dd>system-ui, -apple-system, &quot;Segoe UI Variable Text&quot;, &quot;Segoe UI&quot;, Roboto, sans-serif</dd><dt><code>--font-mono</code></dt><dd>ui-monospace, &quot;SF Mono&quot;, Menlo, Consolas, monospace</dd><dt><code>--font-weight-normal</code></dt><dd>400</dd><dt><code>--font-weight-medium</code></dt><dd>500</dd><dt><code>--font-weight-semibold</code></dt><dd>600</dd><dt><code>--size-control</code></dt><dd>1.875rem</dd><dt><code>--size-target</code></dt><dd>1.5rem</dd><dt><code>--size-icon</code></dt><dd>1rem</dd><dt><code>--size-bar</code></dt><dd>3.25rem</dd><dt><code>--container-dialog</code></dt><dd>28rem</dd><dt><code>--container-text</code></dt><dd>48rem</dd><dt><code>--container-prose</code></dt><dd>32rem</dd><dt><code>--container-page</code></dt><dd>64rem</dd><dt><code>--border-width-thin</code></dt><dd>1px</dd><dt><code>--border-width-thick</code></dt><dd>2px</dd><dt><code>--focus-width</code></dt><dd>2px</dd><dt><code>--focus-offset</code></dt><dd>2px</dd><dt><code>--focus-halo</code></dt><dd>4px</dd><dt><code>--focus-field-halo</code></dt><dd>3px</dd><dt><code>--duration-fast</code></dt><dd>120ms</dd><dt><code>--duration-base</code></dt><dd>200ms</dd><dt><code>--ease-standard</code></dt><dd>0.16, 1, 0.3, 1</dd><dt><code>--shadow-raised</code></dt><dd>0 1px 2px var(--shadow-color), 0 2px 8px var(--shadow-color)</dd><dt><code>--breakpoint-sm</code></dt><dd>40rem</dd><dt><code>--breakpoint-md</code></dt><dd>48rem</dd><dt><code>--breakpoint-lg</code></dt><dd>64rem</dd><dt><code>--breakpoint-xl</code></dt><dd>80rem</dd></dl></div>
+<div class="ref-group"><h3>Contrast</h3><p>Computed from tokens.json for both themes.</p><div class="table-wrap"><table class="table ref-contrast"><caption>Every pair a page draws, from tokens.json; text needs 4.5:1, an edge, icon, or fill 3:1</caption><thead><tr><th scope="col">Pair</th><th scope="col">Where</th><th scope="col">Least</th><th scope="col">Light</th><th scope="col">Dark</th></tr></thead><tbody><tr><td><code>foreground</code> on <code>background</code></td><td>body text</td><td>4.5</td><td>16.48</td><td>14.12</td></tr><tr><td><code>foreground</code> on <code>muted</code></td><td>text in a panel, a board column, a words-to-copy field</td><td>4.5</td><td>15.63</td><td>13.33</td></tr><tr><td><code>foreground</code> on <code>accent</code></td><td>text on a hovered or current row</td><td>4.5</td><td>14.30</td><td>11.54</td></tr><tr><td><code>foreground</code> on <code>backdrop</code></td><td>the viewer's caption and Board labels on the artboard</td><td>4.5</td><td>13.92</td><td>12.17</td></tr><tr><td><code>foreground</code> on <code>warn-subtle</code></td><td>text in a notice</td><td>4.5</td><td>15.72</td><td>11.44</td></tr><tr><td><code>foreground</code> on <code>emergency-subtle</code></td><td>text in the emergency banner</td><td>4.5</td><td>15.09</td><td>11.47</td></tr><tr><td><code>foreground</code> on <code>comment-subtle</code></td><td>text in the active comment</td><td>4.5</td><td>15.14</td><td>11.78</td></tr><tr><td><code>foreground</code> on <code>diff-added</code></td><td>an added line</td><td>4.5</td><td>15.10</td><td>11.03</td></tr><tr><td><code>foreground</code> on <code>diff-removed</code></td><td>a removed line</td><td>4.5</td><td>14.91</td><td>11.83</td></tr><tr><td><code>muted-foreground</code> on <code>background</code></td><td>secondary text, an id, a count</td><td>4.5</td><td>6.69</td><td>9.03</td></tr><tr><td><code>muted-foreground</code> on <code>muted</code></td><td>secondary text in a panel</td><td>4.5</td><td>6.35</td><td>8.53</td></tr><tr><td><code>muted-foreground</code> on <code>accent</code></td><td>secondary text on a hovered or current row</td><td>4.5</td><td>5.81</td><td>7.38</td></tr><tr><td><code>muted-foreground</code> on <code>backdrop</code></td><td>secondary text on the artboard</td><td>4.5</td><td>5.65</td><td>7.78</td></tr><tr><td><code>muted-foreground</code> on <code>comment-subtle</code></td><td>secondary text in the active comment</td><td>4.5</td><td>6.15</td><td>7.53</td></tr><tr><td><code>primary-foreground</code> on <code>primary</code></td><td>the primary button, a pressed segment, a chosen row, the Blocked flag, the toast</td><td>4.5</td><td>8.33</td><td>11.62</td></tr><tr><td><code>emergency-foreground</code> on <code>emergency</code></td><td>the overdue emergency banner</td><td>4.5</td><td>5.66</td><td>8.44</td></tr><tr><td><code>comment-foreground</code> on <code>comment</code></td><td>a comment pin and its count</td><td>4.5</td><td>7.10</td><td>8.98</td></tr><tr><td><code>pass</code> on <code>background</code></td><td>Passed, Done</td><td>4.5</td><td>5.39</td><td>8.85</td></tr><tr><td><code>pass</code> on <code>muted</code></td><td>the Done count in a board column</td><td>4.5</td><td>5.11</td><td>8.35</td></tr><tr><td><code>pass</code> on <code>accent</code></td><td>Passed or Done on a current row</td><td>4.5</td><td>4.68</td><td>7.23</td></tr><tr><td><code>fail</code> on <code>background</code></td><td>Failed</td><td>4.5</td><td>5.84</td><td>8.14</td></tr><tr><td><code>fail</code> on <code>accent</code></td><td>Failed on a current row</td><td>4.5</td><td>5.07</td><td>6.65</td></tr><tr><td><code>warn</code> on <code>background</code></td><td>a warning flag</td><td>4.5</td><td>5.54</td><td>10.23</td></tr><tr><td><code>warn</code> on <code>accent</code></td><td>a warning flag on a current row</td><td>4.5</td><td>4.81</td><td>8.35</td></tr><tr><td><code>emergency</code> on <code>background</code></td><td>the Emergency flag</td><td>4.5</td><td>5.42</td><td>8.11</td></tr><tr><td><code>emergency</code> on <code>accent</code></td><td>the Emergency flag on a current row or card</td><td>4.5</td><td>4.70</td><td>6.62</td></tr><tr><td><code>comment</code> on <code>background</code></td><td>Add a comment</td><td>4.5</td><td>6.80</td><td>8.98</td></tr><tr><td><code>input</code> on <code>background</code></td><td>the edge of a button or a field</td><td>3</td><td>3.57</td><td>4.33</td></tr><tr><td><code>input</code> on <code>muted</code></td><td>the edge of a control in a panel</td><td>3</td><td>3.39</td><td>4.09</td></tr><tr><td><code>input</code> on <code>backdrop</code></td><td>a device frame's edge on the artboard</td><td>3</td><td>3.02</td><td>3.73</td></tr><tr><td><code>ring</code> on <code>background</code></td><td>the focus ring</td><td>3</td><td>4.95</td><td>7.19</td></tr><tr><td><code>ring</code> on <code>muted</code></td><td>the focus ring in a panel</td><td>3</td><td>4.69</td><td>6.79</td></tr><tr><td><code>ring</code> on <code>accent</code></td><td>the focus ring on a hovered or current row</td><td>3</td><td>4.30</td><td>5.87</td></tr><tr><td><code>ring</code> on <code>border</code></td><td>the focus ring beside a hairline</td><td>3</td><td>3.89</td><td>5.37</td></tr><tr><td><code>ring</code> on <code>backdrop</code></td><td>the focus ring on the artboard</td><td>3</td><td>4.18</td><td>6.19</td></tr><tr><td><code>primary</code> on <code>background</code></td><td>a pressed segment's or chosen row's fill</td><td>3</td><td>8.33</td><td>11.62</td></tr><tr><td><code>primary</code> on <code>border</code></td><td>a meter's fill on its track</td><td>3</td><td>6.54</td><td>8.69</td></tr><tr><td><code>emergency</code> on <code>emergency-subtle</code></td><td>the emergency banner's icon and edge</td><td>3</td><td>4.96</td><td>6.58</td></tr><tr><td><code>comment</code> on <code>backdrop</code></td><td>a comment pin on the artboard</td><td>3</td><td>5.74</td><td>7.73</td></tr><tr><td><code>link</code> on <code>background</code></td><td>a link</td><td>4.5</td><td>5.57</td><td>8.78</td></tr><tr><td><code>link</code> on <code>muted</code></td><td>a link in a panel</td><td>4.5</td><td>5.28</td><td>8.29</td></tr><tr><td><code>link</code> on <code>card</code></td><td>a link on a card or in the dialog</td><td>4.5</td><td>5.82</td><td>8.02</td></tr><tr><td><code>link</code> on <code>accent</code></td><td>a link on a hovered or current row</td><td>4.5</td><td>4.84</td><td>7.17</td></tr><tr><td><code>foreground</code> on <code>card</code></td><td>text on a card or in the dialog</td><td>4.5</td><td>17.21</td><td>12.91</td></tr><tr><td><code>muted-foreground</code> on <code>card</code></td><td>secondary text on a card</td><td>4.5</td><td>6.99</td><td>8.25</td></tr><tr><td><code>ring</code> on <code>card</code></td><td>the focus ring on a card</td><td>3</td><td>5.17</td><td>6.57</td></tr><tr><td><code>pass</code> on <code>card</code></td><td>Done on a card</td><td>4.5</td><td>5.63</td><td>8.09</td></tr><tr><td><code>emergency</code> on <code>card</code></td><td>Emergency on a card</td><td>4.5</td><td>5.66</td><td>7.41</td></tr><tr><td><code>input</code> on <code>card</code></td><td>a control's edge on a card</td><td>3</td><td>3.73</td><td>3.96</td></tr><tr><td><code>fail</code> on <code>muted</code></td><td>Failed in a panel</td><td>4.5</td><td>5.54</td><td>7.69</td></tr><tr><td><code>warn</code> on <code>warn-subtle</code></td><td>a notice's icon, and its words in the warning hue</td><td>4.5</td><td>5.28</td><td>8.29</td></tr><tr><td><code>link</code> on <code>warn-subtle</code></td><td>a link inside a notice</td><td>4.5</td><td>5.31</td><td>7.11</td></tr><tr><td><code>link</code> on <code>emergency-subtle</code></td><td>a link inside the emergency banner</td><td>4.5</td><td>5.10</td><td>7.13</td></tr></tbody></table></div></div></section></div>
+<div class="ref-themes"><section class="ref-theme" data-theme="light" aria-labelledby="light-h"><h2 id="light-h">Light theme</h2><div class="ref-group"><h3>Colors</h3><p>Each role's value in this theme; a role that equals another names it.</p><div class="ref-swatches"><div class="ref-swatch"><span class="ref-chip" data-role="background"></span><code>--background</code><small>#fafaf9 · The page: an off-white, so a card and a dialog lift one step to white</small></div><div class="ref-swatch"><span class="ref-chip" data-role="foreground"></span><code>--foreground</code><small>#1c1b19 · Body text and headings</small></div><div class="ref-swatch"><span class="ref-chip" data-role="card"></span><code>--card</code><small>#ffffff · A card on a board column: white, one step above the off-white page, as a menu and the dialog are</small></div><div class="ref-swatch"><span class="ref-chip" data-role="card-foreground"></span><code>--card-foreground</code><small>= foreground</small></div><div class="ref-swatch"><span class="ref-chip" data-role="popover"></span><code>--popover</code><small>= card · A menu, the keys dialog, and the toast&#x27;s page behind it: a floating layer, with the one shadow</small></div><div class="ref-swatch"><span class="ref-chip" data-role="popover-foreground"></span><code>--popover-foreground</code><small>= foreground</small></div><div class="ref-swatch"><span class="ref-chip" data-role="primary"></span><code>--primary</code><small>#4d4b47 · The one primary action, a pressed segment, a chosen row, the Blocked flag, and the toast: a graphite fill one step off the text in light, a soft light grey in dark, so a large fill never glares</small></div><div class="ref-swatch"><span class="ref-chip" data-role="primary-foreground"></span><code>--primary-foreground</code><small>= background · Text and icons on a primary fill</small></div><div class="ref-swatch"><span class="ref-chip" data-role="secondary"></span><code>--secondary</code><small>= muted · Not drawn by a page today; kept for the shadcn/ui mapping</small></div><div class="ref-swatch"><span class="ref-chip" data-role="secondary-foreground"></span><code>--secondary-foreground</code><small>= foreground</small></div><div class="ref-swatch"><span class="ref-chip" data-role="muted"></span><code>--muted</code><small>#f4f4f2 · A panel, a callout, a board column, a words-to-copy field, a table&#x27;s header</small></div><div class="ref-swatch"><span class="ref-chip" data-role="muted-foreground"></span><code>--muted-foreground</code><small>#5b5955 · Secondary text: an id, a count, a time, a hint</small></div><div class="ref-swatch"><span class="ref-chip" data-role="accent"></span><code>--accent</code><small>#ebeae7 · A hovered control or row, and the current row a keyboard cursor points at</small></div><div class="ref-swatch"><span class="ref-chip" data-role="accent-foreground"></span><code>--accent-foreground</code><small>= foreground</small></div><div class="ref-swatch"><span class="ref-chip" data-role="destructive"></span><code>--destructive</code><small>= fail · An error; the pages offer no destructive action</small></div><div class="ref-swatch"><span class="ref-chip" data-role="border"></span><code>--border</code><small>foreground at 12% · A hairline between rows and around panels, and a meter&#x27;s track: the text at 12%, so it reads the same on every surface; decorative, so it needs no contrast</small></div><div class="ref-swatch"><span class="ref-chip" data-role="input"></span><code>--input</code><small>#87847e · The edge of a button, a field, a segment, and kbd</small></div><div class="ref-swatch"><span class="ref-chip" data-role="ring"></span><code>--ring</code><small>#2563eb · The focus ring, and the ring around the current thumbnail, such as a state on the prototype viewer&#x27;s Board: a blue of its own, so neither reads as pressed, chosen, or a state</small></div><div class="ref-swatch"><span class="ref-chip" data-role="ring-halo"></span><code>--ring-halo</code><small>ring at 25% · The soft halo outside a focused field: the ring at 25%, which the CSS writes as a color-mix of the ring</small></div><div class="ref-swatch"><span class="ref-chip" data-role="link"></span><code>--link</code><small>#1d5fd1 · A link&#x27;s text: where you can go. Never a fill, and never a state</small></div><div class="ref-swatch"><span class="ref-chip" data-role="backdrop"></span><code>--backdrop</code><small>#e8e7e4 · The neutral artboard a design frame or a screenshot sits on, so neither a light nor a dark design is judged against a tint</small></div><div class="ref-swatch"><span class="ref-chip" data-role="scrim"></span><code>--scrim</code><small>#1c1b19 at 0.45 · Behind a dialog</small></div><div class="ref-swatch"><span class="ref-chip" data-role="shadow-color"></span><code>--shadow-color</code><small>#1c1b19 at 0.08 · The ink of the one shadow, under a floating layer</small></div><div class="ref-swatch"><span class="ref-chip" data-role="pass"></span><code>--pass</code><small>#17764c · A run that passed, and finished work. Never a state a person has only looked at</small></div><div class="ref-swatch"><span class="ref-chip" data-role="fail"></span><code>--fail</code><small>#be1e3c · A run that failed</small></div><div class="ref-swatch"><span class="ref-chip" data-role="pending"></span><code>--pending</code><small>= muted-foreground · Waits: not run, not answered, not seen. Neutral, because waiting is the normal state; a dashed outline carries it</small></div><div class="ref-swatch"><span class="ref-chip" data-role="warn"></span><code>--warn</code><small>#8f5a00 · Look at this, though nothing stopped: a file aidd cannot read, an overdue flag, a link that opened something else</small></div><div class="ref-swatch"><span class="ref-chip" data-role="warn-subtle"></span><code>--warn-subtle</code><small>#fcf4e2 · A notice&#x27;s background</small></div><div class="ref-swatch"><span class="ref-chip" data-role="emergency"></span><code>--emergency</code><small>#b83d0b · An open emergency: a production repair. Always with its icon and the word Emergency</small></div><div class="ref-swatch"><span class="ref-chip" data-role="emergency-foreground"></span><code>--emergency-foreground</code><small>#ffffff · Text on an emergency fill: the overdue banner</small></div><div class="ref-swatch"><span class="ref-chip" data-role="emergency-subtle"></span><code>--emergency-subtle</code><small>#fdede4 · The emergency banner&#x27;s background</small></div><div class="ref-swatch"><span class="ref-chip" data-role="comment"></span><code>--comment</code><small>#6d28d9 · A person&#x27;s or an agent&#x27;s comment on a design: its pin, its count, and Add a comment. Only the viewer draws it</small></div><div class="ref-swatch"><span class="ref-chip" data-role="comment-foreground"></span><code>--comment-foreground</code><small>#ffffff · Text on a comment fill</small></div><div class="ref-swatch"><span class="ref-chip" data-role="comment-subtle"></span><code>--comment-subtle</code><small>#f3eefe · The active comment&#x27;s background, and selected text in the viewer</small></div><div class="ref-swatch"><span class="ref-chip" data-role="diff-added"></span><code>--diff-added</code><small>#e4f4ea · An added line, with its + sign</small></div><div class="ref-swatch"><span class="ref-chip" data-role="diff-removed"></span><code>--diff-removed</code><small>#fcebe8 · A removed line, with its - sign</small></div></div></div><div id="light-tabs"></div>
+<div class="ref-group"><h3>Top bar, tabs, and toolbar</h3><p>The name and what the page is; the views; then the tools.</p>
+<div class="box" style-pad="0"><div class="topbar"><div class="topbar-name"><b>shop</b><span>Written 7 Nov, 12:40</span></div>
+<nav class="tabs" aria-label="Views, light"><a href="#light-tabs" aria-current="page">Needs you</a><a href="#light-tabs">Board</a><a href="#light-tabs" class="is-hover">Tree</a></nav>
+<div class="topbar-end"><button class="btn" type="button"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5"/><path d="m10.4 10.4 3.4 3.4"/></svg><span>Search</span><kbd>/</kbd></button><button class="btn btn-quiet btn-icon" type="button" aria-label="Keyboard shortcuts"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M4 6.5h.1M6.5 6.5h.1M9 6.5h.1M11.5 6.5h.1M4.5 9.5h7"/></svg></button></div></div>
+<div class="toolbar"><div class="seg" role="group" aria-label="Columns, light"><button type="button" aria-pressed="true">Stages</button><button type="button" aria-pressed="false">Status groups</button></div>
+<div class="seg" role="group" aria-label="Teams, light"><button type="button" aria-pressed="true">All teams</button><button type="button" aria-pressed="false">Checkout <span class="count">2</span></button><button type="button" aria-pressed="false" class="is-hover">Catalog <span class="count">1</span></button></div>
+<span class="grow"></span><select class="select" aria-label="Intent, light"><option>All Intents</option></select></div></div></div>
+
+<div class="ref-group"><h3>Buttons</h3><p>Outline by default; one primary per view; quiet in a bar; square for an icon alone.</p>
+<div class="ref-row"><button class="btn" type="button">Default</button><button class="btn is-hover" type="button">Hover</button><button class="btn is-focus" type="button">Focus</button><button class="btn" type="button" aria-pressed="true">Pressed</button><button class="btn" type="button" aria-expanded="true">Open</button><button class="btn" type="button" disabled>Disabled</button></div>
+<div class="ref-row"><button class="btn btn-primary" type="button">Next state you haven't seen <kbd>N</kbd></button><button class="btn btn-primary is-focus" type="button">Focus on primary</button></div>
+<div class="ref-row"><button class="btn btn-quiet" type="button">Quiet</button><button class="btn btn-quiet is-hover" type="button">Quiet hover</button><button class="btn btn-icon" type="button" aria-label="Search"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5"/><path d="m10.4 10.4 3.4 3.4"/></svg></button><button class="btn btn-comment" type="button">+ Add a comment <kbd>C</kbd></button><button class="btn btn-comment" type="button" aria-pressed="true">Adding a comment</button></div></div>
+
+<div class="ref-group"><h3>Links, fields, and the switch</h3><p>A link in text is underlined in the text's color; a quiet link sits in a foot or a bar.</p>
+<p>Read <a href="#light-tabs">the Spec</a>, then <button class="link" type="button">open its item page</button>. <a class="link-quiet" href="#light-tabs">Copy link</a></p>
+<div class="ref-row"><label class="label" style-grow="1">Find a screen or state<input class="field" type="search" placeholder="Search by id or title"></label></div>
+<div class="ref-row"><input class="field is-focus" type="text" value="SPEC-12" aria-label="Focused field, light"></div>
+<div class="ref-row"><button class="switch" type="button" role="switch" aria-checked="true">Single-key shortcuts <span class="switch-state">On</span></button><button class="switch" type="button" role="switch" aria-checked="false">Text at 200% <span class="switch-state">Off</span></button></div></div>
+
+<div class="ref-group"><h3>kbd, count, and badge</h3><p>A key to press; a number in text; a number in a pill.</p>
+<div class="ref-row"><kbd>J</kbd><kbd>K</kbd><kbd>Enter</kbd><kbd>?</kbd><span>Needs you <span class="count">4</span></span><span>Sign in <span class="count">1 of 4</span></span><span class="badge">3</span><span class="badge badge-comment">2</span></div></div>
+
+<div class="ref-group"><h3>Flags</h3><p>A state in a word with its icon; color never carries it alone.</p>
+<div class="ref-row"><span class="flag flag-strong"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="M5 8h6"/></svg>Blocked</span><span class="flag"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="3" fill="currentColor" stroke="none"/></svg>Needs you</span><span class="flag"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="m5.3 8.2 1.9 1.9 3.6-3.8"/></svg>Seen</span><span class="flag flag-muted"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.8V8l2.2 1.4"/></svg>Waits for SPEC-14</span><span class="flag flag-pending">Not run yet</span></div>
+<div class="ref-row"><span class="flag flag-pass"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="m5.3 8.2 1.9 1.9 3.6-3.8"/></svg>Passed</span><span class="flag flag-fail"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="m5.9 5.9 4.2 4.2M10.1 5.9l-4.2 4.2"/></svg>Failed</span><span class="flag flag-warn"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg>Unreadable</span><span class="flag flag-emergency"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg>Emergency</span></div></div>
+
+<div class="ref-group"><h3>Box and callouts</h3><p>A box groups; a callout says something about the page.</p>
+<div class="ref-stack"><div class="box"><h4>Waits for Spec approval</h4><p>The agent asked for Spec approval of SPEC-12: Mai answers yes, or says what to change.</p></div>
+<div class="callout callout-notice" role="note"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg><p><b>specs/SPEC-30.md</b> could not be read: line 4: a key has no value. Fix the line, then run <code>aidd status --html</code> again.</p></div>
+<div class="callout callout-emergency" role="note"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg><p><b>Emergency</b> <span class="id">SPEC-41</span> <a href="#light-tabs">Restore card payments after the gateway timeout</a>. Review due Mon 9 Nov, in 2 days.</p></div>
+<div class="callout callout-overdue" role="note"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg><p><b>Emergency, review overdue</b> <span class="id">SPEC-41</span> <a href="#light-tabs">Restore card payments</a>. The review was due 1 day ago.</p><button class="btn" type="button"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></svg>Copy</button></div></div></div>
+
+<div class="ref-group"><h3>Table and facts list</h3><p>A header on the panel's color and hairlines between rows; facts as term and value.</p>
+<div class="table-wrap"><table class="table"><caption>Tasks of SPEC-17</caption><thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">State</th></tr></thead>
+<tbody><tr><td class="id">T1</td><td>Read the supplier CSV</td><td><span class="flag flag-pass"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="m5.3 8.2 1.9 1.9 3.6-3.8"/></svg>Done</span></td></tr><tr><td class="id">T2</td><td>Map supplier categories</td><td><span class="flag flag-strong"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="M5 8h6"/></svg>Stopped</span></td></tr></tbody></table></div>
+<dl class="facts" style-top="1"><dt>Status</dt><dd>Ready</dd><dt>Team</dt><dd>Checkout</dd><dt>File</dt><dd><code>specs/SPEC-12.md</code></dd></dl></div>
+
+<div class="ref-group"><h3>Code and words to copy</h3><p>Mono for ids, paths, and commands, never prose; the words a person pastes, with Copy.</p>
+<p class="words-label">Say to your agent: the next step this view leads with, so Copy is primary</p><div class="words"><code id="light-w1">Show me SPEC-12 for Spec approval</code><button class="btn btn-primary" type="button" aria-label="Copy the words: Show me SPEC-12 for Spec approval"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></svg>Copy</button></div>
+<p class="words-label" style-top="1">Say to your agent: any other row, so Copy is a default button</p><div class="words"><code id="light-w2">Show me the report on SPEC-14 for Merge approval</code><button class="btn" type="button" aria-label="Copy the words: Show me the report on SPEC-14 for Merge approval"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></svg>Copy</button></div>
+<pre class="diff" style-top="1"><span class="del">- timebox: 1d</span><span class="add">+ timebox: 2d</span><span>  status: open</span></pre></div>
+
+<div class="ref-group"><h3>Current and chosen rows, progress</h3><p>The keyboard cursor's row has a bar; a chosen option is filled; focus is the ring.</p>
+<div class="ref-stack"><div class="row">SPEC-14 Send a receipt email after checkout</div><div class="row" aria-current="true">SPEC-12 Let a shopper save a cart for later (current)</div><div class="row is-hover">SPEC-23 Rate-limit the search endpoint (hover)</div></div>
+<div role="radiogroup" aria-label="States, light" class="ref-stack" style-top="1"><button class="option" role="radio" aria-checked="true" type="button">Empty <kbd>1</kbd></button><button class="option" role="radio" aria-checked="false" type="button">Loading <kbd>2</kbd></button><button class="option is-focus" role="radio" aria-checked="false" type="button">Error, focused <kbd>3</kbd></button></div>
+<div class="ref-row"><span>3 of 9 finished</span><span class="meter" style-grow="1" role="img" aria-label="3 of 9 finished"><span style-fill="33"></span></span></div></div>
+
+<div class="ref-group"><h3>Toast and dialog</h3><p>An outcome for a few seconds; the keys list over a scrim.</p>
+<div class="ref-stack"><p class="toast ref-inline-toast">Copied the words for SPEC-12</p>
+<div class="dialog ref-dialog" role="group" aria-label="Keyboard shortcuts, light"><div class="dialog-head"><h2>Keyboard shortcuts</h2><button class="btn btn-quiet btn-icon" type="button" aria-label="Close">×</button></div>
+<div class="dialog-body"><dl class="facts"><dt>Next item</dt><dd><kbd>J</kbd></dd><dt>Open it</dt><dd><kbd>Enter</kbd></dd></dl></div></div></div></div>
+
+<div class="ref-group"><h3>States: empty, error, loading</h3><p>Each says what happened and the one next step.</p>
+<div class="ref-stack"><div class="state state-empty"><h2><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="m5.3 8.2 1.9 1.9 3.6-3.8"/></svg>Nothing waits for you</h2><p>Your agents move 20 Specs. Run <code>aidd status --html</code> again after the next step.</p></div>
+<div class="state state-error" role="note"><h2><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg>This page could not read 1 file</h2><p><code>specs/SPEC-30.md</code>, line 4: a key has no value. Fix it, then run <code>aidd status --html</code> again.</p></div>
+<div class="state" aria-busy="true"><h2><span class="placeholder">Loading the Board</span></h2><p><span class="placeholder">Each cell loads as it scrolls into view.</span></p></div></div></div>
+
+<div class="ref-group"><h3>Artboard and comment pin</h3><p>The viewer's neutral artboard under a design, and a comment's pin.</p>
+<div class="ref-preview"><div class="ref-frame"><span class="badge badge-comment">1</span><p>A design frame on the artboard.</p></div></div></div>
+</section><section class="ref-theme" data-theme="dark" aria-labelledby="dark-h"><h2 id="dark-h">Dark theme</h2><div class="ref-group"><h3>Colors</h3><p>Each role's value in this theme; a role that equals another names it.</p><div class="ref-swatches"><div class="ref-swatch"><span class="ref-chip" data-role="background"></span><code>--background</code><small>#151514 · The page: an off-white, so a card and a dialog lift one step to white</small></div><div class="ref-swatch"><span class="ref-chip" data-role="foreground"></span><code>--foreground</code><small>#e4e2de · Body text and headings</small></div><div class="ref-swatch"><span class="ref-chip" data-role="card"></span><code>--card</code><small>#1e1e1c · Raised one step above the page in dark mode</small></div><div class="ref-swatch"><span class="ref-chip" data-role="card-foreground"></span><code>--card-foreground</code><small>= foreground</small></div><div class="ref-swatch"><span class="ref-chip" data-role="popover"></span><code>--popover</code><small>= card · A menu, the keys dialog, and the toast&#x27;s page behind it: a floating layer, with the one shadow</small></div><div class="ref-swatch"><span class="ref-chip" data-role="popover-foreground"></span><code>--popover-foreground</code><small>= foreground</small></div><div class="ref-swatch"><span class="ref-chip" data-role="primary"></span><code>--primary</code><small>#d0cec9 · The one primary action, a pressed segment, a chosen row, the Blocked flag, and the toast: a graphite fill one step off the text in light, a soft light grey in dark, so a large fill never glares</small></div><div class="ref-swatch"><span class="ref-chip" data-role="primary-foreground"></span><code>--primary-foreground</code><small>= background · Text and icons on a primary fill</small></div><div class="ref-swatch"><span class="ref-chip" data-role="secondary"></span><code>--secondary</code><small>= muted · Not drawn by a page today; kept for the shadcn/ui mapping</small></div><div class="ref-swatch"><span class="ref-chip" data-role="secondary-foreground"></span><code>--secondary-foreground</code><small>= foreground</small></div><div class="ref-swatch"><span class="ref-chip" data-role="muted"></span><code>--muted</code><small>#1b1b19 · A panel, a callout, a board column, a words-to-copy field, a table&#x27;s header</small></div><div class="ref-swatch"><span class="ref-chip" data-role="muted-foreground"></span><code>--muted-foreground</code><small>#b9b6b0 · Secondary text: an id, a count, a time, a hint</small></div><div class="ref-swatch"><span class="ref-chip" data-role="accent"></span><code>--accent</code><small>#282725 · A hovered control or row, and the current row a keyboard cursor points at</small></div><div class="ref-swatch"><span class="ref-chip" data-role="accent-foreground"></span><code>--accent-foreground</code><small>= foreground</small></div><div class="ref-swatch"><span class="ref-chip" data-role="destructive"></span><code>--destructive</code><small>= fail · An error; the pages offer no destructive action</small></div><div class="ref-swatch"><span class="ref-chip" data-role="border"></span><code>--border</code><small>foreground at 12% · A hairline between rows and around panels, and a meter&#x27;s track: the text at 12%, so it reads the same on every surface; decorative, so it needs no contrast</small></div><div class="ref-swatch"><span class="ref-chip" data-role="input"></span><code>--input</code><small>#7e7b75 · The edge of a button, a field, a segment, and kbd</small></div><div class="ref-swatch"><span class="ref-chip" data-role="ring"></span><code>--ring</code><small>#60a5fa · The focus ring, and the ring around the current thumbnail, such as a state on the prototype viewer&#x27;s Board: a blue of its own, so neither reads as pressed, chosen, or a state</small></div><div class="ref-swatch"><span class="ref-chip" data-role="ring-halo"></span><code>--ring-halo</code><small>ring at 25% · The soft halo outside a focused field: the ring at 25%, which the CSS writes as a color-mix of the ring</small></div><div class="ref-swatch"><span class="ref-chip" data-role="link"></span><code>--link</code><small>#8cb4ff · A link&#x27;s text: where you can go. Never a fill, and never a state</small></div><div class="ref-swatch"><span class="ref-chip" data-role="backdrop"></span><code>--backdrop</code><small>#232321 · The neutral artboard a design frame or a screenshot sits on, so neither a light nor a dark design is judged against a tint</small></div><div class="ref-swatch"><span class="ref-chip" data-role="scrim"></span><code>--scrim</code><small>#000000 at 0.6 · Behind a dialog</small></div><div class="ref-swatch"><span class="ref-chip" data-role="shadow-color"></span><code>--shadow-color</code><small>#000000 at 0.45 · The ink of the one shadow, under a floating layer</small></div><div class="ref-swatch"><span class="ref-chip" data-role="pass"></span><code>--pass</code><small>#5bc98b · A run that passed, and finished work. Never a state a person has only looked at</small></div><div class="ref-swatch"><span class="ref-chip" data-role="fail"></span><code>--fail</code><small>#ff8a9b · A run that failed</small></div><div class="ref-swatch"><span class="ref-chip" data-role="pending"></span><code>--pending</code><small>= muted-foreground · Waits: not run, not answered, not seen. Neutral, because waiting is the normal state; a dashed outline carries it</small></div><div class="ref-swatch"><span class="ref-chip" data-role="warn"></span><code>--warn</code><small>#f0b94e · Look at this, though nothing stopped: a file aidd cannot read, an overdue flag, a link that opened something else</small></div><div class="ref-swatch"><span class="ref-chip" data-role="warn-subtle"></span><code>--warn-subtle</code><small>#2f2710 · A notice&#x27;s background</small></div><div class="ref-swatch"><span class="ref-chip" data-role="emergency"></span><code>--emergency</code><small>#ff8f57 · An open emergency: a production repair. Always with its icon and the word Emergency</small></div><div class="ref-swatch"><span class="ref-chip" data-role="emergency-foreground"></span><code>--emergency-foreground</code><small>#1a0d06 · Text on an emergency fill: the overdue banner</small></div><div class="ref-swatch"><span class="ref-chip" data-role="emergency-subtle"></span><code>--emergency-subtle</code><small>#392218 · The emergency banner&#x27;s background</small></div><div class="ref-swatch"><span class="ref-chip" data-role="comment"></span><code>--comment</code><small>#c4a7ff · A person&#x27;s or an agent&#x27;s comment on a design: its pin, its count, and Add a comment. Only the viewer draws it</small></div><div class="ref-swatch"><span class="ref-chip" data-role="comment-foreground"></span><code>--comment-foreground</code><small>= background · Text on a comment fill</small></div><div class="ref-swatch"><span class="ref-chip" data-role="comment-subtle"></span><code>--comment-subtle</code><small>#272140 · The active comment&#x27;s background, and selected text in the viewer</small></div><div class="ref-swatch"><span class="ref-chip" data-role="diff-added"></span><code>--diff-added</code><small>#14301f · An added line, with its + sign</small></div><div class="ref-swatch"><span class="ref-chip" data-role="diff-removed"></span><code>--diff-removed</code><small>#3a1d1c · A removed line, with its - sign</small></div></div></div><div id="dark-tabs"></div>
+<div class="ref-group"><h3>Top bar, tabs, and toolbar</h3><p>The name and what the page is; the views; then the tools.</p>
+<div class="box" style-pad="0"><div class="topbar"><div class="topbar-name"><b>shop</b><span>Written 7 Nov, 12:40</span></div>
+<nav class="tabs" aria-label="Views, dark"><a href="#dark-tabs" aria-current="page">Needs you</a><a href="#dark-tabs">Board</a><a href="#dark-tabs" class="is-hover">Tree</a></nav>
+<div class="topbar-end"><button class="btn" type="button"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5"/><path d="m10.4 10.4 3.4 3.4"/></svg><span>Search</span><kbd>/</kbd></button><button class="btn btn-quiet btn-icon" type="button" aria-label="Keyboard shortcuts"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M4 6.5h.1M6.5 6.5h.1M9 6.5h.1M11.5 6.5h.1M4.5 9.5h7"/></svg></button></div></div>
+<div class="toolbar"><div class="seg" role="group" aria-label="Columns, dark"><button type="button" aria-pressed="true">Stages</button><button type="button" aria-pressed="false">Status groups</button></div>
+<div class="seg" role="group" aria-label="Teams, dark"><button type="button" aria-pressed="true">All teams</button><button type="button" aria-pressed="false">Checkout <span class="count">2</span></button><button type="button" aria-pressed="false" class="is-hover">Catalog <span class="count">1</span></button></div>
+<span class="grow"></span><select class="select" aria-label="Intent, dark"><option>All Intents</option></select></div></div></div>
+
+<div class="ref-group"><h3>Buttons</h3><p>Outline by default; one primary per view; quiet in a bar; square for an icon alone.</p>
+<div class="ref-row"><button class="btn" type="button">Default</button><button class="btn is-hover" type="button">Hover</button><button class="btn is-focus" type="button">Focus</button><button class="btn" type="button" aria-pressed="true">Pressed</button><button class="btn" type="button" aria-expanded="true">Open</button><button class="btn" type="button" disabled>Disabled</button></div>
+<div class="ref-row"><button class="btn btn-primary" type="button">Next state you haven't seen <kbd>N</kbd></button><button class="btn btn-primary is-focus" type="button">Focus on primary</button></div>
+<div class="ref-row"><button class="btn btn-quiet" type="button">Quiet</button><button class="btn btn-quiet is-hover" type="button">Quiet hover</button><button class="btn btn-icon" type="button" aria-label="Search"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5"/><path d="m10.4 10.4 3.4 3.4"/></svg></button><button class="btn btn-comment" type="button">+ Add a comment <kbd>C</kbd></button><button class="btn btn-comment" type="button" aria-pressed="true">Adding a comment</button></div></div>
+
+<div class="ref-group"><h3>Links, fields, and the switch</h3><p>A link in text is underlined in the text's color; a quiet link sits in a foot or a bar.</p>
+<p>Read <a href="#dark-tabs">the Spec</a>, then <button class="link" type="button">open its item page</button>. <a class="link-quiet" href="#dark-tabs">Copy link</a></p>
+<div class="ref-row"><label class="label" style-grow="1">Find a screen or state<input class="field" type="search" placeholder="Search by id or title"></label></div>
+<div class="ref-row"><input class="field is-focus" type="text" value="SPEC-12" aria-label="Focused field, dark"></div>
+<div class="ref-row"><button class="switch" type="button" role="switch" aria-checked="true">Single-key shortcuts <span class="switch-state">On</span></button><button class="switch" type="button" role="switch" aria-checked="false">Text at 200% <span class="switch-state">Off</span></button></div></div>
+
+<div class="ref-group"><h3>kbd, count, and badge</h3><p>A key to press; a number in text; a number in a pill.</p>
+<div class="ref-row"><kbd>J</kbd><kbd>K</kbd><kbd>Enter</kbd><kbd>?</kbd><span>Needs you <span class="count">4</span></span><span>Sign in <span class="count">1 of 4</span></span><span class="badge">3</span><span class="badge badge-comment">2</span></div></div>
+
+<div class="ref-group"><h3>Flags</h3><p>A state in a word with its icon; color never carries it alone.</p>
+<div class="ref-row"><span class="flag flag-strong"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="M5 8h6"/></svg>Blocked</span><span class="flag"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="3" fill="currentColor" stroke="none"/></svg>Needs you</span><span class="flag"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="m5.3 8.2 1.9 1.9 3.6-3.8"/></svg>Seen</span><span class="flag flag-muted"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.8V8l2.2 1.4"/></svg>Waits for SPEC-14</span><span class="flag flag-pending">Not run yet</span></div>
+<div class="ref-row"><span class="flag flag-pass"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="m5.3 8.2 1.9 1.9 3.6-3.8"/></svg>Passed</span><span class="flag flag-fail"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="m5.9 5.9 4.2 4.2M10.1 5.9l-4.2 4.2"/></svg>Failed</span><span class="flag flag-warn"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg>Unreadable</span><span class="flag flag-emergency"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg>Emergency</span></div></div>
+
+<div class="ref-group"><h3>Box and callouts</h3><p>A box groups; a callout says something about the page.</p>
+<div class="ref-stack"><div class="box"><h4>Waits for Spec approval</h4><p>The agent asked for Spec approval of SPEC-12: Mai answers yes, or says what to change.</p></div>
+<div class="callout callout-notice" role="note"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg><p><b>specs/SPEC-30.md</b> could not be read: line 4: a key has no value. Fix the line, then run <code>aidd status --html</code> again.</p></div>
+<div class="callout callout-emergency" role="note"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg><p><b>Emergency</b> <span class="id">SPEC-41</span> <a href="#dark-tabs">Restore card payments after the gateway timeout</a>. Review due Mon 9 Nov, in 2 days.</p></div>
+<div class="callout callout-overdue" role="note"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg><p><b>Emergency, review overdue</b> <span class="id">SPEC-41</span> <a href="#dark-tabs">Restore card payments</a>. The review was due 1 day ago.</p><button class="btn" type="button"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></svg>Copy</button></div></div></div>
+
+<div class="ref-group"><h3>Table and facts list</h3><p>A header on the panel's color and hairlines between rows; facts as term and value.</p>
+<div class="table-wrap"><table class="table"><caption>Tasks of SPEC-17</caption><thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">State</th></tr></thead>
+<tbody><tr><td class="id">T1</td><td>Read the supplier CSV</td><td><span class="flag flag-pass"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="m5.3 8.2 1.9 1.9 3.6-3.8"/></svg>Done</span></td></tr><tr><td class="id">T2</td><td>Map supplier categories</td><td><span class="flag flag-strong"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="M5 8h6"/></svg>Stopped</span></td></tr></tbody></table></div>
+<dl class="facts" style-top="1"><dt>Status</dt><dd>Ready</dd><dt>Team</dt><dd>Checkout</dd><dt>File</dt><dd><code>specs/SPEC-12.md</code></dd></dl></div>
+
+<div class="ref-group"><h3>Code and words to copy</h3><p>Mono for ids, paths, and commands, never prose; the words a person pastes, with Copy.</p>
+<p class="words-label">Say to your agent: the next step this view leads with, so Copy is primary</p><div class="words"><code id="dark-w1">Show me SPEC-12 for Spec approval</code><button class="btn btn-primary" type="button" aria-label="Copy the words: Show me SPEC-12 for Spec approval"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></svg>Copy</button></div>
+<p class="words-label" style-top="1">Say to your agent: any other row, so Copy is a default button</p><div class="words"><code id="dark-w2">Show me the report on SPEC-14 for Merge approval</code><button class="btn" type="button" aria-label="Copy the words: Show me the report on SPEC-14 for Merge approval"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></svg>Copy</button></div>
+<pre class="diff" style-top="1"><span class="del">- timebox: 1d</span><span class="add">+ timebox: 2d</span><span>  status: open</span></pre></div>
+
+<div class="ref-group"><h3>Current and chosen rows, progress</h3><p>The keyboard cursor's row has a bar; a chosen option is filled; focus is the ring.</p>
+<div class="ref-stack"><div class="row">SPEC-14 Send a receipt email after checkout</div><div class="row" aria-current="true">SPEC-12 Let a shopper save a cart for later (current)</div><div class="row is-hover">SPEC-23 Rate-limit the search endpoint (hover)</div></div>
+<div role="radiogroup" aria-label="States, dark" class="ref-stack" style-top="1"><button class="option" role="radio" aria-checked="true" type="button">Empty <kbd>1</kbd></button><button class="option" role="radio" aria-checked="false" type="button">Loading <kbd>2</kbd></button><button class="option is-focus" role="radio" aria-checked="false" type="button">Error, focused <kbd>3</kbd></button></div>
+<div class="ref-row"><span>3 of 9 finished</span><span class="meter" style-grow="1" role="img" aria-label="3 of 9 finished"><span style-fill="33"></span></span></div></div>
+
+<div class="ref-group"><h3>Toast and dialog</h3><p>An outcome for a few seconds; the keys list over a scrim.</p>
+<div class="ref-stack"><p class="toast ref-inline-toast">Copied the words for SPEC-12</p>
+<div class="dialog ref-dialog" role="group" aria-label="Keyboard shortcuts, dark"><div class="dialog-head"><h2>Keyboard shortcuts</h2><button class="btn btn-quiet btn-icon" type="button" aria-label="Close">×</button></div>
+<div class="dialog-body"><dl class="facts"><dt>Next item</dt><dd><kbd>J</kbd></dd><dt>Open it</dt><dd><kbd>Enter</kbd></dd></dl></div></div></div></div>
+
+<div class="ref-group"><h3>States: empty, error, loading</h3><p>Each says what happened and the one next step.</p>
+<div class="ref-stack"><div class="state state-empty"><h2><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="m5.3 8.2 1.9 1.9 3.6-3.8"/></svg>Nothing waits for you</h2><p>Your agents move 20 Specs. Run <code>aidd status --html</code> again after the next step.</p></div>
+<div class="state state-error" role="note"><h2><svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.2 14.4 13.5H1.6Z"/><path d="M8 6.5v3"/><path d="M8 11.6v.1"/></svg>This page could not read 1 file</h2><p><code>specs/SPEC-30.md</code>, line 4: a key has no value. Fix it, then run <code>aidd status --html</code> again.</p></div>
+<div class="state" aria-busy="true"><h2><span class="placeholder">Loading the Board</span></h2><p><span class="placeholder">Each cell loads as it scrolls into view.</span></p></div></div></div>
+
+<div class="ref-group"><h3>Artboard and comment pin</h3><p>The viewer's neutral artboard under a design, and a comment's pin.</p>
+<div class="ref-preview"><div class="ref-frame"><span class="badge badge-comment">1</span><p>A design frame on the artboard.</p></div></div></div>
+</section></div>
+</main>
+<footer class="foot"><p>Generated from <code>src/aidd/views/design/tokens.json</code> and <code>components.css</code>. A view for people: it is never evidence, and it never approves.</p></footer>
+</div>
+</body>
+</html>

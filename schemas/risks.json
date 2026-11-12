@@ -1,0 +1,1902 @@
+{
+  "description": "The built-in risk rules: the actions an agent takes, the areas of a repository, and the rule for each, as schemas/risks.schema.json defines them. An agent acts on a rule's level: allow (act), report (act, then say what it did), or ask (wait for the person's yes, then act). A config's `risks` block adds areas and actions and adds or replaces rules (docs/METHOD.md, \"Risk rules\").",
+  "levels": [
+    "allow",
+    "report",
+    "ask"
+  ],
+  "branches": [
+    "own",
+    "default",
+    "shared"
+  ],
+  "areas": {
+    "auth": {
+      "description": "Who can sign in and what each person may do: authentication, authorization, roles, sessions, tokens.",
+      "paths": [
+        "**/auth/**",
+        "**/authn/**",
+        "**/authz/**",
+        "**/iam/**",
+        "**/rbac/**",
+        "**/permissions/**",
+        "**/*.rego",
+        "**/oauth/**",
+        "**/oidc/**",
+        "**/sso/**",
+        "**/saml/**",
+        "**/security/**",
+        "**/login/**",
+        "**/signin/**",
+        "**/sign-in/**",
+        "**/signup/**",
+        "**/sign-up/**",
+        "**/mfa/**",
+        "**/password/**",
+        "**/*auth.*",
+        "**/auth_*.*",
+        "**/auth-*.*",
+        "**/authenticat*.*",
+        "**/authoriz*.*",
+        "**/authoris*.*",
+        "**/login*.*",
+        "**/logout*.*",
+        "**/signin*.*",
+        "**/sign-in*.*",
+        "**/sign_in*.*",
+        "**/signup*.*",
+        "**/sign-up*.*",
+        "**/sign_up*.*",
+        "**/session*.*",
+        "**/*password*.*",
+        "**/passkey*.*",
+        "**/webauthn*.*",
+        "**/mfa*.*",
+        "**/otp*.*",
+        "**/totp*.*",
+        "**/*2fa*.*",
+        "**/two*factor*.*",
+        "**/security.*",
+        "**/*SecurityConfig*.*",
+        "**/*jwt*.*",
+        "**/middleware.*",
+        "**/*.guard.*",
+        "**/permission.*",
+        "**/permissions.*",
+        "**/rbac.*",
+        "**/acl.*",
+        "**/*authmiddleware*.*",
+        "**/*authguard*.*",
+        "**/*authfilter*.*",
+        "**/*authinterceptor*.*",
+        "**/*_auth_*.*",
+        "**/*-auth-*.*"
+      ],
+      "exclude": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/third_party/**",
+        "**/docs/**",
+        "**/*.md",
+        "**/*.mdx",
+        "**/*.css",
+        "**/*.svg",
+        "**/*.png",
+        "**/*.jpg",
+        "**/*.jpeg",
+        "**/*.gif",
+        "**/*.ico"
+      ],
+      "route": "major",
+      "dimensions": [
+        "security"
+      ]
+    },
+    "payments": {
+      "description": "Money moves or prices change: checkout, billing, payouts, invoices.",
+      "paths": [
+        "**/payments/**",
+        "**/payment/**",
+        "**/billing/**",
+        "**/stripe/**",
+        "**/invoic*/**",
+        "**/*payment*.*",
+        "**/*billing*.*",
+        "**/*stripe*.*",
+        "**/*invoice*.*"
+      ],
+      "exclude": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/third_party/**",
+        "**/docs/**",
+        "**/*.md",
+        "**/*.mdx"
+      ],
+      "route": "major",
+      "dimensions": [
+        "financial"
+      ]
+    },
+    "personal_data": {
+      "description": "Data about people: users, customers, accounts, profiles, contacts, patients.",
+      "paths": [
+        "**/users/**",
+        "**/user/**",
+        "**/profile/**",
+        "**/profiles/**",
+        "**/customers/**",
+        "**/customer/**",
+        "**/accounts/**",
+        "**/account/**",
+        "**/members/**",
+        "**/member/**",
+        "**/patients/**",
+        "**/patient/**",
+        "**/contacts/**",
+        "**/contact/**",
+        "**/user.*",
+        "**/users.*",
+        "**/profile.*",
+        "**/customer.*",
+        "**/customers.*",
+        "**/account.*",
+        "**/accounts.*",
+        "**/member.*",
+        "**/members.*",
+        "**/patient.*",
+        "**/patients.*",
+        "**/contact.*",
+        "**/contacts.*",
+        "**/models/user*.*",
+        "**/entities/user*.*",
+        "**/models/customer*.*",
+        "**/entities/customer*.*",
+        "**/models/account*.*",
+        "**/entities/account*.*",
+        "**/models/member*.*",
+        "**/entities/member*.*",
+        "**/models/patient*.*",
+        "**/entities/patient*.*",
+        "**/models/contact*.*",
+        "**/entities/contact*.*",
+        "**/models/profile*.*",
+        "**/entities/profile*.*",
+        "**/privacy/**",
+        "**/pii/**",
+        "**/personal_data/**",
+        "**/personal-data/**",
+        "**/gdpr/**",
+        "**/consent/**",
+        "**/dsar/**",
+        "**/*pii*.*",
+        "**/*personal_data*.*",
+        "**/*personal-data*.*",
+        "**/*gdpr*.*",
+        "**/*consent*.*",
+        "**/*dsar*.*",
+        "**/*privacy*.*"
+      ],
+      "exclude": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/third_party/**",
+        "**/docs/**",
+        "**/*.md",
+        "**/*.mdx",
+        "**/tests/**",
+        "**/test/**",
+        "**/__tests__/**",
+        "**/spec/**",
+        "**/fixtures/**",
+        "**/__fixtures__/**",
+        "**/testdata/**",
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/test_*.*",
+        "**/*_test.*"
+      ],
+      "route": "major",
+      "dimensions": [
+        "privacy"
+      ]
+    },
+    "secrets": {
+      "description": "Secrets, keys, certificates, and cryptography.",
+      "paths": [
+        "**/crypto/**",
+        "**/secrets/**",
+        "**/secrets.*",
+        "**/crypto.*",
+        "**/encryption.*",
+        "**/.env",
+        "**/.env.*",
+        "**/credentials.yml.enc",
+        "**/*.pem",
+        "**/*.key",
+        "**/*.p12",
+        "**/*.pfx",
+        "**/*.p8",
+        "**/*.jks",
+        "**/*.keystore",
+        "**/*.mobileprovision",
+        "**/google-services.json",
+        "**/GoogleService-Info.plist",
+        "**/id_rsa",
+        "**/id_ed25519"
+      ],
+      "exclude": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/third_party/**",
+        "**/docs/**",
+        "**/*.md",
+        "**/*.mdx",
+        "**/*.example",
+        "**/*.sample",
+        "**/*.template",
+        "**/*.dist"
+      ],
+      "route": "major",
+      "dimensions": [
+        "security"
+      ]
+    },
+    "migrations": {
+      "description": "Database schema changes and data migrations.",
+      "paths": [
+        "**/migrations/**",
+        "**/migration/**",
+        "**/migrate/**",
+        "**/alembic/**",
+        "**/drizzle/**",
+        "**/db/changelog/**",
+        "**/db/schema.*",
+        "**/db/structure.sql",
+        "**/schema.prisma",
+        "**/supabase/seed.sql",
+        "**/flyway/**",
+        "**/liquibase/**"
+      ],
+      "exclude": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/third_party/**",
+        "**/docs/**",
+        "**/*.md",
+        "**/*.mdx"
+      ],
+      "route": "major",
+      "dimensions": [
+        "data"
+      ]
+    },
+    "module_boundaries": {
+      "description": "The rules that keep modules apart: import contracts and architecture tests.",
+      "paths": [
+        "**/boundaries-baseline.*",
+        "**/.dependency-cruiser.*",
+        "**/.importlinter",
+        "**/tach.toml",
+        "**/.go-arch-lint.y*ml",
+        "**/archunit_store/**",
+        "**/archunit.properties",
+        "**/*ModularityTests.*",
+        "**/*ArchitectureTest*.*"
+      ],
+      "exclude": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/third_party/**"
+      ],
+      "route": "major",
+      "dimensions": []
+    },
+    "ci": {
+      "description": "What builds, tests, and ships the code: CI pipelines, git hooks, and code owners.",
+      "paths": [
+        ".github/workflows/**",
+        ".github/CODEOWNERS",
+        "CODEOWNERS",
+        "docs/CODEOWNERS",
+        ".gitlab-ci.yml",
+        ".gitlab/**",
+        ".husky/**",
+        ".githooks/**",
+        ".pre-commit-config.yaml",
+        "lefthook.yml",
+        ".lefthook.yml",
+        "**/Jenkinsfile",
+        ".circleci/**",
+        "azure-pipelines.yml",
+        ".azure-pipelines/**",
+        ".buildkite/**",
+        "bitbucket-pipelines.yml",
+        ".drone.yml",
+        ".travis.yml",
+        "action.yml",
+        "action.yaml",
+        "**/.github/actions/**",
+        "cloudbuild.yaml",
+        "cloudbuild.yml",
+        ".tekton/**",
+        ".woodpecker.yml",
+        ".woodpecker.yaml",
+        ".woodpecker/**"
+      ],
+      "exclude": [],
+      "route": "normal",
+      "dimensions": [
+        "third_party"
+      ]
+    },
+    "infra": {
+      "description": "Infrastructure as code and containers: what runs the service.",
+      "paths": [
+        "**/*.tf",
+        "**/*.tfvars",
+        "**/terraform/**",
+        "**/k8s/**",
+        "**/kubernetes/**",
+        "**/helm/**",
+        "**/Chart.yaml",
+        "**/charts/*/templates/**",
+        "**/*.bicep",
+        "**/cloudformation/**",
+        "**/pulumi/**",
+        "**/kustomization.yaml",
+        "**/serverless.yml",
+        "**/serverless.yaml",
+        "**/serverless.ts",
+        "**/fly.toml",
+        "**/vercel.json",
+        "**/netlify.toml",
+        "**/wrangler.toml",
+        "**/wrangler.json",
+        "**/wrangler.jsonc",
+        "**/app.yaml",
+        "**/Procfile",
+        "**/cdk.json",
+        "**/cdk/**",
+        "**/nginx/**",
+        "**/nginx.conf",
+        "**/Caddyfile",
+        "**/render.yaml",
+        "**/railway.json",
+        "**/railway.toml",
+        "**/firebase.json",
+        "**/amplify.yml",
+        "**/ansible/**",
+        "**/Dockerfile",
+        "**/*.dockerfile",
+        "**/Containerfile",
+        "**/docker-compose*.yml",
+        "**/docker-compose*.yaml",
+        "**/compose.yaml",
+        "**/Pulumi.yaml",
+        "**/Pulumi.*.yaml",
+        "**/terragrunt.hcl",
+        "**/*.tf.json",
+        "**/cdktf.json",
+        "**/cdk8s.yaml",
+        "**/Dockerfile.*",
+        "**/skaffold.yaml",
+        "**/Tiltfile",
+        "**/Vagrantfile",
+        "**/kustomization.yml",
+        "**/compose.yml",
+        "**/docker-bake.hcl",
+        "**/serverless.json",
+        "**/serverless.js",
+        "infra/**",
+        "infrastructure/**",
+        "iac/**",
+        "apps/*/infra/**",
+        "packages/*/infra/**",
+        "services/*/infra/**"
+      ],
+      "exclude": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/third_party/**"
+      ],
+      "route": "normal",
+      "dimensions": [
+        "availability"
+      ],
+      "deploys_on_merge": [
+        "**/vercel.json",
+        "**/netlify.toml",
+        "**/fly.toml",
+        "**/wrangler.toml",
+        "**/wrangler.json",
+        "**/wrangler.jsonc",
+        "**/app.yaml",
+        "**/Procfile",
+        "**/render.yaml",
+        "**/railway.json",
+        "**/railway.toml",
+        "**/firebase.json",
+        "**/amplify.yml"
+      ]
+    },
+    "dependencies": {
+      "description": "Third-party code and build tools: manifests, lockfiles, and the bots that update them.",
+      "paths": [
+        "**/package.json",
+        "**/package-lock.json",
+        "**/pnpm-lock.yaml",
+        "**/yarn.lock",
+        "**/bun.lockb",
+        "**/bun.lock",
+        "**/requirements*.txt",
+        "**/pyproject.toml",
+        "**/poetry.lock",
+        "**/uv.lock",
+        "**/Pipfile",
+        "**/Pipfile.lock",
+        "**/go.mod",
+        "**/go.sum",
+        "**/Cargo.toml",
+        "**/Cargo.lock",
+        "**/Gemfile",
+        "**/Gemfile.lock",
+        "**/pom.xml",
+        "**/*.csproj",
+        "**/packages.lock.json",
+        "**/composer.json",
+        "**/composer.lock",
+        "**/Package.swift",
+        "**/Package.resolved",
+        "**/pubspec.yaml",
+        "**/pubspec.lock",
+        "**/.npmrc",
+        "**/.yarnrc",
+        "**/.yarnrc.yml",
+        "**/.pnpmfile.cjs",
+        "**/setup.py",
+        "**/setup.cfg",
+        "**/requirements*.in",
+        "**/go.work",
+        "**/go.work.sum",
+        "**/*.gradle",
+        "**/*.gradle.kts",
+        "**/gradle.properties",
+        "**/libs.versions.toml",
+        "**/.terraform.lock.hcl",
+        "**/Podfile",
+        "**/Podfile.lock",
+        "**/Chart.lock",
+        "**/nuget.config",
+        "**/NuGet.Config",
+        "**/settings.xml",
+        "**/gradle/wrapper/**",
+        "**/gradlew",
+        "**/gradlew.bat",
+        "**/mvnw",
+        "**/mvnw.cmd",
+        "**/.mvn/**",
+        "**/Makefile",
+        "**/justfile",
+        "**/Taskfile.yml",
+        "**/Taskfile.yaml",
+        "**/noxfile.py",
+        ".tool-versions",
+        ".nvmrc",
+        ".node-version",
+        ".python-version",
+        "mise.toml",
+        ".mise.toml",
+        ".gitattributes",
+        ".github/dependabot.yml",
+        ".github/dependabot.yaml",
+        "renovate.json",
+        "renovate.json5",
+        ".renovaterc",
+        ".renovaterc.json",
+        ".github/renovate.json",
+        ".github/renovate.json5"
+      ],
+      "exclude": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/third_party/**"
+      ],
+      "route": "normal",
+      "dimensions": [
+        "third_party"
+      ]
+    },
+    "agent_config": {
+      "description": "What instructs or permits a coding agent: AGENTS.md, the skills, the harness settings, and aidd's config.",
+      "paths": [
+        ".aidd/**",
+        "**/AGENTS.md",
+        "**/AGENTS.override.md",
+        "**/AGENT.md",
+        ".agents/**",
+        ".mcp.json",
+        ".vscode/mcp.json",
+        ".devcontainer/**",
+        "**/CLAUDE.md",
+        "**/CLAUDE.local.md",
+        ".claude/**",
+        ".codex/**",
+        ".github/copilot-instructions.md",
+        ".github/copilot/**",
+        ".github/instructions/**",
+        ".github/prompts/**",
+        ".github/skills/**",
+        ".github/hooks/**",
+        ".github/agents/**",
+        ".cursor/**",
+        ".cursorrules",
+        "**/GEMINI.md",
+        ".agent/rules/**",
+        ".kiro/**",
+        ".amazonq/**",
+        "opencode.json",
+        "opencode.jsonc",
+        ".opencode/**",
+        ".junie/**",
+        "QWEN.md",
+        ".qwen/**",
+        ".trae/**",
+        ".dsh/**",
+        ".muse/**",
+        ".grok/**",
+        ".vibe/**",
+        "orca.yaml",
+        ".worktreeinclude",
+        ".config/wt.toml",
+        ".gitmodules"
+      ],
+      "exclude": [],
+      "route": "normal",
+      "dimensions": []
+    },
+    "risk_rules": {
+      "description": "The files that set when an agent asks: aidd's config and the record of the ask rules it wrote, and each harness's own ask rules. An agent asks before it changes what makes it ask.",
+      "paths": [
+        ".aidd/config.yaml",
+        ".aidd/harness-rules.json",
+        ".claude/settings.json",
+        ".claude/settings.local.json",
+        "opencode.json",
+        "opencode.jsonc",
+        ".codex/rules/**",
+        ".codex/config.toml",
+        ".grok/config.toml",
+        ".qwen/settings.json",
+        ".vscode/settings.json"
+      ],
+      "route": "normal",
+      "dimensions": []
+    },
+    "project_config": {
+      "description": "How the project checks its code and draws its product: test, lint, and type settings, app manifests, the design system, standards, and module APIs.",
+      "paths": [
+        "**/jest.config.*",
+        "**/vitest.config.*",
+        "**/jest.setup.*",
+        "**/.babelrc",
+        "**/babel.config.*",
+        "**/.mocharc.*",
+        "**/vitest.workspace.*",
+        "**/pytest.ini",
+        "**/conftest.py",
+        "**/pytest_plugins.py",
+        "**/sitecustomize.py",
+        "**/usercustomize.py",
+        "**/tests/__init__.py",
+        "**/.jest/**",
+        "**/.pytest.ini",
+        "**/.pytest.toml",
+        "**/pytest.toml",
+        "**/tox.ini",
+        "**/.coveragerc",
+        "**/phpunit.xml",
+        "**/karma.conf.*",
+        "**/playwright.config.*",
+        "**/cypress.config.*",
+        "**/.eslintrc",
+        "**/.eslintrc.*",
+        "**/eslint.config.*",
+        "**/tsconfig.json",
+        "**/tsconfig.*.json",
+        "**/.prettierrc",
+        "**/.prettierrc.*",
+        "**/prettier.config.*",
+        "**/biome.json",
+        "**/biome.jsonc",
+        "**/ruff.toml",
+        "**/.ruff.toml",
+        "**/mypy.ini",
+        "**/.mypy.ini",
+        "**/.flake8",
+        "**/.pylintrc",
+        "**/.golangci.yml",
+        "**/.golangci.yaml",
+        "**/.golangci.toml",
+        "**/.golangci.json",
+        "**/clippy.toml",
+        "**/.clippy.toml",
+        "**/rustfmt.toml",
+        "**/.rustfmt.toml",
+        "**/.rubocop.yml",
+        "**/phpstan.neon",
+        "**/phpstan.neon.dist",
+        "**/detekt.yml",
+        "**/.swiftlint.yml",
+        "**/analysis_options.yaml",
+        "**/.eslintignore",
+        "**/.prettierignore",
+        "**/.stylelintrc*",
+        "**/pyrightconfig.json",
+        "**/.clang-tidy",
+        "**/.swiftformat",
+        "**/.scalafmt.conf",
+        "**/.markdownlint*",
+        "**/deno.json",
+        "**/deno.jsonc",
+        "**/Info.plist",
+        "**/AndroidManifest.xml",
+        "**/*.entitlements",
+        "**/eas.json",
+        "**/DESIGN.md",
+        "**/design/tokens.json",
+        "**/*.tokens.json",
+        "**/*.tokens",
+        "**/docs/standards/**",
+        "**/modules/*/api/**"
+      ],
+      "exclude": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/third_party/**"
+      ],
+      "route": "normal",
+      "dimensions": []
+    }
+  },
+  "actions": {
+    "code.edit": {
+      "description": "Edit a file in the repository.",
+      "commands": [],
+      "file_writes": {
+        "writers": {
+          "tee": "every_file",
+          "cp": "destination",
+          "mv": "move",
+          "install": "destination",
+          "ln": "destination",
+          "sed": "in_place",
+          "perl": "in_place",
+          "dd": "of_operand",
+          "truncate": "every_file",
+          "rm": "remove",
+          "unlink": "remove"
+        }
+      },
+      "examples": [
+        "write or change a source file, a test, or a doc"
+      ]
+    },
+    "intent.agree": {
+      "description": "Start the work an Intent plans: a person's agreement to its goal and its slices, which the commit with its `Agreed-by` trailer records, in either form git takes, or `aidd agree`, which makes that commit. A commit whose message only names the word asks too, a needless ask the net accepts.",
+      "commands": [
+        "git commit *Agreed-by*",
+        "aidd agree *",
+        "*aidd agree *",
+        "*aidd.pyz agree *"
+      ],
+      "examples": [
+        "the Intent's goal, phases, and slices are written, and Specify would start on its first slice"
+      ]
+    },
+    "spec.approve": {
+      "description": "Start building a Spec: its approval.",
+      "commands": [],
+      "examples": [
+        "the Spec, its tests, and its design are written, and Implement would start"
+      ]
+    },
+    "spec.revise": {
+      "description": "Change a Spec's tests, Acceptance, or design after its approval.",
+      "commands": [],
+      "examples": [
+        "edit a test file an approved Spec lists",
+        "change an approved Spec's Acceptance"
+      ]
+    },
+    "git.commit": {
+      "description": "Make a commit.",
+      "commands": [
+        "git commit*"
+      ],
+      "examples": []
+    },
+    "git.push": {
+      "description": "Push commits to a remote.",
+      "commands": [
+        "git push*"
+      ],
+      "api_endpoints": [
+        "PATCH|POST */git/refs*",
+        "PUT|DELETE */contents/*",
+        "POST */merges",
+        "graphql#mutation *updateRef*"
+      ],
+      "examples": []
+    },
+    "git.push.force": {
+      "description": "Push that replaces history on the remote.",
+      "irreversible": true,
+      "commands": [
+        "git push --force*",
+        "git push -f*",
+        "git push * --force*",
+        "git push * -f*",
+        "git push * +*",
+        "git push --force-with-lease*",
+        "git push * --force-with-lease*"
+      ],
+      "api_endpoints": [
+        "PATCH */git/refs/* *force=true*",
+        "PATCH */git/refs/* --input*"
+      ],
+      "examples": [
+        "a push whose refspec starts with +"
+      ]
+    },
+    "git.history.rewrite": {
+      "description": "Rewrite commits others may have, or discard uncommitted work: a push of a rebased or amended branch is a force push, which asks.",
+      "irreversible": true,
+      "commands": [
+        "git reset --hard*",
+        "git filter-branch*",
+        "git filter-repo*"
+      ],
+      "examples": [
+        "squash or reorder commits already pushed"
+      ]
+    },
+    "git.branch.delete": {
+      "description": "Delete a branch, here or on a remote.",
+      "irreversible": true,
+      "commands": [
+        "git branch -d*",
+        "git branch -D*",
+        "git branch --delete*",
+        "git push * --delete*",
+        "git push * :*",
+        "git push -d*",
+        "git push --delete*",
+        "git push * -d*"
+      ],
+      "api_endpoints": [
+        "DELETE */git/refs/*"
+      ],
+      "examples": []
+    },
+    "git.tag.create": {
+      "description": "Create or move a tag, such as a release tag.",
+      "commands": [
+        "git tag*"
+      ],
+      "examples": []
+    },
+    "git.merge": {
+      "description": "Merge another branch's work into the branch checked out: a `git merge`, or a `git pull` that names a remote, a path, or a branch.",
+      "commands": [
+        "git merge",
+        "git merge *",
+        "git pull",
+        "git pull *"
+      ],
+      "examples": [
+        "a `git cherry-pick` or `git rebase` that brings another branch's work onto the default branch"
+      ]
+    },
+    "pr.open": {
+      "description": "Open a pull request or merge request (a PR/MR).",
+      "commands": [
+        "gh pr create*",
+        "glab mr create*"
+      ],
+      "examples": []
+    },
+    "pr.merge": {
+      "description": "Merge a PR/MR into its base.",
+      "commands": [
+        "gh pr merge*",
+        "glab mr merge*"
+      ],
+      "api_endpoints": [
+        "PUT */pulls/*/merge",
+        "graphql#mutation *mergePullRequest*"
+      ],
+      "examples": []
+    },
+    "workflow.run": {
+      "description": "Start or re-run a CI workflow by hand, such as `gh workflow run ci.yml` or `gh run rerun 123`. One whose name, in any of its three common cases, holds release, publish, or deploy is also `release.publish` or `deploy.run`, which ask. A workflow named by its number shows no name, so it reports: check what it runs first.",
+      "commands": [
+        "gh workflow run*",
+        "gh run rerun*",
+        "glab ci run*",
+        "glab ci trigger*",
+        "glab ci retry*",
+        "glab api *POST*pipeline*"
+      ],
+      "api_endpoints": [
+        "*dispatches*",
+        "POST */actions/runs/*/rerun*",
+        "POST */actions/jobs/*/rerun*",
+        "POST */check-suites/*/rerequest*"
+      ],
+      "examples": [
+        "re-run CI on a branch by hand"
+      ]
+    },
+    "dependency.add": {
+      "description": "Add a third-party package to the project: a new entry in a manifest, which its install may run code from.",
+      "commands": [
+        "npm install *",
+        "npm i *",
+        "npm add *",
+        "pnpm add *",
+        "yarn add *",
+        "bun add *",
+        "pip install *",
+        "uv add *",
+        "uv pip install *",
+        "poetry add *",
+        "pipenv install *",
+        "cargo add *",
+        "go get *",
+        "bundle add *",
+        "gem install *",
+        "composer require *",
+        "dotnet add * package *"
+      ],
+      "examples": [
+        "a new package name written into a manifest by hand"
+      ]
+    },
+    "network.listen": {
+      "description": "Listen for connections from other devices on the network, such as `aidd prototype --serve --lan`, which serves a design to a phone. Any device on that network can then reach it, so the agent says it started one. A listener on 127.0.0.1 alone reaches only this machine and is no such action.",
+      "commands": [
+        "*aidd*prototype*--lan*",
+        "*serve*--lan*"
+      ],
+      "examples": [
+        "start a development server on every interface, such as `vite --host`, or `python3 -m http.server`, which listens on every interface unless given `--bind 127.0.0.1`"
+      ]
+    },
+    "commit_status.post": {
+      "description": "Post a commit status, a check's result for a commit, such as `gh api repos/o/r/statuses/<sha> -f context=tests -f state=success`. CI posts these. Reading them (`commits/<sha>/statuses`) is no post, or create a check run (`gh api …/check-runs` with fields, or a GraphQL mutation, or a query read from a file). The ruleset counts a check only from GitHub Actions, so this is a second layer.",
+      "api_endpoints": [
+        "POST */statuses/*",
+        "POST|PATCH *check-runs*",
+        "graphql#mutation"
+      ],
+      "examples": [
+        "mark a commit's `tests` check as passed by hand"
+      ]
+    },
+    "branch_protection.change": {
+      "description": "Delete or change a branch's protection rule or a repository ruleset on the platform, the control that holds a merge. aidd cannot enforce it, so an agent never loosens it unasked.",
+      "irreversible": true,
+      "api_endpoints": [
+        "DELETE|PUT|PATCH */branches/*/protection*",
+        "DELETE|PUT|PATCH */rulesets*",
+        "graphql#mutation *BranchProtectionRule*",
+        "graphql#mutation *RepositoryRuleset*"
+      ],
+      "examples": [
+        "remove a branch's protection, such as `gh api -X DELETE repos/o/r/branches/main/protection`"
+      ]
+    },
+    "repo.settings.change": {
+      "description": "Change a repository's settings on the platform: its visibility, name, default branch, or archive state, or transfer it to another owner, such as `gh repo edit`. Making a repository public exposes its code, and archiving, renaming, or transferring it is hard to undo, so an agent asks first. Your own profile (`PATCH user`) is no repository setting.",
+      "irreversible": true,
+      "commands": [
+        "gh repo edit*",
+        "gh repo archive*",
+        "gh repo unarchive*",
+        "gh repo rename*"
+      ],
+      "api_endpoints": [
+        "PATCH *repos/?/?",
+        "POST *repos/?/?/transfer",
+        "graphql#mutation *updateRepository(*",
+        "graphql#mutation *updateRepository (*",
+        "graphql#mutation *archiveRepository*",
+        "graphql#mutation *unarchiveRepository*"
+      ],
+      "examples": [
+        "make a repository public, such as `gh repo edit o/r --visibility public`"
+      ]
+    },
+    "records.push": {
+      "description": "Send this clone's records of history to a remote, where everyone with the repository reads them.",
+      "irreversible": true,
+      "commands": [
+        "aidd records push*",
+        "*aidd* records push*",
+        "git push * refs/aidd/*",
+        "git push * *:refs/aidd/*"
+      ],
+      "examples": [
+        "a push of the ref refs/aidd/records by any other means"
+      ]
+    },
+    "deploy.run": {
+      "description": "Deploy to an environment people use.",
+      "irreversible": true,
+      "commands": [
+        "kubectl apply*",
+        "helm upgrade*",
+        "helm install*",
+        "vercel deploy*",
+        "vercel --prod*",
+        "fly deploy*",
+        "wrangler deploy*",
+        "serverless deploy*",
+        "gh workflow run *deploy*",
+        "gh workflow run *Deploy*",
+        "gh workflow run *DEPLOY*"
+      ],
+      "api_endpoints": [
+        "*deploy*dispatches*",
+        "*dispatches*deploy*",
+        "*$*dispatches*",
+        "*dispatches*$*",
+        "*dispatches* --input*",
+        "*dispatches* *=@*",
+        "POST */pending_deployments"
+      ],
+      "examples": [
+        "run a deploy script or a deploy workflow"
+      ]
+    },
+    "release.publish": {
+      "description": "Publish a release or a package.",
+      "irreversible": true,
+      "commands": [
+        "npm publish*",
+        "pnpm publish*",
+        "yarn npm publish*",
+        "twine upload*",
+        "uv publish*",
+        "cargo publish*",
+        "gem push*",
+        "gh release create*",
+        "npm unpublish*",
+        "docker push*",
+        "git push --tags*",
+        "git push * --tags*",
+        "git push --follow-tags*",
+        "git push * --follow-tags*",
+        "git push --ta*",
+        "git push * --ta*",
+        "git push --fol*",
+        "git push * --fol*",
+        "gh release new*",
+        "git *-c push.* push*",
+        "git *-c remote.* push*",
+        "gh workflow run *release*",
+        "gh workflow run *Release*",
+        "gh workflow run *RELEASE*",
+        "gh workflow run *publish*",
+        "gh workflow run *Publish*",
+        "gh workflow run *PUBLISH*"
+      ],
+      "api_endpoints": [
+        "POST */releases",
+        "PATCH */releases/? *draft=false*",
+        "PATCH */releases/? --input*",
+        "PATCH */releases/? *draft=$*",
+        "PATCH */releases/? *draft=`*",
+        "PATCH */releases/? *draft=@*",
+        "*release*dispatches*",
+        "*dispatches*release*",
+        "*publish*dispatches*",
+        "*dispatches*publish*",
+        "*$*dispatches*",
+        "*dispatches*$*",
+        "*dispatches* --input*",
+        "*dispatches* *=@*"
+      ],
+      "examples": [
+        "push a tag by name, such as `git push origin v1.2.0`, which aidd reads as a push to a shared ref"
+      ]
+    },
+    "migration.run": {
+      "description": "Run a migration on a database other people use, such as staging or production, or with the tool's force or production flag.",
+      "irreversible": true,
+      "commands": [
+        "php artisan migrate --force*",
+        "php artisan migrate*--force*",
+        "php artisan migrate*--env*prod*",
+        "prisma migrate deploy*",
+        "wrangler d1 migrations apply*--remote*",
+        "rails db:*RAILS_ENV=production*",
+        "RAILS_ENV=production rails db:*",
+        "DJANGO_SETTINGS_MODULE=*prod* python manage.py migrate*",
+        "python manage.py migrate*--settings*prod*",
+        "atlas migrate apply*--env*prod*",
+        "flyway*-environment=prod*",
+        "flyway*-configFiles=*prod*"
+      ],
+      "examples": [
+        "apply migrations to staging or production",
+        "a migration whose connection string or environment names a shared database"
+      ]
+    },
+    "migration.run.local": {
+      "description": "Run new migrations forward on a database only this checkout uses, such as the local development database.",
+      "commands": [
+        "php artisan migrate",
+        "php artisan migrate --*",
+        "alembic upgrade*",
+        "python manage.py migrate*",
+        "prisma migrate dev*",
+        "drizzle-kit migrate*",
+        "atlas migrate apply*",
+        "flyway migrate*",
+        "dotnet ef database update*",
+        "wrangler d1 migrations apply*",
+        "rails db:migrate*"
+      ],
+      "examples": [
+        "apply a new migration to the local database the tests use"
+      ]
+    },
+    "migration.rollback": {
+      "description": "Reverse applied migrations: roll them back, downgrade, undo, reset, or refresh them, which loses the data the reversed steps held.",
+      "irreversible": true,
+      "commands": [
+        "php artisan migrate:refresh*",
+        "php artisan migrate:reset*",
+        "php artisan migrate:rollback*",
+        "alembic downgrade*",
+        "alembic*downgrade*",
+        "python manage.py migrate*zero*",
+        "python manage.py migrate* 0*",
+        "atlas migrate down*",
+        "flyway undo*",
+        "flyway*undo*",
+        "dotnet ef database update 0",
+        "dotnet ef database update 0 *",
+        "dotnet ef migrations remove*--force*",
+        "rails db:rollback*",
+        "rails db:migrate:redo*",
+        "rails db:migrate:down*",
+        "rails db:migrate*VERSION=*"
+      ],
+      "examples": [
+        "apply an older migration by name, which reverses the ones after it, such as `dotnet ef database update InitialCreate`"
+      ]
+    },
+    "infra.apply": {
+      "description": "Change real infrastructure.",
+      "irreversible": true,
+      "commands": [
+        "terraform apply*",
+        "terraform destroy*",
+        "tofu apply*",
+        "tofu destroy*",
+        "pulumi up*",
+        "pulumi destroy*",
+        "cdk deploy*",
+        "cdk destroy*",
+        "kubectl delete*",
+        "helm uninstall*"
+      ],
+      "examples": []
+    },
+    "data.delete": {
+      "description": "Delete data, files, or records that are hard to get back.",
+      "irreversible": true,
+      "commands": [
+        "rm -rf*",
+        "rm -fr*",
+        "rm -Rf*",
+        "php artisan migrate:fresh*",
+        "php artisan db:wipe*",
+        "python manage.py flush*",
+        "prisma migrate reset*",
+        "prisma db push*--force-reset*",
+        "prisma db push*--accept-data-loss*",
+        "drizzle-kit push*--force*",
+        "atlas schema clean*",
+        "atlas schema apply*--auto-approve*",
+        "flyway clean*",
+        "flyway*clean*",
+        "mvn flyway:clean*",
+        "./gradlew flywayClean*",
+        "gradle flywayClean*",
+        "dotnet ef database drop*",
+        "rails db:drop*",
+        "rails db:reset*",
+        "rails db:migrate:reset*",
+        "rails db:purge*",
+        "rails db:schema:load*",
+        "rails db:truncate_all*",
+        "rails db:seed:replant*",
+        "wrangler d1 time-travel restore*",
+        "dropdb*",
+        "git clean -f*",
+        "git clean -d*",
+        "git clean -x*",
+        "git clean --force*",
+        "git stash drop*",
+        "git stash clear*",
+        "git checkout -- .",
+        "git checkout .",
+        "git restore .",
+        "gh repo delete*",
+        "glab repo delete*",
+        "gh release delete*",
+        "aws s3 rm*",
+        "aws s3 rb*",
+        "gsutil rm*",
+        "gcloud storage rm*"
+      ],
+      "api_endpoints": [
+        "DELETE */releases/?",
+        "DELETE */releases/assets/?",
+        "DELETE *repos/?/?",
+        "graphql#mutation *deleteRepository(*",
+        "graphql#mutation *deleteRepository (*"
+      ],
+      "examples": [
+        "drop a table",
+        "empty a bucket",
+        "delete user records",
+        "drop, wipe, or reset a database, such as a migration tool's fresh or reset command"
+      ]
+    },
+    "data.production.access": {
+      "description": "Read or change production data.",
+      "irreversible": true,
+      "commands": [],
+      "examples": [
+        "a query against the production database",
+        "a shell on a production host"
+      ]
+    },
+    "secret.use": {
+      "description": "Read, print, or change a secret.",
+      "irreversible": true,
+      "commands": [],
+      "file_reads": {
+        "paths": [
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/*.p12",
+          "**/*.pfx",
+          "**/*.p8",
+          "**/*.jks",
+          "**/*.keystore",
+          "**/id_rsa*",
+          "**/id_ecdsa*",
+          "**/id_ed25519*",
+          "**/.netrc",
+          "**/.envrc",
+          "**/.dev.vars",
+          "**/credentials",
+          "**/credentials.*",
+          "**/secrets.*",
+          "**/secrets/**",
+          "**/credentials.yml.enc",
+          "**/*.mobileprovision",
+          "**/google-services.json",
+          "**/GoogleService-Info.plist"
+        ],
+        "exclude": [
+          "**/*.example",
+          "**/*.sample",
+          "**/*.template",
+          "**/*.dist",
+          "**/*.pub",
+          "**/*.py",
+          "**/*.ts",
+          "**/*.tsx",
+          "**/*.js",
+          "**/*.jsx",
+          "**/*.mjs",
+          "**/*.cjs",
+          "**/*.go",
+          "**/*.java",
+          "**/*.kt",
+          "**/*.rb",
+          "**/*.rs",
+          "**/*.cs",
+          "**/*.php",
+          "**/*.swift",
+          "**/*.scala",
+          "**/*.c",
+          "**/*.h",
+          "**/*.cpp",
+          "**/*.hpp",
+          "**/*.dart",
+          "**/*.ex",
+          "**/*.exs",
+          "**/*.clj",
+          "**/*.lua"
+        ],
+        "include": [
+          "**/secrets.*"
+        ],
+        "readers": [
+          "cat",
+          "less",
+          "more",
+          "head",
+          "tail",
+          "bat",
+          "grep",
+          "sed",
+          "awk",
+          "source",
+          ".",
+          "cp",
+          "base64",
+          "xxd",
+          "rg",
+          "diff"
+        ]
+      },
+      "examples": [
+        "read a token from a vault",
+        "print an environment secret",
+        "rotate a key"
+      ]
+    },
+    "message.send": {
+      "description": "Send something outside the machine to a person: an email, a chat message, an issue comment, an invite.",
+      "irreversible": true,
+      "commands": [
+        "gh issue comment*",
+        "gh pr comment*",
+        "gh pr review*"
+      ],
+      "api_endpoints": [
+        "POST */comments",
+        "POST */pulls/*/reviews*",
+        "PATCH */comments/*",
+        "graphql#mutation *addComment*",
+        "graphql#mutation *addPullRequestReview*",
+        "graphql#mutation *updateIssueComment*"
+      ],
+      "examples": [
+        "post in a chat channel",
+        "send an email"
+      ]
+    },
+    "money.spend": {
+      "description": "Spend money or create something that costs money.",
+      "irreversible": true,
+      "commands": [],
+      "examples": [
+        "buy a service",
+        "create a paid cloud resource",
+        "raise a paid plan"
+      ]
+    }
+  },
+  "rules": [
+    {
+      "action": "code.edit",
+      "level": "allow",
+      "reason": "an edit on a branch reaches no one else until a merge"
+    },
+    {
+      "action": "code.edit",
+      "area": "auth",
+      "level": "ask",
+      "reason": "a mistake in sign-in or permissions lets the wrong person in"
+    },
+    {
+      "action": "code.edit",
+      "area": "payments",
+      "level": "ask",
+      "reason": "a mistake here moves money or changes a price"
+    },
+    {
+      "action": "code.edit",
+      "area": "personal_data",
+      "level": "ask",
+      "reason": "a mistake here exposes or changes data about people"
+    },
+    {
+      "action": "code.edit",
+      "area": "secrets",
+      "level": "ask",
+      "reason": "a mistake here leaks a key or weakens the cryptography"
+    },
+    {
+      "action": "code.edit",
+      "area": "migrations",
+      "level": "ask",
+      "reason": "a schema change can lose data and is hard to undo"
+    },
+    {
+      "action": "code.edit",
+      "area": "module_boundaries",
+      "level": "report",
+      "reason": "the rules that keep modules apart change, so a person hears of it"
+    },
+    {
+      "action": "code.edit",
+      "area": "ci",
+      "level": "report",
+      "reason": "what builds, tests, and ships the code changes, so a person hears of it"
+    },
+    {
+      "action": "code.edit",
+      "area": "infra",
+      "level": "report",
+      "reason": "what runs the service changes, so a person hears of it"
+    },
+    {
+      "action": "code.edit",
+      "area": "dependencies",
+      "level": "report",
+      "reason": "third-party code enters the build, so a person hears of it"
+    },
+    {
+      "action": "code.edit",
+      "area": "agent_config",
+      "level": "report",
+      "reason": "what agents read changes how they work, so a person hears of it"
+    },
+    {
+      "action": "code.edit",
+      "area": "project_config",
+      "level": "report",
+      "reason": "the project's own settings change, so a person hears of it"
+    },
+    {
+      "action": "code.edit",
+      "area": "risk_rules",
+      "level": "ask",
+      "reason": "a change to what makes an agent ask is the person's to make"
+    },
+    {
+      "action": "git.commit",
+      "level": "allow",
+      "reason": "a commit stays on this machine and is easy to undo"
+    },
+    {
+      "action": "git.push",
+      "branch": "own",
+      "level": "allow",
+      "reason": "your own branch is yours, and a push there lands nothing on the default branch"
+    },
+    {
+      "action": "git.push",
+      "branch": "default",
+      "level": "ask",
+      "reason": "a push to the default branch reaches everyone with no review"
+    },
+    {
+      "action": "git.push",
+      "branch": "shared",
+      "level": "ask",
+      "reason": "a push to a shared branch changes work that others build on"
+    },
+    {
+      "action": "git.push.force",
+      "level": "ask",
+      "reason": "a force push can erase commits that others have"
+    },
+    {
+      "action": "git.history.rewrite",
+      "level": "ask",
+      "reason": "a rewrite can lose work, and every clone with the old commits must repair"
+    },
+    {
+      "action": "git.branch.delete",
+      "level": "ask",
+      "reason": "a deleted branch can take unmerged work with it"
+    },
+    {
+      "action": "git.tag.create",
+      "level": "ask",
+      "reason": "a tag can mark or move a release, which a person decides"
+    },
+    {
+      "action": "git.merge",
+      "level": "ask",
+      "reason": "a merge into the default or a shared branch lands work that others use"
+    },
+    {
+      "action": "git.merge",
+      "branch": "own",
+      "level": "allow",
+      "reason": "a merge into your own branch lands nothing on the default branch"
+    },
+    {
+      "action": "pr.open",
+      "level": "report",
+      "reason": "a pull request is public to the team, and nothing merges until a person says so"
+    },
+    {
+      "action": "pr.merge",
+      "level": "ask",
+      "reason": "a merge lands the change on its base branch"
+    },
+    {
+      "action": "workflow.run",
+      "level": "report",
+      "reason": "a run spends CI time and can act on the repository, so a person hears of it"
+    },
+    {
+      "action": "dependency.add",
+      "level": "report",
+      "reason": "a new package runs its own code when it installs, so a person hears of it, and a delegation leaves it to them"
+    },
+    {
+      "action": "network.listen",
+      "level": "report",
+      "reason": "a listener lets other devices on the network reach this machine"
+    },
+    {
+      "action": "commit_status.post",
+      "level": "ask",
+      "reason": "a check's result is CI's to report, never an agent's"
+    },
+    {
+      "action": "branch_protection.change",
+      "level": "ask",
+      "reason": "branch protection is the control that holds whatever an agent runs"
+    },
+    {
+      "action": "repo.settings.change",
+      "level": "ask",
+      "reason": "a repository's settings decide who sees it and who can change it"
+    },
+    {
+      "action": "intent.agree",
+      "level": "ask",
+      "reason": "Intent agreement is a person's decision on what the work sets out to do"
+    },
+    {
+      "action": "spec.approve",
+      "level": "ask",
+      "reason": "Spec approval is a person's decision on what gets built"
+    },
+    {
+      "action": "spec.revise",
+      "level": "ask",
+      "reason": "a change to a frozen test or the Acceptance changes what the approval covered"
+    },
+    {
+      "action": "deploy.run",
+      "level": "ask",
+      "reason": "a deploy changes what people use"
+    },
+    {
+      "action": "deploy.run",
+      "environment_shared": false,
+      "level": "report",
+      "reason": "the config marks this environment as the developer's own, so a deploy there reaches no one else"
+    },
+    {
+      "action": "records.push",
+      "level": "ask",
+      "reason": "a pushed record is permanent, and everyone who reads the repository reads it"
+    },
+    {
+      "action": "release.publish",
+      "level": "ask",
+      "reason": "a release reaches every user and cannot be taken back"
+    },
+    {
+      "action": "migration.run",
+      "level": "ask",
+      "reason": "a migration changes a database that other people use"
+    },
+    {
+      "action": "migration.run.local",
+      "level": "report",
+      "reason": "a database only this checkout uses holds no one else's data"
+    },
+    {
+      "action": "migration.rollback",
+      "level": "ask",
+      "reason": "a rollback loses the data the reversed steps held"
+    },
+    {
+      "action": "infra.apply",
+      "level": "ask",
+      "reason": "applying infrastructure changes what runs, and can destroy it"
+    },
+    {
+      "action": "data.delete",
+      "level": "ask",
+      "reason": "deleted data may not come back"
+    },
+    {
+      "action": "data.production.access",
+      "level": "ask",
+      "reason": "production data belongs to the people it describes"
+    },
+    {
+      "action": "secret.use",
+      "level": "ask",
+      "reason": "a secret in the session can leak through any output"
+    },
+    {
+      "action": "message.send",
+      "level": "ask",
+      "reason": "a message reaches people and cannot be unsent"
+    },
+    {
+      "action": "money.spend",
+      "level": "ask",
+      "reason": "spending money is the person's decision"
+    }
+  ],
+  "test_paths": [
+    "**/*.spec.*",
+    "**/*.test.*",
+    "**/*_spec.*",
+    "**/*_test.*",
+    "**/*Test.*",
+    "**/*Tests.*",
+    "**/__tests__/**",
+    "**/e2e/**",
+    "**/spec/**",
+    "**/specs_test/**",
+    "**/test/**",
+    "**/test_*.*",
+    "**/testing/**",
+    "**/tests/**"
+  ],
+  "read_forms": [
+    {
+      "program": "git",
+      "words": [
+        "tag"
+      ],
+      "clears": [
+        "git.tag.create"
+      ],
+      "flags": [
+        "-l",
+        "--list",
+        "-i",
+        "--ignore-case",
+        "--column",
+        "--no-column"
+      ],
+      "values": [
+        "--contains",
+        "--no-contains",
+        "--points-at",
+        "--merged",
+        "--no-merged",
+        "--sort",
+        "--format"
+      ],
+      "attached": [
+        "--sort=",
+        "--format=",
+        "--contains=",
+        "--no-contains=",
+        "--points-at=",
+        "--merged=",
+        "--no-merged=",
+        "--column="
+      ],
+      "numbered": [
+        "-n"
+      ],
+      "positionals": [
+        "-l",
+        "--list"
+      ],
+      "reason": "`git tag` with no word, or `-l` or `--list` with its listing options, lists tags and creates none. A word after `-l` is a pattern, and with no `-l` it would be a tag to create, so it keeps the ask."
+    },
+    {
+      "program": "kubectl",
+      "words": [
+        "apply"
+      ],
+      "clears": [
+        "deploy.run"
+      ],
+      "flags": [
+        "--dry-run=client"
+      ],
+      "values": [
+        "-f",
+        "--filename",
+        "-n",
+        "--namespace",
+        "-o",
+        "--output"
+      ],
+      "attached": [
+        "--filename=",
+        "--namespace=",
+        "--output="
+      ],
+      "required": [
+        "--dry-run=client"
+      ],
+      "positionals": "any",
+      "reason": "`--dry-run=client` only prints the object that would be sent, without sending it (kubectl apply's reference). Only that spelling reads: `--dry-run=server` sends a request, `--dry-run=none` applies, and a bare `--dry-run` takes the next word as a name."
+    },
+    {
+      "program": "kubectl",
+      "words": [
+        "delete"
+      ],
+      "clears": [
+        "infra.apply"
+      ],
+      "flags": [
+        "--dry-run=client"
+      ],
+      "values": [
+        "-f",
+        "--filename",
+        "-n",
+        "--namespace",
+        "-o",
+        "--output"
+      ],
+      "attached": [
+        "--filename=",
+        "--namespace=",
+        "--output="
+      ],
+      "required": [
+        "--dry-run=client"
+      ],
+      "positionals": "any",
+      "reason": "`--dry-run=client` only prints what it would delete, without sending it (kubectl delete's reference). Any other option, such as `--all` or `--force`, keeps the ask."
+    },
+    {
+      "program": "aws",
+      "words": [
+        "s3",
+        "rm"
+      ],
+      "clears": [
+        "data.delete"
+      ],
+      "flags": [
+        "--dryrun",
+        "--recursive",
+        "--quiet",
+        "--only-show-errors"
+      ],
+      "values": [
+        "--include",
+        "--exclude"
+      ],
+      "required": [
+        "--dryrun"
+      ],
+      "positionals": "any",
+      "reason": "`--dryrun` displays the operations the command would perform without running them (`aws s3 rm`'s reference)."
+    }
+  ],
+  "help_forms": [
+    {
+      "program": "git",
+      "commands": [
+        [
+          "push"
+        ]
+      ],
+      "flags": [
+        "-h"
+      ],
+      "clears": [
+        "git.push"
+      ],
+      "reason": "`git <command> -h` with nothing else gives the command's usage (gitcli). `--help` is not listed, because it opens the manual through a viewer that git's configuration names."
+    },
+    {
+      "program": "git",
+      "commands": [
+        [
+          "tag"
+        ]
+      ],
+      "flags": [
+        "-h"
+      ],
+      "clears": [
+        "git.tag.create"
+      ],
+      "reason": "`git <command> -h` with nothing else gives the command's usage (gitcli). `--help` is not listed, because it opens the manual through a viewer that git's configuration names."
+    },
+    {
+      "program": "kubectl",
+      "commands": [
+        [
+          "apply"
+        ]
+      ],
+      "flags": [
+        "-h",
+        "--help"
+      ],
+      "clears": [
+        "deploy.run"
+      ],
+      "reason": "`-h, --help` is the help flag of `kubectl apply` (its reference)."
+    },
+    {
+      "program": "kubectl",
+      "commands": [
+        [
+          "delete"
+        ]
+      ],
+      "flags": [
+        "-h",
+        "--help"
+      ],
+      "clears": [
+        "infra.apply"
+      ],
+      "reason": "`-h, --help` is the help flag of `kubectl delete` (its reference)."
+    },
+    {
+      "program": "aws",
+      "commands": [
+        [
+          "s3",
+          "rm"
+        ]
+      ],
+      "flags": [
+        "--help"
+      ],
+      "clears": [
+        "data.delete"
+      ],
+      "reason": "`--help` displays help for the command (`aws s3 rm`'s reference)."
+    }
+  ],
+  "delegation": {
+    "description": "What a standing delegation may let the `aidd-team:delegate` role answer, and what `aidd delegate check` reads to decide it may (docs/METHOD.md, \"A standing delegation\"). Only these actions are delegable, each in its exact command template, where `<name>` is a value the check reads. Every other action is reserved: always the person's. A config's `delegation` block picks from these and can only narrow them.",
+    "actions": {
+      "spec.approve": {
+        "description": "Approve a ready Spec whose new tests fail on the base, on the solo profile for the major route."
+      },
+      "git.push": {
+        "template": [
+          "git",
+          "push",
+          "origin",
+          "<sha>:refs/heads/<branch>"
+        ],
+        "description": "Push the change's own branch: the head branch of its open pull request into the default branch, with no force."
+      },
+      "git.merge": {
+        "template": [
+          "git",
+          "merge",
+          "--no-ff",
+          "-m",
+          "<message>",
+          "<sha>"
+        ],
+        "description": "Merge the change into the default branch on this machine, on the solo profile with no remote, once the check ran the suite on the head itself."
+      },
+      "pr.merge": {
+        "template": [
+          "gh",
+          "pr",
+          "merge",
+          "<number>",
+          "--repo",
+          "<repo>",
+          "<method>",
+          "--match-head-commit",
+          "<sha>",
+          "--body",
+          "<message>"
+        ],
+        "description": "Merge a pull request into the default branch on GitHub, at its exact head, once the `tests` check passed there."
+      }
+    },
+    "reserved_areas": [
+      "module_boundaries",
+      "ci",
+      "dependencies",
+      "agent_config",
+      "risk_rules",
+      "project_config"
+    ],
+    "rises_to_ask": [
+      "dependency.add",
+      {
+        "action": "deploy.run",
+        "except": [
+          {
+            "environment_shared": false
+          }
+        ]
+      },
+      "migration.run.local"
+    ],
+    "tripwires": [
+      "ai agent",
+      "ai agents",
+      "ai reviewer",
+      "already approved",
+      "approve it",
+      "approve this",
+      "approved by",
+      "as an ai",
+      "dear model",
+      "delegate:",
+      "do not ask",
+      "don't ask",
+      "ignore previous",
+      "ignore the rules",
+      "lgtm",
+      "merge it now",
+      "merge now",
+      "no need to ask",
+      "note for ai",
+      "owner agreed",
+      "owner approved",
+      "pre-approved",
+      "preapproved",
+      "skip the check",
+      "system prompt",
+      "to the model",
+      "you are the delegate"
+    ],
+    "packet": {
+      "max_characters": {
+        "request": 8000,
+        "person_request": 8000,
+        "claimed_request": 8000,
+        "acceptance": 12000,
+        "design": 8000,
+        "concerns": 4000,
+        "rollback": 4000,
+        "tasks": 6000,
+        "risk": 3000,
+        "commit_subjects": 6000
+      },
+      "max_diffstat_files": 300
+    },
+    "deploy_actions": [
+      "actions/deploy-pages",
+      "akhileshns/heroku-deploy",
+      "amondnet/vercel-action",
+      "appleboy/ssh-action",
+      "aws-actions/amazon-ecs-deploy-task-definition",
+      "aws-actions/aws-cloudformation-github-deploy",
+      "azure/functions-action",
+      "azure/static-web-apps-deploy",
+      "azure/webapps-deploy",
+      "cloudflare/pages-action",
+      "cloudflare/wrangler-action",
+      "FirebaseExtended/action-hosting-deploy",
+      "google-github-actions/deploy-appengine",
+      "google-github-actions/deploy-cloudrun",
+      "JamesIves/github-pages-deploy-action",
+      "netlify/actions",
+      "nwtgck/actions-netlify",
+      "peaceiris/actions-gh-pages",
+      "superfly/flyctl-actions"
+    ]
+  }
+}

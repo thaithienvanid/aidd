@@ -1,0 +1,12 @@
+{
+  "id": "20261101T100200000Z-a0000003",
+  "type": "report",
+  "at": "2026-11-01T10:02:00Z",
+  "by": "agent:claude-code/claude-opus-5-5",
+  "written_with": "cli",
+  "subject": "SPEC-4",
+  "data": {
+    "action": "pr.open",
+    "said": "Opened PR #12."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "aidd-packs",
+  "dependencies": [
+    "aidd-team"
+  ],
+  "description": "An optional part of aidd-team: a domain pack per domain, each a skill with the domain's standards, a checklist per loop step, and test commands for a Spec, such as web, APIs, mobile, desktop, AI features, AI agents, data, cloud, payments, health, embedded, public sector, children, and internationalization. A role loads a pack by name, when aidd risk, the config, or the lead names it, so no model has to find a pack from its description. Needs the aidd-team plugin. Install it in a project that calls for a pack: its descriptions share Claude Code's skill listing budget with every other skill.",
+  "author": {
+    "name": "Van Hoang"
+  },
+  "homepage": "https://github.com/thaithienvanid/aidd",
+  "repository": "https://github.com/thaithienvanid/aidd",
+  "license": "Apache-2.0",
+  "keywords": [
+    "aidd",
+    "domain-packs",
+    "standards",
+    "checklists"
+  ]
+}

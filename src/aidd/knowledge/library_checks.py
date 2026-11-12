@@ -1,0 +1,227 @@
+"""The standards library's generic checks, which `aidd eval standards` runs over every library file: an open choice
+never names the method, a standard's body stays short and says nothing a pack already says, each rule it names is
+cited, each `implements` names a real choice, and a standard in an ecosystem with a lockfile runs its tool from the
+project's lock, never at a version its command names."""
+
+from __future__ import annotations
+
+import datetime as dt
+import functools
+import re
+from collections.abc import Mapping
+from pathlib import Path
+from types import MappingProxyType
+
+from aidd import config as cfgmod
+from aidd.kernel import documents, retired_names
+from aidd.knowledge import standards, team_registry, upkeep
+
+
+def method_problems(choices: dict[str, dict]) -> list[str]:
+    """An open choice that names the method (routes, approvals, commit format, `Assisted-by:`)."""
+    out = []
+    for ref, c in choices.items():
+        text = " ".join([c["id"].replace("-", " "), c["id"], c["question"], c["default"], *c["options"]])
+        words = set(re.findall(r"[a-z][a-z-]*", text.lower()))
+        hit = sorted(words & standards.METHOD_WORDS)
+        if hit:
+            out.append(f"open choice {ref}: names the method ({', '.join(hit)}); how aidd works is never an open choice")
+    return out
+
+
+def _words(text: str) -> list[str]:
+    return re.findall(r"[a-z0-9][a-z0-9'_./-]*", text.lower())
+
+
+def _sentences(text: str, min_words: int) -> list[str]:
+    """Normalised sentences of `min_words` words or more, outside code blocks and front matter."""
+    text = re.sub(r"```.*?```", " ", text, flags=re.S)
+    out = []
+    for chunk in re.split(r"\n|\|", text):
+        for sentence in re.split(r"(?<=[.!?])\s+", chunk):
+            words = [w.strip("`*") for w in _words(sentence)]
+            if len(words) >= min_words:
+                out.append(" ".join(words))
+    return out
+
+
+@functools.lru_cache(maxsize=4)
+def _sentence_owners(team: tuple[tuple[str, str], ...], copy_words: int) -> Mapping[str, str]:
+    """Each long sentence of the team's texts (`copy_words` words or more), and the pack or practice skill it is in; the
+    same texts and length give the same answer, so it is worked out once for them. The map is read only, as it is shared."""
+    return MappingProxyType({s: name for name, text in team for s in _sentences(text, copy_words)})
+
+
+def _pinned_by_team(tool: str, team: dict[str, str]) -> list[str]:
+    """The packs and practice skills whose test commands pin `tool` by version; `team` is `standards.team_texts()`."""
+    pin = re.compile(rf"(?<![\w-]){re.escape(tool)}[`'\"]?(?:==|@| \(v?)[0-9]", re.I)
+    data = team_registry.roles()
+    out = [team_registry.skill_ref(d["slug"]) for d in data["domains"] if any(pin.search(t.get("how", "")) for t in d["tests"])]
+
+    for name, text in team.items():
+        if name in {d["slug"] for d in data["domains"]}:
+            continue
+        if pin.search(documents.raw_section(text, "Test commands")):
+            out.append(team_registry.skill_ref(name))
+    return out
+
+
+def _implements_problem(ref: str, team: dict[str, str]) -> str | None:
+    owner, _, rule = ref.partition(":")
+    from aidd.knowledge import role_text
+
+    data = team_registry.roles()
+    packs_ = {d["slug"] for d in data["domains"]}
+    if owner not in packs_ and owner not in role_text.practice_names():
+        return f"implements {ref}: {owner} is no pack or practice skill"
+    if owner == "product-defaults":
+        return None if rule in cfgmod.PROJECT_DEFAULTS else f"implements {ref}: {rule} is no product default"
+    return None if _clean(rule) in rule_names(team.get(owner, "")) else f"implements {ref}: {team_registry.skill_ref(owner)} has no rule {rule!r}"
+
+
+def _clean(text: str) -> str:
+    return " ".join(text.replace("`", "").replace("*", "").strip().rstrip(".:").split()).lower()
+
+
+CITATIONS = "standards"
+
+
+def rule_names(text: str) -> set[str]:
+    """The whole rule names in a pack's or skill's text: its headings, its bold lead-ins (`**Name.**`), and the first
+    cell of each table body row. `implements` names one of them, never a word inside a sentence. The Standards section
+    cites what the field agrees on and holds no rule, so nothing in it counts, nor does a table's header row."""
+    names: set[str] = set()
+    lines = text.splitlines()
+    citing = False
+    for i, line in enumerate(lines):
+        heading = re.match(r"^(#{1,6})\s+(.+?)\s*$", line)
+        if heading:
+            citing = _clean(heading.group(2)) == CITATIONS
+            if not citing:
+                names.add(_clean(heading.group(2)))
+            continue
+        if citing:
+            continue
+        names |= {_clean(b) for b in re.findall(r"\*\*([^*]+?)\*\*", line)}
+        if line.startswith("|") and not re.match(r"^\|\s*:?-", line):
+            header = i + 1 < len(lines) and re.match(r"^\|\s*:?-", lines[i + 1])
+            if not header:
+                names.add(_clean(line.strip("|").split("|")[0]))
+    return names - {""}
+
+
+# The library folders whose ecosystem locks its tools: Python (`uv run`), Go (`go tool`), and TypeScript (`pnpm exec`).
+# A standard there runs its tool from the project's lock, which the project's updater moves; a tool in another folder,
+# such as `cpp/` or `tooling/`, may have no lock that can hold it, so its command keeps an exact version.
+LOCKED_ECOSYSTEMS = ("python", "go", "typescript", "ai")
+
+
+def _inline_version(tool: str, arg: str) -> str | None:
+    """The version a command's word names for `tool` (`ruff@0.17.1`, `mypy==2.4.0`, `.../cmd/govulncheck@v1.8.0`), or None."""
+    hit = re.fullmatch(rf"(?:.*/)?{re.escape(tool)}(?:==|@)(v?\d[\w.+-]*)", arg)
+    return hit.group(1) if hit else None
+
+
+def library_problems(
+    folder: Path | None = None, stacks_folder: Path | None = None, *, today: dt.date | None = None, renames: Mapping[str, str] | None = None
+) -> list[str]:
+    """Every break of the library's rules, over every file: adding a standard or a stack needs no new test code."""
+    today = today or dt.date.today()
+    lib, out = standards.read_library(folder)
+    known_stacks, stack_errors = standards.read_stacks(stacks_folder)
+    out += stack_errors
+    choices = standards.open_choices()
+    out += method_problems(choices)
+    out += standards.choice_problems()
+    team = standards.team_texts()  # read once: each check below reads it
+    out += standards.deciding_problems(texts=team)
+    roles = set(team_registry.roles()["order"])
+    team_sentences = _sentence_owners(tuple(team.items()), standards.COPY_WORDS)
+    seen_sentences: dict[str, str] = {}
+    by_choice: dict[tuple[str, str], list[str]] = {}
+    by_tool: dict[str, list[str]] = {}
+    for sid, s in sorted(lib.items()):
+        m = s.meta
+        for ref in m["fills"]:
+            if ref not in choices:
+                out.append(f"{sid}: fills {ref}, which no pack or practice skill declares")
+            if s.active:
+                by_choice.setdefault((ref, s.ecosystem), []).append(sid)
+        if m.get("implements") and (why := _implements_problem(m["implements"], team)):
+            out.append(f"{sid}: {why}")
+        unknown = [r for r in m["roles"] if r != "*" and r not in roles]
+        if unknown:
+            out.append(f"{sid}: unknown role {', '.join(unknown)}")
+        if dt.date.fromisoformat(m["checked"]) > today:
+            out.append(f"{sid}: checked {m['checked']} is in the future")
+        cadence = upkeep.spread(sid, standards.LIBRARY_REVIEW_EVERY_DAYS[m["maturity"]])
+        if (today - dt.date.fromisoformat(m["checked"])).days > cadence:
+            out.append(f"{sid}: checked {m['checked']}, over {cadence} days ago; check the choice again and set the date")
+        words = len(_words(s.body))
+        if words > standards.WORD_CAP:
+            out.append(f"{sid}: its body is {words} words; the cap is {standards.WORD_CAP}")
+        for sentence in _sentences(s.body, standards.COPY_WORDS):
+            if sentence in team_sentences:
+                out.append(f"{sid}: restates {team_registry.skill_ref(team_sentences[sentence])} ({sentence[:60]}...); link the rule with `implements`")
+            if sentence in seen_sentences:
+                out.append(f"{sid} repeats {seen_sentences[sentence]} ({sentence[:60]}...)")
+            seen_sentences.setdefault(sentence, sid)
+        if m["status"] == "deprecated":
+            if m.get("default"):
+                out.append(f"{sid}: a deprecated standard is never a default; set `default: true` on the standard that replaces it")
+            new = m.get("replaced_by")
+            if new and (new not in lib or not lib[new].active or new == sid):
+                out.append(f"{sid} is replaced by {new}, which is no active library standard")
+        if any(e["command"][:2] == ["go", "tool"] for e in m.get("enforced_by", [])) and not m.get("lock_command"):
+            out.append(f"{sid}: its tests run `go tool`, so name the command that adds the tool to `go.mod` in `lock_command`")
+        tool = (m.get("tool") or {}).get("name")
+        if tool and s.active:
+            by_tool.setdefault(tool, []).append(sid)
+            locked = sid.split("/", 1)[0] in LOCKED_ECOSYSTEMS
+            for e in m.get("enforced_by", []):
+                for arg in e["command"]:
+                    if locked and (version := _inline_version(tool, arg)):
+                        out.append(
+                            f"{sid}: its test {e['name']} runs {tool} {version}, a version the command names. Run it from the "
+                            "project's lock (`uv run`, `go tool`, `pnpm exec`), which the project's updater moves"
+                        )
+    for (ref, eco), ids in sorted(by_choice.items()):
+        defaults = [sid for sid in ids if lib[sid].meta.get("default")]
+        if not defaults:
+            out.append(f"{ref} for {eco} has no default; set `default: true` on one of {', '.join(ids)}")
+        elif len(defaults) > 1:
+            out.append(f"{ref} for {eco} has {len(defaults)} defaults ({', '.join(defaults)}); keep one")
+    for tool, ids in sorted(by_tool.items()):
+        if len(ids) > 1:
+            out.append(f"the tool {tool} is owned by {len(ids)} library standards ({', '.join(ids)}); one standard owns each tool")
+        for owner in _pinned_by_team(tool, team):
+            out.append(f"{ids[0]}: {owner} already pins the tool {tool}; the pack keeps it, or opens a choice for it")
+    names = retired_names.standard_renames() if renames is None else renames
+    for old, new in sorted(names.items()):
+        if old in lib:
+            out.append(f"retired-names.json renames {old}, which is still a library file")
+        if new not in lib:
+            out.append(f"retired-names.json renames to {new}, which is no library standard")
+        if new in names:
+            out.append(f"retired-names.json renames {old} to {new}, which is renamed again; point it at the last id")
+    for name, data in sorted(known_stacks.items()):
+        parent = data.get("extends")
+        if parent == name:
+            out.append(f"stack {name} extends itself")
+        elif parent and parent not in known_stacks:
+            out.append(f"stack {name} extends {parent}, which is no stack")
+        elif parent and known_stacks[parent].get("extends"):
+            out.append(f"stack {name} extends {parent}, which extends {known_stacks[parent]['extends']}: a stack extends one other stack, one level")
+        # One standard per choice, whatever folder each one lives in.
+        picked: dict[str, str] = {}
+        for sid in standards.stack_standards(name, known_stacks):
+            if sid not in lib:
+                out.append(f"stack {name}: {sid} is no library standard")
+                continue
+            if not lib[sid].active:
+                out.append(f"stack {name}: {sid} is deprecated; use {lib[sid].meta.get('replaced_by')}")
+            for ref in lib[sid].meta["fills"]:
+                if ref in picked:
+                    out.append(f"stack {name}: {picked[ref]} and {sid} both fill {ref}; a stack picks one")
+                picked[ref] = sid
+    return out

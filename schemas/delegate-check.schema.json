@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:delegate-check",
+  "title": "aidd delegate check --json",
+  "description": "Whether a delegated ask may go to the delegate: `eligible` only when every check passes, recomputed from git, the default branch's config, and the platform each time. A defer goes to the person. It exits 0 when eligible, 1 on a defer, and 2 on a usage error. A new optional key may be added in a minor release; a renamed or removed key bumps `schema_version`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "outcome",
+    "reserved",
+    "action",
+    "covers",
+    "reasons",
+    "trailers",
+    "next"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "The version of this output's shape."
+    },
+    "outcome": {
+      "enum": [
+        "eligible",
+        "defer"
+      ],
+      "description": "`eligible`: start the delegate with the action, the command, and the head. `defer`: ask the person."
+    },
+    "reserved": {
+      "type": "boolean",
+      "description": "Whether a reason is a reserved one: the person decides, whatever the delegation says."
+    },
+    "action": {
+      "type": "string",
+      "description": "The action asked about, such as `pr.merge`."
+    },
+    "covers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "head"
+      ],
+      "description": "What an accept would cover: the exact command, with the trailers in its message, the head and its tree, the default branch's tip, the branch, and the Spec.",
+      "properties": {
+        "command": {
+          "type": "string"
+        },
+        "head": {
+          "type": "string"
+        },
+        "tree": {
+          "type": "string"
+        },
+        "base": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "spec": {
+          "type": "string"
+        }
+      }
+    },
+    "reasons": {
+      "type": "array",
+      "description": "Why the check defers; empty when eligible.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "reserved",
+          "detail"
+        ],
+        "properties": {
+          "code": {
+            "$ref": "#/$defs/reason_code"
+          },
+          "reserved": {
+            "type": "boolean"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What a person should know that defers nothing."
+    },
+    "inputs": {
+      "type": "object",
+      "description": "What the check read, such as `delegation_commit`, the commit whose config held the delegation, and the check run, for a person to read. Nothing reads it to decide."
+    },
+    "trailers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "On `eligible`: the `Decided-by`, `On-behalf-of`, and `Delegation` trailers a delegated commit or merge carries, never `Approved-by`."
+    },
+    "record": {
+      "type": "string",
+      "description": "The `delegate_check` record this run wrote."
+    },
+    "next": {
+      "$ref": "urn:aidd:1:common#/$defs/next",
+      "description": "The next step: `what` is one sentence."
+    }
+  },
+  "$defs": {
+    "reason_code": {
+      "x-open": true,
+      "enum": [
+        "harness_not_supported",
+        "not_delegated",
+        "reserved_action",
+        "config_unreadable",
+        "delegation_stopped",
+        "delegation_review_due",
+        "command_not_canonical",
+        "bypass_flag",
+        "head_moved",
+        "deferred_before",
+        "records_unreadable",
+        "emergency_route",
+        "text_claims_approval",
+        "text_hides_characters",
+        "text_too_long",
+        "offline",
+        "platform_unreadable",
+        "platform_not_supported",
+        "tip_not_fetched",
+        "default_branch_unknown",
+        "spec_not_found",
+        "spec_not_ready",
+        "validate_errors",
+        "untested_acceptance",
+        "reserved_path",
+        "team_review",
+        "not_red_on_base",
+        "reserved_branch",
+        "branch_deploys",
+        "no_protection",
+        "protection_unreadable",
+        "base_moved",
+        "ci_not_green",
+        "note_missing",
+        "note_other_head",
+        "note_needs_decision",
+        "note_unreadable",
+        "note_open_decision",
+        "tests_changed",
+        "out_of_scope",
+        "no_spec",
+        "has_remote",
+        "suite_red",
+        "untested",
+        "environments_unset",
+        "merge_deploys"
+      ],
+      "description": "A reason the check defers. The `delegate` group of `schemas/findings.json` gives each one's meaning, whether it is reserved, and the next step."
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:lifecycles",
+  "title": "aidd lifecycles",
+  "description": "The format of schemas/lifecycles.json: one row for each thing that can be open, in one of three classes, with who opens it, what closes it, who may close it, and what finds one left open. A test holds every item type and every key of the config, the handoff note, and the item types' schemas that carries a date or a release to a row, or to `never_open` with its reason.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["description", "classes", "closers", "finders", "things", "never_open"],
+  "properties": {
+    "description": { "type": "string" },
+    "classes": {
+      "type": "object",
+      "description": "The three classes of thing, each a key and what it holds.",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "closers": {
+      "type": "object",
+      "description": "Who may close a thing, each a key a row's `closed_by` names, and what it means.",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "finders": {
+      "type": "object",
+      "description": "What finds a thing left open, each a key a row's `found_by` names: an aidd command a person can run, or the lead's close-out at the end of a change.",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "things": {
+      "type": "object",
+      "description": "One row for each thing, keyed by its name, in the order of the classes.",
+      "additionalProperties": { "$ref": "#/$defs/thing" }
+    },
+    "never_open": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item_groups", "item_types", "keys"],
+      "description": "What carries a date or has a type but is never open, each with why.",
+      "properties": {
+        "item_groups": {
+          "type": "object",
+          "description": "Groups of schemas/item-types.json whose types are never open, each with why.",
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "item_types": {
+          "type": "object",
+          "description": "Types of schemas/item-types.json, in a group that has rows, that are never open, each with why.",
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "keys": {
+          "type": "array",
+          "description": "Keys that carry a date or a release and are never open, grouped by why.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["why", "keys"],
+            "properties": {
+              "why": { "type": "string", "minLength": 1 },
+              "keys": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/key" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "key": {
+      "type": "string",
+      "pattern": "^[a-z-]+\\.schema\\.json#(/[A-Za-z0-9_$]+)+$",
+      "description": "A key of a schema, as its file and a pointer to the node that defines it, such as `spec.schema.json#/$defs/flag/properties/cleanup_due`."
+    },
+    "thing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "opened_by", "closes_when", "closed_by", "found_by", "close_with"],
+      "properties": {
+        "class": { "enum": ["durable", "dated", "machine"], "description": "The key of its class in `classes`." },
+        "item_type": { "type": "string", "minLength": 1, "description": "A durable thing's type in schemas/item-types.json." },
+        "keys": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/key" },
+          "description": "The schema keys that carry its date or what releases it."
+        },
+        "opened_by": { "type": "string", "minLength": 1, "description": "Who opens it, and how." },
+        "closes_when": { "type": "string", "minLength": 1, "description": "What closes it." },
+        "closes_in_groups": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "A work item's status groups that close it, as the status node its item type points to names them in `x-groups`."
+        },
+        "closed_by": { "enum": ["opener", "lead", "person"], "description": "Who may close it: a key of `closers`." },
+        "found_by": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "What finds one left open: keys of `finders`."
+        },
+        "close_with": { "type": "string", "minLength": 1, "description": "The command or the step that closes it." }
+      }
+    }
+  }
+}

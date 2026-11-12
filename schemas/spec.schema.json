@@ -1,0 +1,593 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidd:1:spec",
+  "title": "Spec",
+  "description": "One change: what, why, how it is proven, who approves it. Stored as YAML front matter in specs/<id>.md; the Markdown body holds Context, Acceptance, Design, and Non-goals.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "id",
+    "title",
+    "change_type",
+    "route",
+    "risk",
+    "rollback",
+    "tasks",
+    "tests"
+  ],
+  "properties": {
+    "type": {
+      "const": "spec",
+      "description": "Object type. Always `spec`."
+    },
+    "id": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "description": "Spec key, such as SPEC-220."
+    },
+    "parent": {
+      "$ref": "urn:aidd:1:common#/$defs/id",
+      "description": "Optional: the Intent whose slice this Spec delivers. `aidd validate` warns when it lists no such slice."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "One line, an imperative summary of the change, such as \"Rate-limit authenticated checkout\": the merge commit's subject, `<change_type>: <title> (<ID>)`. `aidd validate` warns when that subject passes 72 characters. The language in the project's AGENTS.md may apply."
+    },
+    "delivery_team": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The delivery team that owns the change: a key of the config's `delivery_teams`, which `aidd validate` checks. Unset, the change is its Intent's team's, or the work of the team whose areas its Tasks touch."
+    },
+    "approvers": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:aidd:1:common#/$defs/identity"
+      },
+      "description": "The people to ask for this Spec's decisions, first to last. Missing, the agent asks the config's `owners.approvers`."
+    },
+    "change_type": {
+      "$ref": "urn:aidd:1:common#/$defs/change_type"
+    },
+    "route": {
+      "allOf": [
+        {
+          "$ref": "urn:aidd:1:common#/$defs/route"
+        },
+        {
+          "enum": [
+            "normal",
+            "major",
+            "emergency"
+          ]
+        }
+      ],
+      "description": "normal, major (an area or the risk can raise a normal change to major), or emergency for a backfill Spec. A minor change has no Spec file."
+    },
+    "confidence": {
+      "$ref": "urn:aidd:1:common#/$defs/confidence"
+    },
+    "open_questions": {
+      "$ref": "urn:aidd:1:common#/$defs/open_questions"
+    },
+    "trace_id": {
+      "$ref": "urn:aidd:1:common#/$defs/trace_id",
+      "description": "Joins the Specs and changes of one piece of work across repositories. Unset, it is the lower-cased id; write it only to join work across repositories."
+    },
+    "tracker": {
+      "$ref": "urn:aidd:1:common#/$defs/tracker",
+      "description": "The tracker's story this Spec delivers, such as `{type: story, id: PORT-32}`."
+    },
+    "status": {
+      "$ref": "urn:aidd:1:common#/$defs/status",
+      "description": "The Spec's status, stored here. The agent sets it as the work moves: `ready` when it asks for Spec approval, `approved` on the person's yes, and `done` once the change merged. Missing means `draft`."
+    },
+    "approved_by": {
+      "$ref": "urn:aidd:1:common#/$defs/approved_by"
+    },
+    "approved_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$",
+      "format": "date-time",
+      "description": "When the person said yes to Spec approval (RFC 3339), such as `2026-11-03T14:20:00Z`. On the yes in the chat, the agent sets it, `approved_by`, and `status: approved`, and commits with an `Approved-by:` trailer of the same value as `approved_by`. Both are a note the agent wrote, not proof."
+    },
+    "delegate_answer": {
+      "type": "string",
+      "pattern": "^[0-9]{8}T[0-9]{9}Z-[0-9a-f]{8}$",
+      "description": "On a delegated Spec approval, the id of the `delegate_answer` record that accepted it, with `approved_at` and `status: approved`, and no `approved_by`. The commit carries the `Decided-by`, `On-behalf-of`, and `Delegation` trailers, never `Approved-by`, which stays a person's own yes."
+    },
+    "waiting_on": {
+      "type": "string",
+      "description": "Role, person, or interface the Spec waits on. While `waiting_on` names one, the Spec is blocked: a flag `aidd status` shows, not a status."
+    },
+    "blocked_by": {
+      "$ref": "urn:aidd:1:common#/$defs/blocked_by",
+      "description": "The work items (Specs or Intents) that must finish before Implement starts, by id. A draft or ready Spec waits only at Implement, and `aidd status` names what it waits for. Bookkeeping: it never changes the route, and on a Spec editing it needs no `spec.revise`. A Task's `depends_on`, which orders Tasks inside one Spec, is unrelated."
+    },
+    "provides": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/interface_name"
+      },
+      "uniqueItems": true,
+      "description": "The interfaces this Spec provides, by stable name, such as `orders-api` or `order.created`: an API, an event, or a schema that other Specs consume. When it is revised (`spec.revise`), `aidd status` names the open Specs that `consumes` each one, so the question to the person names them and their owners hear first. Advice only: nothing blocks. Bookkeeping: it never changes the route, and on a Spec editing it needs no `spec.revise`."
+    },
+    "consumes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/interface_name"
+      },
+      "uniqueItems": true,
+      "description": "The interfaces this Spec consumes, by the stable name another Spec lists in `provides`. `aidd validate` warns when no Spec provides one. Bookkeeping: it never changes the route, and on a Spec editing it needs no `spec.revise`."
+    },
+    "priority": {
+      "$ref": "urn:aidd:1:common#/$defs/priority"
+    },
+    "owner": {
+      "$ref": "urn:aidd:1:common#/$defs/owner"
+    },
+    "suggested_by": {
+      "$ref": "urn:aidd:1:common#/$defs/identity",
+      "description": "Who suggested work nobody asked for: `role:<role>` for a role in `agents.proactive_roles` (or an agent account). Such a Spec stays a draft until a person decides its `triage`."
+    },
+    "triage": {
+      "$ref": "#/$defs/triage",
+      "description": "A person's decision on suggested work. Required, by a person, before a Spec whose suggested_by is an agent moves past draft."
+    },
+    "risk": {
+      "$ref": "urn:aidd:1:common#/$defs/risk"
+    },
+    "rollback": {
+      "type": "string",
+      "minLength": 1,
+      "description": "How to undo. Name the steps on major and emergency."
+    },
+    "hypothesis": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The measurable result the change should produce after Roll out, written before Spec approval, which covers it: a metric, its baseline, the expected move, and by when. Learn writes `outcome.result` against it."
+    },
+    "manual_acceptance": {
+      "type": "boolean",
+      "description": "True when humans accept this change by hand: a client's user acceptance test, a product or QA owner's pass, or a device lab run. A test plan is expected on major and suggested on normal (`aidd new spec` prints it); the acceptance record (`aidd new acceptance`) lists who accepted each id and holds the sign-offs. Approved content: Spec approval covers it."
+    },
+    "adrs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "ADR paths or links this Spec depends on, and does not change. A repository path must exist (`aidd validate`); an ADR this Spec writes is a `docs` entry of type `adr` instead."
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/task"
+      },
+      "minItems": 1,
+      "description": "Slices of the change. Parallel only when their scope is disjoint."
+    },
+    "tests": {
+      "$ref": "urn:aidd:1:common#/$defs/tests"
+    },
+    "docs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/doc"
+      },
+      "description": "The documents that hold the detail this Spec links instead of carrying: a tech spec, a test plan, a prototype or design spec, design files, an ADR, a threat model, an API contract, a migration or tracking plan, a runbook. `aidd new <type> <topic> --spec <ID>` writes one from its template and adds the entry. A frozen doc is approved with the Spec, like a design file; a living one is only checked to exist."
+    },
+    "observe": {
+      "$ref": "urn:aidd:1:common#/$defs/observe",
+      "description": "Post-release check: what to watch, for how long, and when to roll back. Required on major."
+    },
+    "flags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/flag"
+      },
+      "description": "Feature flags this change ships behind, so release is separate from deploy: the architect adds one on a normal or major user-facing change that should reach users later than its code reaches production. Optional; a minor change never needs one. Approved content: Spec approval covers it. `aidd validate` warns, and `aidd status` shows the cleanup as work, once a flag's `cleanup_due` has passed and no merged Spec lists it in `removes_flags`; a later Spec that declares the same flag with a later date extends it once that Spec merges."
+    },
+    "removes_flags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/flag_name"
+      },
+      "uniqueItems": true,
+      "description": "Flags this change deletes from the code, by name: the cleanup Spec for an earlier Spec's `flags` entry. Once this Spec merges, `aidd validate` and `aidd status` stop reporting the flag as overdue; while it is a draft, they name it as the pending removal."
+    },
+    "deprecations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/deprecation"
+      },
+      "description": "What this change deprecates: an endpoint, a field, an event, a config key, or a command its consumers still use. The architect adds one when a removal or a changed meaning goes through expand and contract. The running API announces it with the `Deprecation` header (RFC 9745) and, once dated, the `Sunset` header (RFC 8594), with the same dates. Approved content: Spec approval covers it. `aidd validate` warns, and `aidd status` shows the removal as work, once its `sunset` has passed and no merged Spec lists it in `removes_deprecations`. A later Spec that declares the same `what` with a later `sunset` extends it once that Spec merges."
+    },
+    "removes_deprecations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/deprecation_name"
+      },
+      "uniqueItems": true,
+      "description": "Deprecations this change removes from the code, by their `what`: the removal Spec for an earlier Spec's `deprecations` entry. Once this Spec merges, `aidd validate` and `aidd status` stop reporting it; while it is a draft, they name it as the pending removal."
+    },
+    "emergency": {
+      "$ref": "urn:aidd:1:common#/$defs/emergency",
+      "description": "Required when route is emergency."
+    },
+    "revisions": {
+      "type": "array",
+      "description": "Each reopening of an approved Spec, newest last: what was wrong, when, and who said yes to the revision. On a person's yes to `spec.revise`, the agent adds one and sets the Spec back to `draft`, so Spec approval is asked again. The approval question names the latest one and, when the Spec `provides` an interface, the open Specs that consume it.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "why"
+        ],
+        "properties": {
+          "why": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What was wrong, in one sentence."
+          },
+          "revised_at": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$",
+            "format": "date-time",
+            "description": "When the person said yes to the revision (RFC 3339), such as `2026-11-04T09:05:00Z`."
+          },
+          "by": {
+            "$ref": "urn:aidd:1:common#/$defs/approved_by",
+            "description": "Who said yes to the revision in the chat, in the form `approved_by` takes."
+          }
+        }
+      }
+    },
+    "outcome": {
+      "$ref": "#/$defs/outcome",
+      "description": "What happened after Roll out. Written during the observe window and in Learn."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "route": {
+            "const": "emergency"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "emergency"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "route": {
+            "const": "major"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "observe"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "confidence": {
+            "const": "high"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "open_questions": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "doc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "path"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "tech-spec",
+            "test-plan",
+            "design-spec",
+            "design-files",
+            "adr",
+            "threat-model",
+            "authz-matrix",
+            "api",
+            "runbook",
+            "slo",
+            "compliance-record",
+            "tracking-plan",
+            "migration-plan",
+            "acceptance",
+            "data-map",
+            "vendors",
+            "other"
+          ],
+          "description": "What the document is. It names the role that writes it (architect: tech-spec, adr, api, migration-plan; verifier: test-plan; product designer: design-spec (with its context of use, flows, and usability test) or its HTML prototype, and design-files (the mockups, wireframes, and flows a person approves with the Spec, such as `specs/SPEC-220/design/**`: always frozen, and never implementation scope); security engineer: threat-model, authz-matrix; SRE: runbook, slo; compliance analyst: compliance-record, data-map (the repository's living inventory and records of processing); product manager: tracking-plan; delivery manager: acceptance, and vendors (the repository's vendor register)) and the required-docs matrix `aidd validate` warns from (`docs.disabled`)."
+        },
+        "path": {
+          "$ref": "urn:aidd:1:common#/$defs/glob",
+          "description": "Repo-relative path of the document, or a glob for a folder of files (a prototype with its assets), such as `specs/SPEC-220/tech-spec-limits.md`. It must match a file (`aidd validate`; a `design-files` entry may match none yet), and a frozen one is never a catch-all and never inside a Task's scope."
+        },
+        "frozen": {
+          "type": "boolean",
+          "description": "Default true: approved with the Spec, like a design file, so an edit after Spec approval is `spec.revise`; a drift found while implementing goes in the verification report and a later docs-only change. False for a living document several Specs revise (a runbook, an area's architecture page): only checked to exist, and a Task that changes it names it in its scope. A `design-files` entry is always frozen: `frozen: false` on it is an error."
+        }
+      },
+      "description": "One linked document."
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "scope"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "urn:aidd:1:common#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "One line describing the slice."
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/glob"
+          },
+          "minItems": 1,
+          "description": "Globs this Task's diff may change: the module's folder (`src/billing/`), the folder of the unit tests written with its code, and a single file only where an area names it. Never a frozen test or design file, never a catch-all."
+        },
+        "skeleton": {
+          "type": "boolean",
+          "description": "Part of the walking skeleton: the thinnest version of a new system that runs end to end, with its structure, contracts, test runner, CI, and one smoke test, which every later slice builds on. The architect or the SRE implements it (`{skeleton}` in their write area), before the feature slices fan out. Default false."
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:aidd:1:common#/$defs/id"
+          },
+          "description": "Task ids that must finish first. Required between Tasks whose scope overlaps."
+        },
+        "assignee": {
+          "$ref": "urn:aidd:1:common#/$defs/identity",
+          "description": "Builder: `role:<role>` for a role of the team, or a person."
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2,
+          "description": "Skills loaded only for this Task, by directory name: a practice skill such as `schema-migration` or a stack skill, at most two. Domain packs are named in Context instead."
+        },
+        "risk": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What this Task could break, and how it guards against it. Approved content: Spec approval covers it."
+        },
+        "proof": {
+          "type": "string",
+          "minLength": 1,
+          "description": "How this Task is shown to work: the test command, screenshot, or check a reviewer reads. Approved content: Spec approval covers it."
+        },
+        "retry_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "Implementation retries used. At 3 the Task stops and the Spec is blocked until a person re-plans it."
+        },
+        "done": {
+          "type": "boolean",
+          "description": "True when the Task is finished. The agent sets it. Bookkeeping: editing it needs no `spec.revise`."
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "released_on": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "Date the change reached production."
+        },
+        "observe_result": {
+          "enum": [
+            "pass",
+            "fail"
+          ],
+          "description": "Result of the observe window."
+        },
+        "rolled_back": {
+          "type": "boolean",
+          "description": "True when the rollback ran."
+        },
+        "restored_on": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "Date service was restored after a failed change (a rollback or a fix). With `released_on`, it gives the time to restore."
+        },
+        "learn_ref": {
+          "type": "string",
+          "description": "Link to the retro or the PR that fed lessons back into AGENTS.md, skills, or tests."
+        },
+        "result": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the metric named in `hypothesis` did after the observe window: met, missed, or inconclusive, with the number. A missed hypothesis is a Learn signal for the author and the product-manager, not a rollback."
+        }
+      },
+      "description": "What happened after Roll out. Written during the observe window and in Learn; editing it needs no `spec.revise`."
+    },
+    "triage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "by",
+        "decided_on"
+      ],
+      "properties": {
+        "decision": {
+          "enum": [
+            "accepted",
+            "declined",
+            "snoozed"
+          ],
+          "description": "accepted: the work goes ahead. declined: it does not, and the Spec is cancelled (a stored status must not say otherwise). snoozed: decide again on `until`; `aidd status` hides it until then."
+        },
+        "by": {
+          "$ref": "urn:aidd:1:common#/$defs/identity",
+          "description": "The person who decided. Never an agent or an agent account: `aidd validate` fails one."
+        },
+        "decided_on": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "The date of the decision."
+        },
+        "until": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "Snoozed only: the date the item comes back for a decision."
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Why, in one sentence. A later triage of the same idea reads it first. Optional; `aidd validate` warns when a declined triage has none. Bookkeeping, like the rest of `triage`: editing it needs no `spec.revise`."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "snoozed"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "until"
+            ]
+          }
+        }
+      ],
+      "description": "A person's decision on work an agent suggested: accepted, declined, or snoozed, with who and when."
+    },
+    "interface_name": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9]*(?:[._:/-][A-Za-z0-9]+)*$",
+      "maxLength": 80,
+      "description": "An interface's stable name, matched exactly: letters and digits, with `-`, `.`, `_`, `:`, or `/` between words, such as `orders-api`, `order.created`, or `billing:invoice-v2`."
+    },
+    "flag_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 64,
+      "description": "A flag key in lowercase, with `-`, `.`, or `_` between words, such as `checkout-v2`: the key the code evaluates."
+    },
+    "flag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "default",
+        "owner",
+        "cleanup_due"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/flag_name"
+        },
+        "default": {
+          "enum": [
+            "on",
+            "off"
+          ],
+          "description": "The value the code falls back to when the flag system cannot answer. `off` for a new feature; `on` only for a kill switch that guards existing behavior."
+        },
+        "owner": {
+          "$ref": "urn:aidd:1:common#/$defs/identity",
+          "description": "The person who decides when the flag flips and sees it removed: never an agent or an agent account (`aidd validate` fails one)."
+        },
+        "cleanup_due": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "The date by which a later Spec removes the flag and its dead branch. After it, `aidd validate` warns and `aidd status` shows the cleanup as work."
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Why the flag exists: a release toggle, an experiment, a kill switch, or an operational toggle."
+        }
+      },
+      "description": "One feature flag: its key, safe default, owner, and cleanup date."
+    },
+    "deprecation_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "What is deprecated, as its consumers know it, such as `GET /v1/orders` or `order.total_cents`: the name a removal Spec lists in `removes_deprecations`."
+    },
+    "deprecation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "what",
+        "announced_on",
+        "sunset",
+        "replacement"
+      ],
+      "properties": {
+        "what": {
+          "$ref": "#/$defs/deprecation_name"
+        },
+        "announced_on": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "The day consumers were told. The `Deprecation` header (RFC 9745) carries the day the deprecation takes effect."
+        },
+        "sunset": {
+          "$ref": "urn:aidd:1:common#/$defs/date",
+          "description": "The day it stops working: the date the `Sunset` header (RFC 8594) carries, never before `announced_on` (`aidd validate` fails one). After it, a later Spec removes it, and until then `aidd validate` warns and `aidd status` shows the removal as work."
+        },
+        "replacement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "What consumers use instead, such as `GET /v2/orders`, or `none` with the reason."
+        },
+        "consumers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "description": "The known consumers that still use it, as the api doc's Consumers table names them: the people told before the sunset."
+        }
+      },
+      "description": "One deprecation: what it is, when consumers were told, when it stops working, and what replaces it."
+    }
+  }
+}

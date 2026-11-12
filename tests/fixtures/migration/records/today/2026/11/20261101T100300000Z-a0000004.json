@@ -1,0 +1,20 @@
+{
+  "id": "20261101T100300000Z-a0000004",
+  "type": "delegate_answer",
+  "recorded_at": "2026-11-01T10:03:00Z",
+  "by": "agent:claude-code/aidd-team:delegate",
+  "written_with": "cli",
+  "subject": "SPEC-4",
+  "data": {
+    "action": "spec.approve",
+    "covers": {
+      "spec": "SPEC-4",
+      "head": "cccccccccccccccccccccccccccccccccccccccc",
+      "tree": "dddddddddddddddddddddddddddddddddddddddd"
+    },
+    "outcome": "accept",
+    "reason": "ready",
+    "check": "20261101T100250000Z-1a2b3c4d",
+    "delegation_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  }
+}
